@@ -17,8 +17,8 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // API Keys - use environment variables in production
-const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY || 'CA19NkYkjNgzptn4MB6VE553NA7s06Nh';
-const BFL_API_KEY = process.env.BFL_API_KEY || '6249d98f-d557-4499-98b9-4355cc3f4a42';
+const MISTRAL_API_KEY = (process.env.MISTRAL_API_KEY || 'CA19NkYkjNgzptn4MB6VE553NA7s06Nh').trim().replace(/[^\w-]/g, '');
+const BFL_API_KEY = (process.env.BFL_API_KEY || '6249d98f-d557-4499-98b9-4355cc3f4a42').trim().replace(/[^\w-]/g, '');
 
 // Collection storage setup
 const collectionsDir = path.join(__dirname, 'collections');
