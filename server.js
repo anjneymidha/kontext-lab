@@ -150,20 +150,18 @@ function fisherYatesShuffle(array) {
 
 async function getDiversePrompts(imageBuffer) {
   
-  // Generate 8 dynamic prompts based on the image content
-  const dynamicPrompts = await generateDynamicPrompts(imageBuffer);
-  
   // Use true randomization with Fisher-Yates shuffle for static prompts
   const shuffledWild = fisherYatesShuffle(wildTransformationPrompts);
   
-  // Take 8 dynamic prompts and 8 pre-written wild prompts for total of 16
+  // Take 8 pre-written wild prompts for the static grid (left side)
   const staticWildPrompts = shuffledWild.slice(0, 8);
   
-  // Combine dynamic and static wild prompts
-  const allPrompts = [...dynamicPrompts, ...staticWildPrompts];
+  // Generate 8 dynamic prompts based on the image content for Rick Mode (right side)
+  const dynamicPrompts = await generateDynamicPrompts(imageBuffer);
   
-  // Final shuffle of the entire selection for completely random order
-  return fisherYatesShuffle(allPrompts);
+  // Return static prompts first (1-8), then dynamic prompts (9-16)
+  // This ensures static grid gets 1-8 and dynamic grid gets 9-16
+  return [...staticWildPrompts, ...dynamicPrompts];
 }
 
 // Function to get transformation prompt for specific iteration

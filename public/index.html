@@ -870,55 +870,130 @@
 
 
         /* Main Grid - compact visual grid */
+        /* Dual Grid Container */
+        .dual-grid-container {
+            flex: 1;
+            display: flex;
+            gap: 16px;
+            padding: 8px;
+            height: calc(100vh - 180px);
+            min-height: 0;
+        }
+        
+        .grid-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        
+        .grid-header {
+            background: var(--neu-bg);
+            padding: 8px 12px;
+            border-radius: 12px 12px 0 0;
+            box-shadow: var(--shadow-neu-soft);
+            text-align: center;
+            margin-bottom: 2px;
+        }
+        
+        .grid-header h3 {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 2px 0;
+            color: var(--black);
+        }
+        
+        .grid-header p {
+            font-size: 10px;
+            color: var(--gray);
+            margin: 0;
+            opacity: 0.8;
+        }
+        
+        .grid-header.rick-mode h3 {
+            color: var(--orange);
+        }
+        
         .results-grid {
             flex: 1;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(4, 1fr);
-            gap: 6px;
-            padding: 8px;
+            gap: 4px;
+            padding: 4px;
             min-height: 0;
             align-items: start;
-            height: calc(100vh - 140px);
+            background: var(--neu-bg);
+            border-radius: 0 0 12px 12px;
+            box-shadow: var(--shadow-neu-soft);
         }
         
-        /* Larger laptop screens - ensure perfect fit */
+        /* Responsive Dual Grid Layout */
         @media (min-width: 1200px) {
-            .results-grid {
-                height: calc(100vh - 120px);
-                gap: 8px;
-                padding: 10px;
+            .dual-grid-container {
+                gap: 20px;
+                padding: 12px;
             }
-        }
-        
-        @media (max-width: 1024px) {
+            
             .results-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 4px;
-                padding: 4px 8px;
-                height: calc(100vh - 100px);
+                gap: 6px;
+                padding: 6px;
             }
         }
         
         @media (max-width: 768px) {
+            .dual-grid-container {
+                flex-direction: column;
+                gap: 8px;
+                height: calc(100vh - 200px);
+            }
+            
+            .grid-section {
+                height: 50%;
+            }
+            
             .results-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(4, 1fr);
+                grid-template-rows: repeat(2, 1fr);
                 gap: 3px;
-                padding: 3px 6px;
-                grid-template-rows: repeat(8, 1fr);
-                height: calc(100vh - 140px);
+                padding: 3px;
+            }
+            
+            .grid-header h3 {
+                font-size: 12px;
+            }
+            
+            .grid-header p {
+                font-size: 9px;
             }
         }
         
         @media (max-width: 480px) {
+            .dual-grid-container {
+                gap: 6px;
+                padding: 4px;
+                height: calc(100vh - 180px);
+            }
+            
             .results-grid {
                 grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(4, 1fr);
                 gap: 2px;
-                padding: 2px 4px;
-                grid-template-rows: repeat(8, 1fr);
-                width: 100%;
-                box-sizing: border-box;
-                height: calc(100vh - 120px);
+                padding: 2px;
+            }
+            
+            .grid-header {
+                padding: 6px 8px;
+            }
+            
+            .grid-header h3 {
+                font-size: 11px;
+            }
+            
+            .grid-header p {
+                font-size: 8px;
             }
         }
 
@@ -1690,15 +1765,33 @@
             <div class="results-header">
                 <div class="results-title">Kontext Lab</div>
                 <div class="results-subtitle">
-                    16 wild transformations via <a href="https://bfl.ai/" target="_blank" class="bfl-link">BFL Kontext</a>
+                    A <a href="https://bfl.ai/" target="_blank" class="bfl-link">BFL Kontext</a> experiment
                 </div>
                 <div class="results-quote">
                     "The stimulus is to trigger the imagination, it's not a prescription" <em>- Rick Rubin</em>
                 </div>
             </div>
             
-            <div class="results-grid" id="resultsGrid">
-                <!-- Results will be populated here -->
+            <div class="dual-grid-container">
+                <div class="grid-section">
+                    <div class="grid-header">
+                        <h3>Classic Transformations</h3>
+                        <p>Curated visual styles</p>
+                    </div>
+                    <div class="results-grid static-grid" id="staticGrid">
+                        <!-- Static prompts will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="grid-section">
+                    <div class="grid-header rick-mode">
+                        <h3>Rick Mode</h3>
+                        <p>AI-imagined possibilities</p>
+                    </div>
+                    <div class="results-grid dynamic-grid" id="dynamicGrid">
+                        <!-- Dynamic prompts will be populated here -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1712,7 +1805,8 @@
         const progressCounter = document.getElementById('progressCounter');
         const statusPanel = document.getElementById('statusPanel');
         const systemLog = document.getElementById('systemLog');
-        const resultsGrid = document.getElementById('resultsGrid');
+        const staticGrid = document.getElementById('staticGrid');
+        const dynamicGrid = document.getElementById('dynamicGrid');
         const imagePreview = document.getElementById('imagePreview');
         const previewImage = document.getElementById('previewImage');
         const resizeHandle = document.getElementById('resizeHandle');
@@ -2083,7 +2177,9 @@
             if (existingTile) {
                 existingTile.replaceWith(newTile);
             } else {
-                resultsGrid.appendChild(newTile);
+                // First 8 go to static grid, next 8 go to dynamic grid (Rick Mode)
+                const targetGrid = iteration <= 8 ? staticGrid : dynamicGrid;
+                targetGrid.appendChild(newTile);
             }
             
             // Add completion animation
@@ -2174,7 +2270,8 @@
             startGenerationBeats();
             
             // Clear previous results
-            resultsGrid.innerHTML = '';
+            staticGrid.innerHTML = '';
+            dynamicGrid.innerHTML = '';
             systemLog.innerHTML = '<div class="log-line"><span class="log-time">--:--:--</span><span class="log-message">Process started</span></div>';
             
             // Create loading tiles with staggered animation and enhanced feedback
@@ -2182,7 +2279,10 @@
                 setTimeout(() => {
                     const loadingTile = createResultTile(i, null, '', false, true);
                     loadingTile.classList.add('processing');
-                    resultsGrid.appendChild(loadingTile);
+                    
+                    // First 8 go to static grid, next 8 go to dynamic grid
+                    const targetGrid = i <= 8 ? staticGrid : dynamicGrid;
+                    targetGrid.appendChild(loadingTile);
                     playTESound('click');
                 }, i * 50);
             }
@@ -2357,7 +2457,8 @@
                 imagePreview.querySelector('.preview-placeholder').style.display = 'none';
                 
                 // Load results
-                resultsGrid.innerHTML = '';
+                staticGrid.innerHTML = '';
+            dynamicGrid.innerHTML = '';
                 collection.results.forEach(result => {
                     const tile = createResultTile(
                         result.iteration,
@@ -2372,7 +2473,9 @@
                         tile.querySelector('.moderated-overlay').textContent = 'Error';
                     }
                     
-                    resultsGrid.appendChild(tile);
+                    // First 8 go to static grid, next 8 go to dynamic grid
+                    const targetGrid = result.iteration <= 8 ? staticGrid : dynamicGrid;
+                    targetGrid.appendChild(tile);
                 });
                 
                 // Update progress display
@@ -2420,7 +2523,8 @@
                 imagePreview.querySelector('.preview-placeholder').style.display = 'none';
                 
                 // Load results
-                resultsGrid.innerHTML = '';
+                staticGrid.innerHTML = '';
+            dynamicGrid.innerHTML = '';
                 collection.results.forEach(result => {
                     const tile = createResultTile(
                         result.iteration,
@@ -2429,7 +2533,9 @@
                         result.isModerated,
                         result.hasError
                     );
-                    resultsGrid.appendChild(tile);
+                    // First 8 go to static grid, next 8 go to dynamic grid
+                    const targetGrid = result.iteration <= 8 ? staticGrid : dynamicGrid;
+                    targetGrid.appendChild(tile);
                 });
                 
                 updateProgress(collection.results.length, 16);
