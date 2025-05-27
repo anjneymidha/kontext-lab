@@ -4,25 +4,34 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { kv } = require('@vercel/kv');
 
 const app = express();
 const port = process.env.PORT || 8080;
 
-// Middleware
+// Middleware with increased size limits
 app.use(express.static('public'));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Configure multer for file uploads
+// Configure multer for file uploads with 50MB limit
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB in bytes
+  }
+});
 
 // API Keys - use environment variables in production
 const MISTRAL_API_KEY = (process.env.MISTRAL_API_KEY || 'CA19NkYkjNgzptn4MB6VE553NA7s06Nh').trim().replace(/[^\w-]/g, '');
 const BFL_API_KEY = (process.env.BFL_API_KEY || '6249d98f-d557-4499-98b9-4355cc3f4a42').trim().replace(/[^\w-]/g, '');
 
-// Collection storage setup
+// Collection storage - use Vercel KV for production, file system for local
 const collectionsDir = path.join(__dirname, 'collections');
-if (!fs.existsSync(collectionsDir)) {
+
+// Only create directory for local development
+if (!process.env.VERCEL && !fs.existsSync(collectionsDir)) {
   fs.mkdirSync(collectionsDir, { recursive: true });
 }
 
@@ -413,8 +422,8 @@ async function processIterations(imageBuffer, res, totalIterations = 8) {
 }
 
 // Collection management functions
-async function saveCollection(originalImageBuffer, results) {
-  const collectionId = crypto.randomBytes(8).toString('hex');
+async function saveCollection(originalImageBuffer, results, sessionId) {
+  const collectionId = sessionId || crypto.randomBytes(8).toString('hex');
   
   // Convert image buffer to base64
   const originalImageBase64 = originalImageBuffer.toString('base64');
@@ -452,26 +461,61 @@ async function saveCollection(originalImageBuffer, results) {
     results: processedResults
   };
   
-  // Save to file
-  const filePath = path.join(collectionsDir, `${collectionId}.json`);
-  fs.writeFileSync(filePath, JSON.stringify(collection, null, 2));
+  // Save to Vercel KV or file depending on environment
+  if (process.env.VERCEL) {
+    // Use Vercel KV for production
+    await kv.set(`collection:${collectionId}`, collection);
+    console.log(`Collection saved to KV: ${collectionId}`);
+  } else {
+    // Use file system for local development
+    const filePath = path.join(collectionsDir, `${collectionId}.json`);
+    fs.writeFileSync(filePath, JSON.stringify(collection, null, 2));
+    console.log(`Collection saved to file: ${collectionId}`);
+  }
   
-  console.log(`Collection saved: ${collectionId}`);
   return collectionId;
 }
 
 async function getCollection(collectionId) {
-  const filePath = path.join(collectionsDir, `${collectionId}.json`);
-  
-  if (!fs.existsSync(filePath)) {
-    throw new Error('Collection not found');
+  if (process.env.VERCEL) {
+    // Check Vercel KV for production
+    const collection = await kv.get(`collection:${collectionId}`);
+    if (!collection) {
+      throw new Error('Collection not found');
+    }
+    return collection;
+  } else {
+    // Check file system for local development
+    const filePath = path.join(collectionsDir, `${collectionId}.json`);
+    
+    if (!fs.existsSync(filePath)) {
+      throw new Error('Collection not found');
+    }
+    
+    const collection = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    return collection;
   }
-  
-  const collection = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  return collection;
 }
 
 // Collection sharing routes
+// Session URL route (same as collection)
+app.get('/session/:id', async (req, res) => {
+  try {
+    const collection = await getCollection(req.params.id);
+    
+    // Serve the main app but with collection data embedded
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    let html = fs.readFileSync(indexPath, 'utf8');
+    
+    // The frontend will detect the session URL and load it via API
+    res.send(html);
+    
+  } catch (error) {
+    console.error('Error loading session:', error);
+    res.status(404).json({ error: 'Session not found' });
+  }
+});
+
 app.get('/collection/:id', async (req, res) => {
   try {
     const collection = await getCollection(req.params.id);
@@ -489,6 +533,16 @@ app.get('/collection/:id', async (req, res) => {
   }
 });
 
+app.get('/api/session/:id', async (req, res) => {
+  try {
+    const collection = await getCollection(req.params.id);
+    res.json(collection);
+  } catch (error) {
+    console.error('Error loading session:', error);
+    res.status(404).json({ error: 'Session not found' });
+  }
+});
+
 app.get('/api/collection/:id', async (req, res) => {
   try {
     const collection = await getCollection(req.params.id);
@@ -497,6 +551,18 @@ app.get('/api/collection/:id', async (req, res) => {
     console.error('Error loading collection:', error);
     res.status(404).json({ error: 'Collection not found' });
   }
+});
+
+// Error handling middleware for multer
+app.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ 
+        error: 'File too large. Maximum size is 50MB.' 
+      });
+    }
+  }
+  next(error);
 });
 
 // Route to handle image upload and processing
@@ -522,9 +588,10 @@ app.post('/process', upload.single('image'), async (req, res) => {
     // Process iterations
     const results = await processIterations(req.file.buffer, res);
     
-    // Save collection for sharing
-    const collectionId = await saveCollection(req.file.buffer, results);
-    const shareUrl = `${req.protocol}://${req.get('host')}/collection/${collectionId}`;
+    // Save collection for sharing with session ID
+    const sessionId = req.body.sessionId || crypto.randomBytes(8).toString('hex');
+    const collectionId = await saveCollection(req.file.buffer, results, sessionId);
+    const shareUrl = `${req.protocol}://${req.get('host')}/session/${sessionId}`;
     
     // Send completion with share URL
     res.write(`data: ${JSON.stringify({

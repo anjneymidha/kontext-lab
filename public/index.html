@@ -1426,75 +1426,6 @@
             pointer-events: auto;
         }
 
-        /* Share button */
-        .share-button {
-            background: linear-gradient(145deg, var(--green) 0%, #00b347 100%);
-            color: var(--white);
-            border: none;
-            border-radius: 16px;
-            padding: 16px 24px;
-            font-family: var(--font);
-            font-size: 14px;
-            font-weight: 700;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-top: 16px;
-            position: relative;
-            overflow: hidden;
-            display: none;
-            box-shadow: var(--shadow-neu-button);
-            touch-action: manipulation;
-        }
-        
-        @media (max-width: 768px) {
-            .share-button {
-                padding: 20px 28px;
-                font-size: 16px;
-                border-radius: 20px;
-                margin-top: 20px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .share-button {
-                padding: 24px 32px;
-                font-size: 18px;
-                width: 100%;
-            }
-        }
-
-        .share-button.show {
-            display: block;
-        }
-
-        .share-button:hover {
-            background: linear-gradient(145deg, #00cc00 0%, var(--green) 100%);
-            transform: translateY(-2px);
-            box-shadow: 
-                12px 12px 24px rgba(0,200,81,0.15),
-                -12px -12px 24px rgba(255,255,255,0.8);
-        }
-
-        .share-button:active {
-            transform: translateY(1px);
-            box-shadow: var(--shadow-neu-button-pressed);
-        }
-
-        .share-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .share-button:hover::before {
-            left: 100%;
-        }
 
         /* Collection info banner */
         .collection-banner {
@@ -1725,10 +1656,6 @@
                             </div>
                         </div>
                         
-                        <!-- Share Button -->
-                        <button class="share-button" id="shareButton">
-                            Share Collection
-                        </button>
                     </div>
                 </div>
             </div>
@@ -1781,7 +1708,7 @@
         let processingTimer = null;
         let featuredTileIndex = 0;
         let currentCollection = null;
-        let shareUrl = null;
+        let sessionId = null;
         
         // Beat system state
         let beatInterval = null;
@@ -1835,6 +1762,27 @@
                     playFeedbackTone(220, 200, 'square', 0.03);
                     break;
             }
+        }
+
+        // Session URL management
+        function generateSessionId() {
+            return 'session-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now().toString(36);
+        }
+
+        function updateSessionUrl() {
+            if (sessionId) {
+                const newUrl = `${window.location.origin}/session/${sessionId}`;
+                window.history.replaceState({sessionId: sessionId}, '', newUrl);
+                addLogEntry(`Session URL: ${newUrl}`, 'info');
+            }
+        }
+
+        function getSessionFromUrl() {
+            const pathParts = window.location.pathname.split('/');
+            if (pathParts[1] === 'session' && pathParts[2]) {
+                return pathParts[2];
+            }
+            return null;
         }
 
         // Subtle audio feedback only
@@ -2213,6 +2161,10 @@
                 }, i * 50);
             }
             
+            // Generate session ID and update URL
+            sessionId = generateSessionId();
+            updateSessionUrl();
+            
             updateProgress(0, 8);
             updateStatus('Uploading...', true);
             addLogEntry('Starting transformation process', 'info');
@@ -2220,6 +2172,7 @@
             try {
                 const formData = new FormData();
                 formData.append('image', imageInput.files[0]);
+                formData.append('sessionId', sessionId);
 
                 const response = await fetch('/process', {
                     method: 'POST',
@@ -2227,7 +2180,10 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Upload failed');
+                    if (response.status === 413) {
+                        throw new Error('File too large! Please use an image smaller than 50MB.');
+                    }
+                    throw new Error(`Upload failed (${response.status})`);
                 }
 
                 // Handle Server-Sent Events
@@ -2313,12 +2269,7 @@
                                         updateStatus('Complete!', false);
                                         addLogEntry('All transformations complete', 'success');
                                         
-                                        // Handle collection sharing
-                                        if (data.shareUrl) {
-                                            shareUrl = data.shareUrl;
-                                            document.getElementById('shareButton').classList.add('show');
-                                            addLogEntry('Collection ready to share!', 'success');
-                                        }
+                                        // Session URL is already updated
                                         
                                         // Stop the beat system and play victory sound
                                         stopGenerationBeats();
@@ -2349,32 +2300,6 @@
         });
 
         // Share collection functionality
-        function shareCollection() {
-            if (!shareUrl) {
-                showError('No collection to share yet!');
-                return;
-            }
-            
-            // Copy to clipboard
-            navigator.clipboard.writeText(shareUrl).then(() => {
-                addLogEntry('Share URL copied to clipboard!', 'success');
-                playTESound('success');
-                
-                // Visual feedback
-                const shareButton = document.getElementById('shareButton');
-                const originalText = shareButton.textContent;
-                shareButton.textContent = 'Copied!';
-                shareButton.style.background = '#ff6700';
-                
-                setTimeout(() => {
-                    shareButton.textContent = originalText;
-                    shareButton.style.background = '#00ff00';
-                }, 2000);
-            }).catch(() => {
-                // Fallback: show the URL
-                prompt('Share this URL:', shareUrl);
-            });
-        }
 
         // Load shared collection
         async function loadSharedCollection(collectionId) {
@@ -2437,15 +2362,81 @@
             }
         }
 
-        // Check if we're viewing a shared collection
+        async function loadSharedSession(sessionId) {
+            try {
+                const response = await fetch(`/api/session/${sessionId}`);
+                if (!response.ok) {
+                    throw new Error('Session not found');
+                }
+                
+                const collection = await response.json();
+                currentCollection = collection;
+                
+                // Set session ID for future reference
+                window.sessionId = sessionId;
+                
+                // Show collection banner
+                const banner = document.getElementById('collectionBanner');
+                const dateSpan = document.getElementById('collectionDate');
+                dateSpan.textContent = new Date(collection.createdAt).toLocaleDateString();
+                banner.classList.add('show');
+                
+                // Load original image preview
+                previewImage.src = `data:image/jpeg;base64,${collection.originalImage}`;
+                previewImage.style.display = 'block';
+                imagePreview.classList.add('has-image');
+                imagePreview.querySelector('.preview-placeholder').style.display = 'none';
+                
+                // Load results
+                resultsGrid.innerHTML = '';
+                collection.results.forEach(result => {
+                    const tile = createResultTile(
+                        result.iteration,
+                        result.image ? `data:image/jpeg;base64,${result.image}` : null,
+                        result.prompt,
+                        result.isModerated,
+                        result.hasError
+                    );
+                    resultsGrid.appendChild(tile);
+                });
+                
+                updateProgress(collection.results.length, 8);
+                updateStatus('Shared Session Loaded', false);
+                
+                // Disable form controls for shared sessions
+                form.style.opacity = '0.5';
+                form.style.pointerEvents = 'none';
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'View Only';
+                
+                addLogEntry('Shared session loaded successfully', 'success');
+                
+            } catch (error) {
+                console.error('Error loading session:', error);
+                showError('Failed to load shared session');
+            }
+        }
+
+        // Check if we're viewing a shared collection or session
         function checkForSharedCollection() {
             const path = window.location.pathname;
-            const match = path.match(/^\/collection\/([a-f0-9]+)$/);
-            if (match) {
-                const collectionId = match[1];
+            
+            // Check for session URLs
+            const sessionMatch = path.match(/^\/session\/(.+)$/);
+            if (sessionMatch) {
+                const sessionId = sessionMatch[1];
+                loadSharedSession(sessionId);
+                return true;
+            }
+            
+            // Check for collection URLs (legacy)
+            const collectionMatch = path.match(/^\/collection\/([a-f0-9]+)$/);
+            if (collectionMatch) {
+                const collectionId = collectionMatch[1];
                 loadSharedCollection(collectionId);
                 return true;
             }
+            
             return false;
         }
 
@@ -2475,7 +2466,6 @@
             // Initialize LED status
             
             // Setup share button
-            document.getElementById('shareButton').addEventListener('click', shareCollection);
             
             // Add startup log
             addLogEntry('System ready - Press SPACE to start', 'info');
