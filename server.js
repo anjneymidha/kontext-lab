@@ -4,7 +4,7 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { kv } = require('@vercel/kv');
+const { Pool } = require('pg');
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -27,8 +27,37 @@ const upload = multer({
 const MISTRAL_API_KEY = (process.env.MISTRAL_API_KEY || 'CA19NkYkjNgzptn4MB6VE553NA7s06Nh').trim().replace(/[^\w-]/g, '');
 const BFL_API_KEY = (process.env.BFL_API_KEY || '6249d98f-d557-4499-98b9-4355cc3f4a42').trim().replace(/[^\w-]/g, '');
 
-// Collection storage - use Vercel KV for production, file system for local
+// Collection storage - use Postgres for production, file system for local
 const collectionsDir = path.join(__dirname, 'collections');
+
+// Postgres connection for production
+const pool = process.env.POSTGRES_URL ? new Pool({
+  connectionString: process.env.POSTGRES_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+}) : null;
+
+// Initialize collections table if using Postgres
+async function initDatabase() {
+  if (pool) {
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS collections (
+          id VARCHAR(255) PRIMARY KEY,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          data JSONB NOT NULL
+        )
+      `);
+      console.log('Collections table ready');
+    } catch (error) {
+      console.error('Database initialization error:', error);
+    }
+  }
+}
+
+// Initialize database on startup
+if (process.env.VERCEL) {
+  initDatabase();
+}
 
 // Only create directory for local development
 if (!process.env.VERCEL && !fs.existsSync(collectionsDir)) {
@@ -461,11 +490,19 @@ async function saveCollection(originalImageBuffer, results, sessionId) {
     results: processedResults
   };
   
-  // Save to Vercel KV or file depending on environment
-  if (process.env.VERCEL) {
-    // Use Vercel KV for production
-    await kv.set(`collection:${collectionId}`, collection);
-    console.log(`Collection saved to KV: ${collectionId}`);
+  // Save to Postgres or file depending on environment
+  if (process.env.VERCEL && pool) {
+    // Use Postgres for production
+    try {
+      await pool.query(
+        'INSERT INTO collections (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = $2',
+        [collectionId, JSON.stringify(collection)]
+      );
+      console.log(`Collection saved to Postgres: ${collectionId}`);
+    } catch (error) {
+      console.error('Error saving to Postgres:', error);
+      throw error;
+    }
   } else {
     // Use file system for local development
     const filePath = path.join(collectionsDir, `${collectionId}.json`);
@@ -477,13 +514,21 @@ async function saveCollection(originalImageBuffer, results, sessionId) {
 }
 
 async function getCollection(collectionId) {
-  if (process.env.VERCEL) {
-    // Check Vercel KV for production
-    const collection = await kv.get(`collection:${collectionId}`);
-    if (!collection) {
+  if (process.env.VERCEL && pool) {
+    // Check Postgres for production
+    try {
+      const result = await pool.query('SELECT data FROM collections WHERE id = $1', [collectionId]);
+      if (result.rows.length === 0) {
+        throw new Error('Collection not found');
+      }
+      return JSON.parse(result.rows[0].data);
+    } catch (error) {
+      if (error.message === 'Collection not found') {
+        throw error;
+      }
+      console.error('Error reading from Postgres:', error);
       throw new Error('Collection not found');
     }
-    return collection;
   } else {
     // Check file system for local development
     const filePath = path.join(collectionsDir, `${collectionId}.json`);
