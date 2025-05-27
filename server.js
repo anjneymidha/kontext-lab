@@ -64,6 +64,26 @@ if (!process.env.VERCEL && !fs.existsSync(collectionsDir)) {
   fs.mkdirSync(collectionsDir, { recursive: true });
 }
 
+// Wild and unexpected transformation prompts - things humanity would never think to ask
+const wildTransformationPrompts = [
+  'Transform the person into a sentient household appliance while maintaining their facial expression - perhaps a wise old toaster with their eyes, or a concerned microwave with their mouth.',
+  'Change the person to look like they\'re made entirely of breakfast cereal floating in milk, but still maintaining their exact pose and facial structure with Lucky Charms and Cheerios.',
+  'Convert the person into a living, breathing traffic cone that has somehow gained consciousness and is deeply contemplating the meaning of directing traffic.',
+  'Transform them into a hybrid between a human and a rubber duck, complete with squeaky yellow texture but retaining their facial features and expression.',
+  'Change the person to appear as if they\'re a sophisticated AI robot that has just discovered emotions for the first time and is crying oil tears.',
+  'Convert them into a living piece of furniture - perhaps a reclining chair that has gained sentience and is having an existential crisis about being sat upon.',
+  'Transform the person into a walking, talking pizza slice that is ironically on a diet and feeling guilty about being delicious.',
+  'Change them to look like a cloud that has descended to earth level and is trying to blend in with humans by wearing a business suit made of condensed water vapor.',
+  'Convert the person into a living smartphone that has become self-aware and is now questioning why humans stare at it so much.',
+  'Transform them into a hybrid of a human and a houseplant, complete with leaves growing from their hair and roots for feet, but they\'re still trying to use social media.',
+  'Change the person to appear as a sentient piece of abstract modern art that is confused about why people keep trying to interpret its meaning.',
+  'Convert them into a living bookmark that has read every book it\'s ever been placed in and now has strong opinions about literature.',
+  'Transform the person into a conscious shadow that has separated from its owner and is now living independently, casting itself on walls dramatically.',
+  'Change them to look like a hybrid between a human and a grandfather clock, with their torso as the clock face and arms as the clock hands, always running late.',
+  'Convert the person into a living piece of cheese that has achieved enlightenment and is now a spiritual guru teaching other dairy products.',
+  'Transform them into a sentient weather pattern - perhaps a small personal thunderstorm that follows them around and reflects their mood.'
+];
+
 // High-quality transformation prompts based on BFL prompting guide best practices
 const transformationPrompts = [
   // Character transformations with preservation details
@@ -178,15 +198,21 @@ function getDiversePrompts() {
   // Use true randomization with Fisher-Yates shuffle
   const shuffledCharacter = fisherYatesShuffle(characterPrompts);
   const shuffledDiverse = fisherYatesShuffle(diverseCategories);
+  const shuffledWild = fisherYatesShuffle(wildTransformationPrompts);
   
-  // Take 3 character prompts and 5 diverse prompts, all in random order
-  const selected = [
+  // Take 8 regular prompts (3 character + 5 diverse) and 8 wild prompts for total of 16
+  const regularPrompts = [
     ...shuffledCharacter.slice(0, 3),
     ...shuffledDiverse.slice(0, 5)
   ];
   
+  const wildPrompts = shuffledWild.slice(0, 8);
+  
+  // Combine regular and wild prompts
+  const allPrompts = [...regularPrompts, ...wildPrompts];
+  
   // Final shuffle of the entire selection for completely random order
-  return fisherYatesShuffle(selected);
+  return fisherYatesShuffle(allPrompts);
 }
 
 // Function to get transformation prompt for specific iteration
@@ -305,7 +331,7 @@ async function checkKontextStatus(requestId) {
 }
 
 // Function to process iterations
-async function processIterations(imageBuffer, res, totalIterations = 8) {
+async function processIterations(imageBuffer, res, totalIterations = 16) {
   const results = [];
   const originalImageBuffer = imageBuffer; // Keep original image for all transformations
   

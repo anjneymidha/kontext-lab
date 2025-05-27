@@ -851,7 +851,7 @@
             flex: 1;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(2, 1fr);
+            grid-template-rows: repeat(4, 1fr);
             gap: 6px;
             padding: 8px;
             min-height: 0;
@@ -882,7 +882,7 @@
                 grid-template-columns: repeat(2, 1fr);
                 gap: 3px;
                 padding: 3px 6px;
-                grid-template-rows: repeat(4, 1fr);
+                grid-template-rows: repeat(8, 1fr);
                 height: calc(100vh - 140px);
             }
         }
@@ -892,7 +892,7 @@
                 grid-template-columns: repeat(2, 1fr);
                 gap: 2px;
                 padding: 2px 4px;
-                grid-template-rows: repeat(4, 1fr);
+                grid-template-rows: repeat(8, 1fr);
                 width: 100%;
                 box-sizing: border-box;
                 height: calc(100vh - 120px);
@@ -1667,7 +1667,7 @@
             <div class="results-header">
                 <div class="results-title">Kontext Lab</div>
                 <div class="results-subtitle">
-                    A <a href="https://bfl.ai/" target="_blank" class="bfl-link">BFL Kontext</a> experiment
+                    16 wild transformations via <a href="https://bfl.ai/" target="_blank" class="bfl-link">BFL Kontext</a>
                 </div>
             </div>
             
@@ -2065,7 +2065,7 @@
             setTimeout(() => newTile.classList.remove('completed'), 500);
             
             completedCount++;
-            updateProgress(completedCount, 8);
+            updateProgress(completedCount, 16);
         }
 
         // Enhanced image preview
@@ -2152,7 +2152,7 @@
             systemLog.innerHTML = '<div class="log-line"><span class="log-time">--:--:--</span><span class="log-message">Process started</span></div>';
             
             // Create loading tiles with staggered animation and enhanced feedback
-            for (let i = 1; i <= 8; i++) {
+            for (let i = 1; i <= 16; i++) {
                 setTimeout(() => {
                     const loadingTile = createResultTile(i, null, '', false, true);
                     loadingTile.classList.add('processing');
@@ -2165,7 +2165,7 @@
             sessionId = generateSessionId();
             updateSessionUrl();
             
-            updateProgress(0, 8);
+            updateProgress(0, 16);
             updateStatus('Uploading...', true);
             addLogEntry('Starting transformation process', 'info');
 
@@ -2232,13 +2232,13 @@
                                         
                                     case 'prompts_generated':
                                         updateStatus('Ready', false);
-                                        updateTechInfo('currentTask', '8 prompts generated');
-                                        addLogEntry('8 prompts generated', 'success');
+                                        updateTechInfo('currentTask', '16 prompts generated');
+                                        addLogEntry('16 prompts generated', 'success');
                                         break;
                                         
                                     case 'iteration_start':
                                         updateStatus(`Processing ${data.iteration}...`, true);
-                                        updateTechInfo('currentTask', `Generating image ${data.iteration}/8`, true);
+                                        updateTechInfo('currentTask', `Generating image ${data.iteration}/16`, true);
                                         addLogEntry(`Starting iteration ${data.iteration}`, 'info');
                                         break;
                                         
@@ -2345,7 +2345,7 @@
                 
                 // Update progress display
                 const successfulResults = collection.results.filter(r => !r.isModerated && !r.hasError);
-                updateProgress(successfulResults.length, 8);
+                updateProgress(successfulResults.length, 16);
                 updateStatus('Shared Collection Loaded', false);
                 
                 // Disable form controls for shared collections
@@ -2400,7 +2400,7 @@
                     resultsGrid.appendChild(tile);
                 });
                 
-                updateProgress(collection.results.length, 8);
+                updateProgress(collection.results.length, 16);
                 updateStatus('Shared Session Loaded', false);
                 
                 // Disable form controls for shared sessions
