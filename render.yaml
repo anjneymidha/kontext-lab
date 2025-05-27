@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: kontext-lab
+    env: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: BFL_API_KEY
+        sync: false
+    healthCheckPath: /
