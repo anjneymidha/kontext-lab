@@ -28,8 +28,9 @@
       "dest": "/public/$1"
     }
   ],
-  "env": {
-    "MISTRAL_API_KEY": "@mistral_api_key",
-    "BFL_API_KEY": "@bfl_api_key"
+  "functions": {
+    "server.js": {
+      "maxDuration": 300
+    }
   }
 }
