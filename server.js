@@ -3,6 +3,7 @@ const multer = require('multer');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -18,6 +19,12 @@ const upload = multer({ storage: storage });
 // API Keys - use environment variables in production
 const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY || 'CA19NkYkjNgzptn4MB6VE553NA7s06Nh';
 const BFL_API_KEY = process.env.BFL_API_KEY || '6249d98f-d557-4499-98b9-4355cc3f4a42';
+
+// Collection storage setup
+const collectionsDir = path.join(__dirname, 'collections');
+if (!fs.existsSync(collectionsDir)) {
+  fs.mkdirSync(collectionsDir, { recursive: true });
+}
 
 // High-quality transformation prompts based on BFL prompting guide best practices
 const transformationPrompts = [
@@ -405,6 +412,93 @@ async function processIterations(imageBuffer, res, totalIterations = 8) {
   return results;
 }
 
+// Collection management functions
+async function saveCollection(originalImageBuffer, results) {
+  const collectionId = crypto.randomBytes(8).toString('hex');
+  
+  // Convert image buffer to base64
+  const originalImageBase64 = originalImageBuffer.toString('base64');
+  
+  // Process results to include image data
+  const processedResults = await Promise.all(results.map(async (result, index) => {
+    let imageBase64 = null;
+    
+    if (result.status === 'completed' && result.imageUrl) {
+      try {
+        // Download the image from BFL
+        const imageResponse = await axios.get(result.imageUrl, {
+          responseType: 'arraybuffer',
+          timeout: 30000
+        });
+        imageBase64 = Buffer.from(imageResponse.data).toString('base64');
+      } catch (error) {
+        console.error(`Failed to download image for result ${index + 1}:`, error.message);
+      }
+    }
+    
+    return {
+      iteration: result.iteration,
+      prompt: result.prompt,
+      image: imageBase64,
+      isModerated: result.status === 'moderated',
+      hasError: result.status === 'error'
+    };
+  }));
+  
+  const collection = {
+    id: collectionId,
+    createdAt: new Date().toISOString(),
+    originalImage: originalImageBase64,
+    results: processedResults
+  };
+  
+  // Save to file
+  const filePath = path.join(collectionsDir, `${collectionId}.json`);
+  fs.writeFileSync(filePath, JSON.stringify(collection, null, 2));
+  
+  console.log(`Collection saved: ${collectionId}`);
+  return collectionId;
+}
+
+async function getCollection(collectionId) {
+  const filePath = path.join(collectionsDir, `${collectionId}.json`);
+  
+  if (!fs.existsSync(filePath)) {
+    throw new Error('Collection not found');
+  }
+  
+  const collection = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  return collection;
+}
+
+// Collection sharing routes
+app.get('/collection/:id', async (req, res) => {
+  try {
+    const collection = await getCollection(req.params.id);
+    
+    // Serve the main app but with collection data embedded
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    let html = fs.readFileSync(indexPath, 'utf8');
+    
+    // The frontend will detect the collection URL and load it via API
+    res.send(html);
+    
+  } catch (error) {
+    console.error('Error loading collection:', error);
+    res.status(404).json({ error: 'Collection not found' });
+  }
+});
+
+app.get('/api/collection/:id', async (req, res) => {
+  try {
+    const collection = await getCollection(req.params.id);
+    res.json(collection);
+  } catch (error) {
+    console.error('Error loading collection:', error);
+    res.status(404).json({ error: 'Collection not found' });
+  }
+});
+
 // Route to handle image upload and processing
 app.post('/process', upload.single('image'), async (req, res) => {
   console.log('Received image processing request');
@@ -428,10 +522,15 @@ app.post('/process', upload.single('image'), async (req, res) => {
     // Process iterations
     const results = await processIterations(req.file.buffer, res);
     
-    // Send completion
+    // Save collection for sharing
+    const collectionId = await saveCollection(req.file.buffer, results);
+    const shareUrl = `${req.protocol}://${req.get('host')}/collection/${collectionId}`;
+    
+    // Send completion with share URL
     res.write(`data: ${JSON.stringify({
       type: 'complete',
-      results: results
+      results: results,
+      shareUrl: shareUrl
     })}\n\n`);
     
   } catch (error) {

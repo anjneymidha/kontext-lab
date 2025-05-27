@@ -1976,7 +1976,7 @@
             
             // Audio feedback for progress
             if (current > 0) {
-                playTESound('processing');
+                playTESound('success');
             }
             
             // Update LEDs
@@ -2030,7 +2030,7 @@
                     playTESound('error');
                     break;
                 case 'warning':
-                    playTESound('knob');
+                    playTESound('error');
                     break;
                 default:
                     playTESound('click');
@@ -2117,7 +2117,7 @@
             setTimeout(() => newTile.classList.remove('completed'), 500);
             
             completedCount++;
-            updateProgress(completedCount, 16);
+            updateProgress(completedCount, 8);
         }
 
         // Enhanced image preview
@@ -2190,7 +2190,7 @@
             if (isProcessing) return;
             
             // Startup sound
-            playTESound('startup');
+            playTESound('click');
             
             isProcessing = true;
             completedCount = 0;
@@ -2420,7 +2420,7 @@
                 
                 // Update progress display
                 const successfulResults = collection.results.filter(r => !r.isModerated && !r.hasError);
-                updateProgress(successfulResults.length, 16);
+                updateProgress(successfulResults.length, 8);
                 updateStatus('Shared Collection Loaded', false);
                 
                 // Disable form controls for shared collections
@@ -2470,8 +2470,7 @@
                 return; // Don't initialize normal controls for shared collections
             }
             
-            // Setup enhanced controls
-            setupKnobControls();
+            // Setup enhanced controls - ready
             
             // Initialize LED status
             
@@ -2484,7 +2483,7 @@
             // Add some ambient feedback
             setTimeout(() => {
                 if (!isProcessing) {
-                    playTESound('startup');
+                    playTESound('success');
                 }
             }, 1000);
         }
