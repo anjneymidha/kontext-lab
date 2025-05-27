@@ -64,24 +64,24 @@ if (!process.env.VERCEL && !fs.existsSync(collectionsDir)) {
   fs.mkdirSync(collectionsDir, { recursive: true });
 }
 
-// Wild and unexpected transformation prompts - things humanity would never think to ask
-const wildTransformationPrompts = [
-  'Transform the person into a sentient household appliance while maintaining their facial expression - perhaps a wise old toaster with their eyes, or a concerned microwave with their mouth.',
-  'Change the person to look like they\'re made entirely of breakfast cereal floating in milk, but still maintaining their exact pose and facial structure with Lucky Charms and Cheerios.',
-  'Convert the person into a living, breathing traffic cone that has somehow gained consciousness and is deeply contemplating the meaning of directing traffic.',
-  'Transform them into a hybrid between a human and a rubber duck, complete with squeaky yellow texture but retaining their facial features and expression.',
-  'Change the person to appear as if they\'re a sophisticated AI robot that has just discovered emotions for the first time and is crying oil tears.',
-  'Convert them into a living piece of furniture - perhaps a reclining chair that has gained sentience and is having an existential crisis about being sat upon.',
-  'Transform the person into a walking, talking pizza slice that is ironically on a diet and feeling guilty about being delicious.',
-  'Change them to look like a cloud that has descended to earth level and is trying to blend in with humans by wearing a business suit made of condensed water vapor.',
-  'Convert the person into a living smartphone that has become self-aware and is now questioning why humans stare at it so much.',
-  'Transform them into a hybrid of a human and a houseplant, complete with leaves growing from their hair and roots for feet, but they\'re still trying to use social media.',
-  'Change the person to appear as a sentient piece of abstract modern art that is confused about why people keep trying to interpret its meaning.',
-  'Convert them into a living bookmark that has read every book it\'s ever been placed in and now has strong opinions about literature.',
-  'Transform the person into a conscious shadow that has separated from its owner and is now living independently, casting itself on walls dramatically.',
-  'Change them to look like a hybrid between a human and a grandfather clock, with their torso as the clock face and arms as the clock hands, always running late.',
-  'Convert the person into a living piece of cheese that has achieved enlightenment and is now a spiritual guru teaching other dairy products.',
-  'Transform them into a sentient weather pattern - perhaps a small personal thunderstorm that follows them around and reflects their mood.'
+// Cherry Mode transformation prompts - beloved character styles and iconic looks
+const cherryModePrompts = [
+  'Transform the person into a Muppet character while preserving their exact facial features and expression. Add fuzzy felt texture, bright Muppet colors, and characteristic googly eyes.',
+  'Convert the person into a LEGO minifigure while maintaining their identical facial structure and pose. Add plastic brick texture, bright LEGO colors, and the classic cylindrical head shape.',
+  'Change the person to Minecraft Steve/Alex style while keeping their exact pose and expression. Add blocky pixelated textures, square features, and the iconic Minecraft aesthetic.',
+  'Transform the person into a Disney animated character while maintaining their identical facial structure and expression. Apply clean animation-style shading with vibrant, classic Disney colors.',
+  'Convert the person into a Pixar character style while keeping their exact face and pose. Use soft 3D animation textures, expressive features, and Pixar\'s signature lighting.',
+  'Change the person to look like a classic cartoon character (Looney Tunes style) while preserving their facial features. Add bold black outlines, flat colors, and exaggerated expressions.',
+  'Transform the person into a Simpson\'s character while maintaining their pose and basic features. Add yellow skin, the characteristic art style, and simple line work.',
+  'Convert the person into a South Park character style while keeping their exact expression. Add the show\'s signature simple animation style and construction paper texture.',
+  'Change the person to anime/manga style while preserving their facial structure and pose. Add large expressive eyes, detailed hair, and classic anime aesthetic.',
+  'Transform the person into a Tim Burton character style while maintaining their features. Add the distinctive gothic aesthetic, pale colors, and Burton\'s signature dark whimsy.',
+  'Convert the person into a claymation character (Wallace and Gromit style) while keeping their pose. Add smooth clay textures and the characteristic stop-motion animation look.',
+  'Change the person to look like a character from The Legend of Zelda series while preserving their facial features. Add the game\'s art style and fantasy elements.',
+  'Transform the person into a Pokemon trainer style while maintaining their exact pose and expression. Add the anime-inspired Pokemon art style and vibrant colors.',
+  'Convert the person into a Studio Ghibli character while keeping their facial structure. Add the distinctive Miyazaki art style with soft, detailed animation.',
+  'Change the person to Rick and Morty animation style while preserving their features. Add the show\'s characteristic art style and exaggerated expressions.',
+  'Transform the person into a classic superhero comic book style while maintaining their pose. Add bold colors, dramatic shading, and comic book aesthetic.'
 ];
 
 // High-quality transformation prompts based on BFL prompting guide best practices
@@ -150,18 +150,18 @@ function fisherYatesShuffle(array) {
 
 async function getDiversePrompts(imageBuffer) {
   
-  // Use true randomization with Fisher-Yates shuffle for static prompts
-  const shuffledWild = fisherYatesShuffle(wildTransformationPrompts);
+  // Use true randomization with Fisher-Yates shuffle for Cherry Mode prompts
+  const shuffledCherry = fisherYatesShuffle(cherryModePrompts);
   
-  // Take 8 pre-written wild prompts for the static grid (left side)
-  const staticWildPrompts = shuffledWild.slice(0, 8);
+  // Take 8 Cherry Mode prompts for the static grid (left side)
+  const cherryPrompts = shuffledCherry.slice(0, 8);
   
   // Generate 8 dynamic prompts based on the image content for Rick Mode (right side)
   const dynamicPrompts = await generateDynamicPrompts(imageBuffer);
   
-  // Return static prompts first (1-8), then dynamic prompts (9-16)
+  // Return Cherry Mode prompts first (1-8), then dynamic prompts (9-16)
   // This ensures static grid gets 1-8 and dynamic grid gets 9-16
-  return [...staticWildPrompts, ...dynamicPrompts];
+  return [...cherryPrompts, ...dynamicPrompts];
 }
 
 // Function to get transformation prompt for specific iteration
