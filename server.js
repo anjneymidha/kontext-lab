@@ -148,68 +148,19 @@ function fisherYatesShuffle(array) {
   return shuffled;
 }
 
-function getDiversePrompts() {
-  // Core character transformations (these will be shuffled too)
-  const characterPrompts = [
-    'Change the clothing and styling to make the person look like a Muppet character while preserving their exact facial features, expression, and pose. Add fuzzy texture to clothes and bright felt-like colors.',
-    'Restyle the person as a LEGO minifigure while maintaining their identical facial structure, eye color, and expression. Add plastic brick texture and bright LEGO-style colors.',
-    'Transform the person into animated cartoon style with yellow skin tone and simplified features while keeping the exact same face, hairstyle, and pose. Use bold outlines and bright flat colors in classic 2D animation style.'
-  ];
+async function getDiversePrompts(imageBuffer) {
   
-  // Extended diverse categories for maximum variety
-  const diverseCategories = [
-    // Material transformations
-    'Transform the person to appear made of glowing neon light while preserving their identical shape and pose. Add bright electric colors and subtle luminous effects.',
-    'Convert to oil painting style while maintaining the identical composition and subject placement. Add visible brushstrokes and rich color depth.',
-    'Change the person to look like a marble statue while keeping their exact position and proportions. Add white marble texture with subtle veining.',
-    'Convert the person to look like they\'re made of carved wood while maintaining their exact pose and facial structure. Add visible wood grain and natural brown tones.',
-    'Change to clay animation style while keeping the person\'s exact pose and expression. Add smooth, matte clay textures.',
-    'Make the person appear made of liquid mercury while preserving their identical shape and positioning. Add reflective, flowing metal effects.',
-    
-    // Environmental changes  
-    'Change the background to outer space while keeping the person in the exact same position, scale, and pose. Add starfield and nebula effects around them.',
-    'Replace the background with underwater scene while maintaining identical subject placement and camera angle. Add floating bubbles and aquatic lighting.',
-    'Change the setting to medieval castle while keeping the person in the exact same position and pose. Add stone architecture and torch lighting.',
-    'Replace the background with cyberpunk cityscape while preserving the subject\'s identical positioning. Add neon lights and futuristic buildings.',
-    'Change the environment to tropical jungle while maintaining the exact same subject placement and framing. Add lush vegetation and dappled lighting.',
-    'Replace the background with snowy mountain landscape while keeping the person in identical position and scale. Add snow effects and crisp mountain air.',
-    
-    // Artistic styles
-    'Convert to stained glass art style while preserving the subject\'s positioning. Add rich colors with black outlines and light transmission effects.',
-    'Change to watercolor painting style while preserving the exact scene composition. Add soft, flowing paint effects and paper texture.',
-    'Convert to pencil sketch style while maintaining identical subject positioning. Add natural graphite lines and cross-hatching details.',
-    'Convert to comic book style while maintaining the identical composition. Add bold outlines, halftone dots, and vibrant comic colors.',
-    'Change to vintage sepia photograph style while preserving exact positioning. Add aged paper texture and antique photo effects.',
-    
-    // Creative transformations
-    'Replace the clothing with futuristic robot armor while keeping the person\'s face, expression, and body position identical. Add metallic textures and glowing blue accents.',
-    'Change the outfit to vampire styling while maintaining identical facial features and expression. Add gothic clothing and dramatic lighting.',
-    'Change the clothing to heroic character costume while preserving the person\'s identical facial features, body position, and expression. Add colorful cape and bold costume design with emblem.',
-    'Restyle as a pirate character while keeping the exact same face and pose. Add period-appropriate costume with weathered textures.',
-    'Change clothing to medieval knight armor while preserving the person\'s facial features and body position. Add realistic metal textures and heraldic details.',
-    'Modify the styling to steampunk aesthetic while maintaining identical facial features and pose. Add brass goggles, gears, and Victorian-era clothing.',
-    
-    // Fantasy and creature styles
-    'Change the person to look like an elegant elf while preserving their exact facial structure and pose. Add pointed ears and ethereal lighting.',
-    'Transform into a wise wizard appearance while keeping identical facial features and body position. Add flowing robes and magical elements.',
-    'Modify to look like a fierce warrior while maintaining the exact same face and pose. Add battle-worn armor and determined expression enhancements.'
-  ];
+  // Generate 8 dynamic prompts based on the image content
+  const dynamicPrompts = await generateDynamicPrompts(imageBuffer);
   
-  // Use true randomization with Fisher-Yates shuffle
-  const shuffledCharacter = fisherYatesShuffle(characterPrompts);
-  const shuffledDiverse = fisherYatesShuffle(diverseCategories);
+  // Use true randomization with Fisher-Yates shuffle for static prompts
   const shuffledWild = fisherYatesShuffle(wildTransformationPrompts);
   
-  // Take 8 regular prompts (3 character + 5 diverse) and 8 wild prompts for total of 16
-  const regularPrompts = [
-    ...shuffledCharacter.slice(0, 3),
-    ...shuffledDiverse.slice(0, 5)
-  ];
+  // Take 8 dynamic prompts and 8 pre-written wild prompts for total of 16
+  const staticWildPrompts = shuffledWild.slice(0, 8);
   
-  const wildPrompts = shuffledWild.slice(0, 8);
-  
-  // Combine regular and wild prompts
-  const allPrompts = [...regularPrompts, ...wildPrompts];
+  // Combine dynamic and static wild prompts
+  const allPrompts = [...dynamicPrompts, ...staticWildPrompts];
   
   // Final shuffle of the entire selection for completely random order
   return fisherYatesShuffle(allPrompts);
@@ -268,6 +219,97 @@ async function analyzeImageForPronouns(imageBuffer) {
   } catch (error) {
     console.error('Error analyzing image with Mistral:', error.response?.data || error.message);
     return 'they'; // Default fallback on error
+  }
+}
+
+// Function to generate 8 dynamic transformation prompts based on image content
+async function generateDynamicPrompts(imageBuffer) {
+  console.log('Generating dynamic prompts with Mistral...');
+  
+  try {
+    const base64Image = imageBuffer.toString('base64');
+    
+    const requestData = {
+      model: "pixtral-large-2411",
+      max_tokens: 2000,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Analyze this image and generate exactly 8 creative, wild, and unexpected image transformation prompts. Each prompt should:
+
+1. Be completely unique and creative - think of things humans would never expect to ask
+2. Preserve the subject's exact pose, facial features, and body position 
+3. Be absurd, funny, or surprising in some way
+4. Be detailed enough for an AI image generator
+5. Start with an action verb like "Transform", "Change", "Convert", etc.
+
+Look at what's in the image and create 8 wildly creative transformation ideas that play with the subject, setting, style, or concept in unexpected ways. Be imaginative!
+
+Respond with exactly 8 prompts, each on a new line, numbered 1-8.`
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${base64Image}`
+              }
+            }
+          ]
+        }
+      ]
+    };
+
+    const response = await axios.post('https://api.mistral.ai/v1/chat/completions', requestData, {
+      headers: {
+        'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const content = response.data.choices[0].message.content.trim();
+    console.log('Mistral dynamic prompts response:', content);
+    
+    // Parse the numbered list into an array
+    const prompts = content
+      .split('\n')
+      .filter(line => line.match(/^\d+\./))
+      .map(line => line.replace(/^\d+\.\s*/, '').trim())
+      .filter(prompt => prompt.length > 0);
+    
+    if (prompts.length >= 8) {
+      return prompts.slice(0, 8);
+    } else {
+      console.warn(`Only got ${prompts.length} prompts from Mistral, padding with fallbacks`);
+      // Pad with some fallback prompts if we didn't get enough
+      const fallbacks = [
+        'Transform the subject into a living piece of modern art that questions its own existence.',
+        'Change the subject to appear made of the last thing they ate, complete with realistic food textures.',
+        'Convert the subject into a sentient household object that has gained consciousness.',
+        'Transform the subject into their own shadow that has come to life.',
+        'Change the subject to look like they\'re made of their favorite childhood toy material.',
+        'Convert the subject into a weather phenomenon that follows them everywhere.',
+        'Transform the subject into a living emoji that expresses their deepest thoughts.',
+        'Change the subject to appear as a conscious piece of technology from the future.'
+      ];
+      
+      return [...prompts, ...fallbacks.slice(0, 8 - prompts.length)];
+    }
+    
+  } catch (error) {
+    console.error('Error generating dynamic prompts:', error.response?.data || error.message);
+    // Return fallback prompts if API fails
+    return [
+      'Transform the subject into a living piece of abstract art that questions reality.',
+      'Change the subject to appear made of their favorite food, maintaining their exact pose.',
+      'Convert the subject into a sentient household appliance with consciousness.',
+      'Transform the subject into a walking, talking version of their own reflection.',
+      'Change the subject to look like they\'re made of pure energy and light.',
+      'Convert the subject into a living cartoon character from an alternate universe.',
+      'Transform the subject into a conscious cloud formation with their personality.',
+      'Change the subject to appear as a time traveler from the distant future.'
+    ];
   }
 }
 
@@ -353,8 +395,13 @@ async function processIterations(imageBuffer, res, totalIterations = 16) {
     type: 'prompts_generating'
   })}\n\n`);
   
-  // Generate diverse prompts for this session
-  const diversePrompts = getDiversePrompts();
+  // Send dynamic generation event
+  res.write(`data: ${JSON.stringify({
+    type: 'generating_dynamic_prompts'
+  })}\n\n`);
+  
+  // Generate diverse prompts for this session (8 dynamic + 8 static wild)
+  const diversePrompts = await getDiversePrompts(imageBuffer);
   console.log('Generated diverse prompts:', diversePrompts.map((p, i) => `${i+1}. ${p.substring(0, 50)}...`));
   
   // Send prompts generated event

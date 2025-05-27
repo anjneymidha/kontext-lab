@@ -2230,6 +2230,12 @@
                                         addLogEntry('Generating transformation prompts', 'info');
                                         break;
                                         
+                                    case 'generating_dynamic_prompts':
+                                        updateStatus('Creating dynamic prompts...', true);
+                                        updateTechInfo('currentTask', 'AI analyzing image for custom prompts', true);
+                                        addLogEntry('Mistral AI creating personalized prompts', 'info');
+                                        break;
+                                        
                                     case 'prompts_generated':
                                         updateStatus('Ready', false);
                                         updateTechInfo('currentTask', '16 prompts generated');
