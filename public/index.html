@@ -1724,51 +1724,6 @@
 
 
         /* Collection info banner */
-        .collection-banner {
-            background: linear-gradient(145deg, var(--orange) 0%, #e55a00 100%);
-            color: var(--white);
-            padding: 16px 24px;
-            text-align: center;
-            font-size: 12px;
-            font-weight: 700;
-            display: none;
-            position: relative;
-            overflow: hidden;
-            margin: 16px;
-            border-radius: 20px;
-            box-shadow: var(--shadow-neu-button);
-        }
-
-        .collection-banner.show {
-            display: block;
-        }
-
-        .collection-banner::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 4px,
-                rgba(255,255,255,0.1) 4px,
-                rgba(255,255,255,0.1) 8px
-            );
-            animation: banner-flow 2s linear infinite;
-        }
-
-        @keyframes banner-flow {
-            0% { transform: translateX(-16px); }
-            100% { transform: translateX(0); }
-        }
-
-        .collection-banner-text {
-            position: relative;
-            z-index: 2;
-        }
 
         /* Responsive Design */
         @media (max-width: 1200px) {
@@ -1913,13 +1868,6 @@
     </button>
     
     <div class="container">
-        <!-- Collection Banner -->
-        <div class="collection-banner" id="collectionBanner">
-            <div class="collection-banner-text">
-                📸 Viewing Shared Collection - <span id="collectionDate"></span>
-            </div>
-        </div>
-        
         <!-- Control Surface -->
         <div class="control-surface">
             <div class="resize-handle" id="resizeHandle"></div>
@@ -2937,11 +2885,6 @@
                 const collection = await response.json();
                 currentCollection = collection;
                 
-                // Show collection banner
-                const banner = document.getElementById('collectionBanner');
-                const dateSpan = document.getElementById('collectionDate');
-                dateSpan.textContent = new Date(collection.createdAt).toLocaleDateString();
-                banner.classList.add('show');
                 
                 // Load original image preview
                 previewImage.src = `data:image/jpeg;base64,${collection.originalImage}`;
@@ -3005,11 +2948,6 @@
                 // Set session ID for future reference
                 window.sessionId = sessionId;
                 
-                // Show collection banner
-                const banner = document.getElementById('collectionBanner');
-                const dateSpan = document.getElementById('collectionDate');
-                dateSpan.textContent = new Date(collection.createdAt).toLocaleDateString();
-                banner.classList.add('show');
                 
                 // Load original image preview
                 previewImage.src = `data:image/jpeg;base64,${collection.originalImage}`;
@@ -3161,7 +3099,6 @@
             const statusPanel = document.getElementById('statusPanel');
             const progressCounter = document.getElementById('progressCounter');
             const systemLog = document.getElementById('systemLog');
-            const collectionBanner = document.getElementById('collectionBanner');
             const form = document.getElementById('editForm');
             const submitBtn = document.getElementById('submitBtn');
             
@@ -3213,10 +3150,6 @@
             if (cherryGrid) cherryGrid.innerHTML = '';
             if (rickGrid) rickGrid.innerHTML = '';
             
-            // Hide collection banner
-            if (collectionBanner) {
-                collectionBanner.classList.remove('show');
-            }
             
             // Clear system log
             if (systemLog) {
