@@ -2620,13 +2620,13 @@
                         <div class="prompt-overlay">
                             <div class="prompt-text">${prompt}</div>
                             <div class="image-actions">
-                                <button class="action-btn expand-btn">🔍 View</button>
-                                <button class="action-btn download-btn">📥 Save</button>
+                                <button type="button" class="action-btn expand-btn">🔍 View</button>
+                                <button type="button" class="action-btn download-btn">📥 Save</button>
                             </div>
                         </div>
                         <div class="prompt-input-container">
                             <textarea class="prompt-input" data-iteration="${iteration}">${prompt}</textarea>
-                            <button class="edit-btn" data-iteration="${iteration}">✨ Edit Result</button>
+                            <button type="button" class="edit-btn" data-iteration="${iteration}">✨ Edit Result</button>
                         </div>
                     </div>
                     <div class="result-label">Result ${iterationLabel}</div>
@@ -2660,17 +2660,19 @@
                 if (editBtn && promptInput) {
                     editBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
+                        e.preventDefault(); // Prevent any form submission
                         const editPrompt = promptInput.value.trim();
                         if (editPrompt) {
                             performIterativeEdit(imageUrl, editPrompt, iteration);
-                            promptInput.value = ''; // Clear input after submission
+                            // Don't clear input immediately - let user see what they submitted
                         }
                     });
                     
-                    // Allow Enter key to trigger edit
+                    // Allow Enter key to trigger edit (Ctrl+Enter for multiline)
                     promptInput.addEventListener('keypress', (e) => {
-                        if (e.key === 'Enter') {
+                        if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey) {
                             e.preventDefault();
+                            e.stopPropagation();
                             editBtn.click();
                         }
                     });
