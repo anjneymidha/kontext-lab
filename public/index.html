@@ -2546,6 +2546,7 @@
                 targetGrid.appendChild(loadingTile);
                 
                 // Call Kontext API for iterative editing
+                console.log('🔄 Calling edit API with prompt:', editPrompt.substring(0, 50) + '...');
                 const editResponse = await fetch('/api/edit-image', {
                     method: 'POST',
                     headers: {
@@ -2559,8 +2560,11 @@
                     })
                 });
                 
+                console.log('📡 Edit API response status:', editResponse.status);
                 if (!editResponse.ok) {
-                    throw new Error(`Edit API error: ${editResponse.status}`);
+                    const errorText = await editResponse.text();
+                    console.error('❌ Edit API error response:', errorText);
+                    throw new Error(`Edit API error: ${editResponse.status} - ${errorText}`);
                 }
                 
                 const editResult = await editResponse.json();
@@ -2579,7 +2583,16 @@
                 
             } catch (error) {
                 console.error('Iterative edit error:', error);
-                addLogEntry(`Edit failed: ${error.message}`, 'error');
+                
+                // More specific error handling
+                let errorMessage = error.message;
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage = 'Network error - check connection and try again';
+                } else if (error.message.includes('failed to fetch')) {
+                    errorMessage = 'Unable to reach edit API - server may be down';
+                }
+                
+                addLogEntry(`Edit failed: ${errorMessage}`, 'error');
                 
                 // Remove loading tile on error
                 const loadingTile = document.getElementById(`result-${originalIteration}E`);

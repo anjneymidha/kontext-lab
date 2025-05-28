@@ -733,19 +733,34 @@ app.get('/api/collection/:id', async (req, res) => {
   }
 });
 
+// Test endpoint for edit API
+app.get('/api/edit-test', (req, res) => {
+  res.json({ status: 'Edit API is working', timestamp: new Date().toISOString() });
+});
+
 // API endpoint for iterative image editing
 app.post('/api/edit-image', async (req, res) => {
+  console.log('📥 Edit API endpoint hit');
+  
   try {
     const { prompt, input_image, steps = 50, guidance = 3.0 } = req.body;
+    console.log('📋 Request body received:', { 
+      hasPrompt: !!prompt, 
+      hasImage: !!input_image, 
+      promptLength: prompt?.length,
+      imageLength: input_image?.length 
+    });
     
     if (!prompt || !input_image) {
+      console.error('❌ Missing required fields:', { hasPrompt: !!prompt, hasImage: !!input_image });
       return res.status(400).json({ error: 'Prompt and input_image are required' });
     }
     
-    console.log(`🎨 Starting iterative edit with prompt: "${prompt}"`);
+    console.log(`🎨 Starting iterative edit with prompt: "${prompt.substring(0, 100)}..."`);
     
     // Clean the API key and call BFL API
     const cleanApiKey = process.env.BFL_API_KEY.trim().replace(/[^\w-]/g, '');
+    console.log('🔑 API key available:', !!cleanApiKey);
     
     const requestBody = {
       prompt: prompt,
