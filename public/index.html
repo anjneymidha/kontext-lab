@@ -305,97 +305,6 @@
             color: var(--text-muted);
         }
         
-        /* First-time user onboarding overlay */
-        .onboarding-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 1;
-            transition: opacity 0.5s ease;
-        }
-        
-        .onboarding-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        .onboarding-content {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            max-width: 400px;
-            margin: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        
-        @media (max-width: 768px) {
-            .onboarding-content {
-                padding: 24px;
-                margin: 16px;
-                max-width: calc(100vw - 32px);
-            }
-            
-            .onboarding-title {
-                font-size: 20px;
-            }
-            
-            .onboarding-text {
-                font-size: 14px;
-            }
-            
-            .onboarding-arrow {
-                font-size: 36px;
-            }
-        }
-        
-        .onboarding-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--orange);
-            margin-bottom: 16px;
-        }
-        
-        .onboarding-text {
-            font-size: 16px;
-            color: var(--gray);
-            margin-bottom: 24px;
-            line-height: 1.5;
-        }
-        
-        .onboarding-arrow {
-            font-size: 48px;
-            color: var(--orange);
-        }
-        
-        @keyframes bounce-arrow {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        .onboarding-close {
-            background: var(--accent);
-            color: var(--background);
-            border: none;
-            padding: var(--space-sm) var(--space-lg);
-            border-radius: var(--radius-md);
-            font-weight: var(--font-weight-medium);
-            cursor: pointer;
-            margin-top: var(--space-md);
-            transition: all 0.2s ease;
-            font-family: var(--font-family);
-        }
-        
-        .onboarding-close:hover {
-            background: #e55a00;
-        }
         
         .desktop-text {
             display: inline;
@@ -967,8 +876,8 @@
             .dual-grid-container {
                 gap: 16px;
                 padding: 12px;
-                height: calc(100vh - 450px);
-                min-height: 380px;
+                height: calc(100vh - 300px);
+                min-height: 500px;
                 overflow-y: auto;
             }
             
@@ -1950,18 +1859,6 @@
     </style>
 </head>
 <body>
-    <!-- First-Time User Onboarding -->
-    <div class="onboarding-overlay" id="onboardingOverlay">
-        <div class="onboarding-content">
-            <div class="onboarding-title">Welcome to Kontext Lab! 🎨</div>
-            <div class="onboarding-text">
-                Transform any photo into 8 incredible AI variations.<br>
-                <strong>Step 1:</strong> Upload your photo to get started!
-            </div>
-            <div class="onboarding-arrow">↙️</div>
-            <button class="onboarding-close" onclick="hideOnboarding()">Got it!</button>
-        </div>
-    </div>
 
     <!-- Home Button -->
     <button class="home-button" onclick="goHome()" title="Start Fresh">
@@ -2004,8 +1901,7 @@
                             
                             <div class="preview-screen" id="imagePreview">
                                 <div class="preview-placeholder">
-                                    No Signal<br>
-                                    <span style="font-size: 10px;">▶ Load Image or Paste (Ctrl+V) ◀</span>
+                                    Upload Image
                                 </div>
                                 <img id="previewImage" class="preview-image" alt="Preview" style="display: none;">
                             </div>
@@ -2101,7 +1997,6 @@
         // Removed technical modules
         // const statusModule = document.getElementById('statusModule');
         // const systemModule = document.getElementById('systemModule');
-        const onboardingOverlay = document.getElementById('onboardingOverlay');
         
         // Enhanced UI Elements
         const currentTaskEl = document.getElementById('currentTask');
@@ -2118,34 +2013,7 @@
 
         // State
         let isProcessing = false;
-        let hasSeenOnboarding = localStorage.getItem('kontextlab-onboarding-seen') === 'true';
         
-        // Onboarding Functions
-        function hideOnboarding() {
-            onboardingOverlay.classList.add('hidden');
-            localStorage.setItem('kontextlab-onboarding-seen', 'true');
-            hasSeenOnboarding = true;
-        }
-        
-        function showOnboardingIfNeeded() {
-            if (!hasSeenOnboarding && !currentCollection) {
-                onboardingOverlay.classList.remove('hidden');
-            }
-        }
-        
-        // Hide onboarding when user uploads an image
-        function hideOnboardingOnUpload() {
-            if (!hasSeenOnboarding) {
-                hideOnboarding();
-            }
-        }
-        
-        // Close onboarding when clicking outside
-        onboardingOverlay.addEventListener('click', function(e) {
-            if (e.target === onboardingOverlay) {
-                hideOnboarding();
-            }
-        });
         let completedCount = 0;
         let audioContext;
         let processingStartTime = null;
@@ -2711,8 +2579,6 @@
                     // Store the file for form submission
                     currentImageFile = file;
                     
-                    // Hide onboarding when user uploads an image
-                    hideOnboardingOnUpload();
                     
                     // Stop the pulsing animation once image is loaded
                     const fileButton = document.querySelector('.file-button');
@@ -3245,10 +3111,6 @@
                 return; // Don't initialize normal controls for shared collections
             }
             
-            // Show onboarding for first-time users
-            setTimeout(() => {
-                showOnboardingIfNeeded();
-            }, 500);
             
             // Setup enhanced controls - ready
             
