@@ -3149,8 +3149,73 @@
 
         // Home button functionality
         function goHome() {
-            // Clear any session data and navigate to fresh start
-            window.location.href = window.location.origin + window.location.pathname;
+            // Reset all application state
+            sessionId = null;
+            currentCollection = null;
+            isProcessing = false;
+            
+            // Clear UI elements
+            const previewImage = document.getElementById('previewImage');
+            const imageInput = document.getElementById('imageInput');
+            const generateBtn = document.getElementById('generateBtn');
+            const statusPanel = document.getElementById('statusPanel');
+            const progressCounter = document.getElementById('progressCounter');
+            const systemLog = document.getElementById('systemLog');
+            const collectionBanner = document.getElementById('collectionBanner');
+            
+            // Reset preview
+            if (previewImage) {
+                previewImage.style.display = 'none';
+                previewImage.src = '';
+            }
+            
+            // Reset file input
+            if (imageInput) {
+                imageInput.value = '';
+            }
+            
+            // Reset generate button
+            if (generateBtn) {
+                generateBtn.textContent = 'Generate Transformations';
+                generateBtn.disabled = true;
+                generateBtn.classList.remove('ready', 'processing');
+            }
+            
+            // Reset status
+            if (statusPanel) {
+                statusPanel.textContent = 'Ready';
+                statusPanel.classList.remove('active');
+            }
+            
+            // Reset progress counter
+            if (progressCounter) {
+                progressCounter.textContent = '0 / 8 Complete';
+                progressCounter.classList.remove('show');
+            }
+            
+            // Clear results grids
+            const cherryGrid = document.querySelector('.grid-section:first-child .results-grid');
+            const rickGrid = document.querySelector('.grid-section:last-child .results-grid');
+            if (cherryGrid) cherryGrid.innerHTML = '';
+            if (rickGrid) rickGrid.innerHTML = '';
+            
+            // Hide collection banner
+            if (collectionBanner) {
+                collectionBanner.classList.remove('show');
+            }
+            
+            // Clear system log
+            if (systemLog) {
+                systemLog.innerHTML = '<div class="log-line">› System initialized</div>';
+            }
+            
+            // Reset URL to clean state
+            window.history.replaceState({}, '', window.location.origin + window.location.pathname);
+            
+            // Add fresh start log
+            setTimeout(() => {
+                addLogEntry('Fresh start - Upload an image to begin', 'info');
+            }, 100);
         }
 
         // Start the system
