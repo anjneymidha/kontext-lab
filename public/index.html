@@ -1174,56 +1174,66 @@
         }
 
         
-        /* Prompt input box for iterative editing */
+        /* Large prompt field for iterative editing */
         .prompt-input-container {
             background: var(--neu-bg);
             border-top: 1px solid var(--neu-accent);
-            padding: 6px;
+            padding: 12px;
             display: flex;
-            gap: 4px;
-            align-items: center;
+            flex-direction: column;
+            gap: 8px;
         }
         
         .prompt-input {
-            flex: 1;
+            width: 100%;
             background: var(--cream);
             border: none;
-            border-radius: 8px;
-            padding: 4px 6px;
-            font-size: 10px;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 13px;
             font-family: var(--font);
             color: var(--black);
-            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.1);
+            box-shadow: inset 3px 3px 6px rgba(0,0,0,0.1);
             transition: all 0.2s ease;
+            resize: vertical;
+            min-height: 60px;
+            line-height: 1.4;
+            box-sizing: border-box;
         }
         
         .prompt-input:focus {
             outline: none;
-            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.15), 0 0 0 1px var(--orange);
+            box-shadow: inset 3px 3px 6px rgba(0,0,0,0.15), 0 0 0 2px var(--orange);
+            background: var(--white);
         }
         
         .edit-btn {
             background: var(--orange);
             color: var(--white);
             border: none;
-            border-radius: 6px;
-            padding: 4px 8px;
-            font-size: 10px;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 14px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: var(--shadow-neu-button);
             touch-action: manipulation;
+            align-self: flex-end;
+            min-width: 120px;
         }
         
         .edit-btn:hover {
             background: #e55a00;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 
+                6px 6px 12px rgba(0,0,0,0.15),
+                -6px -6px 12px rgba(255,255,255,0.9);
         }
         
         .edit-btn:active {
             transform: translateY(0);
-            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.2);
+            box-shadow: inset 3px 3px 6px rgba(0,0,0,0.2);
         }
         
         .edit-btn:disabled {
@@ -1233,14 +1243,37 @@
         }
         
         @media (max-width: 768px) {
+            .prompt-input-container {
+                padding: 10px;
+                gap: 6px;
+            }
+            
             .prompt-input {
-                font-size: 11px;
-                padding: 6px 8px;
+                font-size: 14px;
+                padding: 10px 12px;
+                min-height: 50px;
+                border-radius: 10px;
             }
             
             .edit-btn {
-                font-size: 11px;
-                padding: 6px 10px;
+                font-size: 13px;
+                padding: 10px 16px;
+                border-radius: 10px;
+                align-self: stretch;
+                min-width: auto;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .prompt-input {
+                font-size: 15px;
+                padding: 12px 14px;
+                min-height: 45px;
+            }
+            
+            .edit-btn {
+                font-size: 14px;
+                padding: 12px 18px;
             }
         }
 
@@ -2580,8 +2613,8 @@
                     </div>
                     <div class="result-label">Result ${iterationLabel}</div>
                     <div class="prompt-input-container">
-                        <input type="text" class="prompt-input" value="${prompt.replace(/"/g, '&quot;')}" data-iteration="${iteration}">
-                        <button class="edit-btn" data-iteration="${iteration}">✨ Edit</button>
+                        <textarea class="prompt-input" data-iteration="${iteration}">${prompt}</textarea>
+                        <button class="edit-btn" data-iteration="${iteration}">✨ Edit Result</button>
                     </div>
                 `;
             }
