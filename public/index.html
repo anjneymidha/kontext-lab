@@ -2681,6 +2681,15 @@
                     promptInput.addEventListener('click', (e) => {
                         e.stopPropagation();
                     });
+                    
+                    // Prevent any keyboard events from bubbling up
+                    promptInput.addEventListener('keydown', (e) => {
+                        e.stopPropagation();
+                    });
+                    
+                    promptInput.addEventListener('keyup', (e) => {
+                        e.stopPropagation();
+                    });
                 }
                 
                 // Double-click to expand
@@ -3215,7 +3224,14 @@
 
         // Add keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && !isProcessing && !currentCollection && !imageModal.classList.contains('show')) {
+            // Check if user is typing in an input field
+            const isTyping = e.target.tagName === 'INPUT' || 
+                           e.target.tagName === 'TEXTAREA' || 
+                           e.target.contentEditable === 'true' ||
+                           e.target.isContentEditable;
+            
+            // Space key shortcut (only when not typing)
+            if (e.code === 'Space' && !isTyping && !isProcessing && !currentCollection && !imageModal.classList.contains('show')) {
                 e.preventDefault();
                 initAudio();
                 if (currentImageFile) {
@@ -3226,7 +3242,7 @@
                 playTESound('click');
             }
             
-            // ESC to close modal
+            // ESC to close modal (works even when typing)
             if (e.code === 'Escape' && imageModal.classList.contains('show')) {
                 closeImageModal();
             }
