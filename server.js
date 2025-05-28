@@ -87,21 +87,9 @@ if (!process.env.VERCEL && !fs.existsSync(collectionsDir)) {
 // Cherry Mode transformation prompts - beloved character styles and iconic looks
 const cherryModePrompts = [
   'Transform the person into a Muppet character while preserving their exact facial features and expression. Add fuzzy felt texture, bright Muppet colors, and characteristic googly eyes.',
-  'Convert the person into a LEGO minifigure while maintaining their identical facial structure and pose. Add plastic brick texture, bright LEGO colors, and the classic cylindrical head shape.',
   'Change the person to Minecraft Steve/Alex style while keeping their exact pose and expression. Add blocky pixelated textures, square features, and the iconic Minecraft aesthetic.',
-  'Transform the person into a Disney animated character while maintaining their identical facial structure and expression. Apply clean animation-style shading with vibrant, classic Disney colors.',
-  'Convert the person into a Pixar character style while keeping their exact face and pose. Use soft 3D animation textures, expressive features, and Pixar\'s signature lighting.',
-  'Change the person to look like a classic cartoon character (Looney Tunes style) while preserving their facial features. Add bold black outlines, flat colors, and exaggerated expressions.',
-  'Transform the person into a Simpson\'s character while maintaining their pose and basic features. Add yellow skin, the characteristic art style, and simple line work.',
-  'Convert the person into a South Park character style while keeping their exact expression. Add the show\'s signature simple animation style and construction paper texture.',
-  'Change the person to anime/manga style while preserving their facial structure and pose. Add large expressive eyes, detailed hair, and classic anime aesthetic.',
-  'Transform the person into a Tim Burton character style while maintaining their features. Add the distinctive gothic aesthetic, pale colors, and Burton\'s signature dark whimsy.',
-  'Convert the person into a claymation character (Wallace and Gromit style) while keeping their pose. Add smooth clay textures and the characteristic stop-motion animation look.',
-  'Change the person to look like a character from The Legend of Zelda series while preserving their facial features. Add the game\'s art style and fantasy elements.',
-  'Transform the person into a Pokemon trainer style while maintaining their exact pose and expression. Add the anime-inspired Pokemon art style and vibrant colors.',
-  'Convert the person into a Studio Ghibli character while keeping their facial structure. Add the distinctive Miyazaki art style with soft, detailed animation.',
-  'Change the person to Rick and Morty animation style while preserving their features. Add the show\'s characteristic art style and exaggerated expressions.',
-  'Transform the person into a classic superhero comic book style while maintaining their pose. Add bold colors, dramatic shading, and comic book aesthetic.'
+  'Transform the person into a Studio Ghibli character while maintaining their identical facial structure and expression. Apply soft watercolor textures, detailed backgrounds, and Miyazaki\'s signature animation style.',
+  'Convert the person into a Rugrats character style while keeping their exact face and pose. Add the show\'s characteristic thick line art, pastel colors, and exaggerated baby-like features.'
 ];
 
 // High-quality transformation prompts based on BFL prompting guide best practices
