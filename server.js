@@ -31,15 +31,28 @@ const BFL_API_KEY = (process.env.BFL_API_KEY || '6249d98f-d557-4499-98b9-4355cc3
 const collectionsDir = path.join(__dirname, 'collections');
 
 // Postgres connection for production
+console.log('🔗 Setting up Postgres connection...');
+console.log(`POSTGRES_URL available: ${!!process.env.POSTGRES_URL}`);
+console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+
 const pool = process.env.POSTGRES_URL ? new Pool({
   connectionString: process.env.POSTGRES_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  max: 1, // Limit connections for serverless
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
 }) : null;
+
+console.log(`Pool created: ${!!pool}`);
 
 // Initialize collections table if using Postgres
 async function initDatabase() {
+  console.log('🔧 Initializing database...');
+  console.log(`Pool available: ${!!pool}`);
+  
   if (pool) {
     try {
+      console.log('📝 Creating collections table if not exists...');
       await pool.query(`
         CREATE TABLE IF NOT EXISTS collections (
           id VARCHAR(255) PRIMARY KEY,
@@ -47,17 +60,24 @@ async function initDatabase() {
           data JSONB NOT NULL
         )
       `);
-      console.log('Collections table ready');
+      console.log('✅ Collections table ready');
+      
+      // Test the connection
+      const testResult = await pool.query('SELECT NOW()');
+      console.log('✅ Database connection test successful:', testResult.rows[0]);
+      return true;
     } catch (error) {
-      console.error('Database initialization error:', error);
+      console.error('❌ Database initialization error:', error);
+      return false;
     }
+  } else {
+    console.log('❌ No pool available for database initialization');
+    return false;
   }
 }
 
-// Initialize database on startup
-if (process.env.VERCEL) {
-  initDatabase();
-}
+// Database initialization flag
+let dbInitialized = false;
 
 // Only create directory for local development
 if (!process.env.VERCEL && !fs.existsSync(collectionsDir)) {
@@ -153,15 +173,16 @@ async function getDiversePrompts(imageBuffer) {
   // Use true randomization with Fisher-Yates shuffle for Cherry Mode prompts
   const shuffledCherry = fisherYatesShuffle(cherryModePrompts);
   
-  // Take 8 Cherry Mode prompts for the static grid (left side)
-  const cherryPrompts = shuffledCherry.slice(0, 8);
+  // Take 4 Cherry Mode prompts
+  const cherryPrompts = shuffledCherry.slice(0, 4);
   
-  // Generate 8 dynamic prompts based on the image content for Rick Mode (right side)
-  const dynamicPrompts = await generateDynamicPrompts(imageBuffer);
+  // Generate 4 Rick Mode prompts using Mistral AI
+  const rickPrompts = await generateDynamicPrompts(imageBuffer);
   
-  // Return Cherry Mode prompts first (1-8), then dynamic prompts (9-16)
-  // This ensures static grid gets 1-8 and dynamic grid gets 9-16
-  return [...cherryPrompts, ...dynamicPrompts];
+  // Combine them: first 4 are Cherry Mode, next 4 are Rick Mode
+  const allPrompts = [...cherryPrompts, ...rickPrompts.slice(0, 4)];
+  
+  return allPrompts;
 }
 
 // Function to get transformation prompt for specific iteration
@@ -236,7 +257,7 @@ async function generateDynamicPrompts(imageBuffer) {
           content: [
             {
               type: "text",
-              text: `Analyze this image and generate exactly 8 creative, wild, and unexpected image transformation prompts. Each prompt should:
+              text: `Analyze this image and generate exactly 4 creative, wild, and unexpected image transformation prompts. Each prompt should:
 
 1. Be completely unique and creative - think of things humans would never expect to ask
 2. Preserve the subject's exact pose, facial features, and body position 
@@ -244,9 +265,9 @@ async function generateDynamicPrompts(imageBuffer) {
 4. Be detailed enough for an AI image generator
 5. Start with an action verb like "Transform", "Change", "Convert", etc.
 
-Look at what's in the image and create 8 wildly creative transformation ideas that play with the subject, setting, style, or concept in unexpected ways. Be imaginative!
+Look at what's in the image and create 4 wildly creative transformation ideas that play with the subject, setting, style, or concept in unexpected ways. Be imaginative!
 
-Respond with exactly 8 prompts, each on a new line, numbered 1-8.`
+Respond with exactly 4 prompts, each on a new line, numbered 1-4.`
             },
             {
               type: "image_url",
@@ -276,8 +297,8 @@ Respond with exactly 8 prompts, each on a new line, numbered 1-8.`
       .map(line => line.replace(/^\d+\.\s*/, '').trim())
       .filter(prompt => prompt.length > 0);
     
-    if (prompts.length >= 8) {
-      return prompts.slice(0, 8);
+    if (prompts.length >= 4) {
+      return prompts.slice(0, 4);
     } else {
       console.warn(`Only got ${prompts.length} prompts from Mistral, padding with fallbacks`);
       // Pad with some fallback prompts if we didn't get enough
@@ -371,7 +392,7 @@ async function checkKontextStatus(requestId) {
 }
 
 // Function to process iterations
-async function processIterations(imageBuffer, res, totalIterations = 16) {
+async function processIterations(imageBuffer, res, totalIterations = 8) {
   const results = [];
   const originalImageBuffer = imageBuffer; // Keep original image for all transformations
   
@@ -562,52 +583,107 @@ async function saveCollection(originalImageBuffer, results, sessionId) {
   };
   
   // Save to Postgres or file depending on environment
+  console.log(`Attempting to save collection: ${collectionId}`);
+  console.log(`Environment VERCEL: ${process.env.VERCEL}`);
+  console.log(`Pool available: ${!!pool}`);
+  
   if (process.env.VERCEL && pool) {
+    // Ensure database is initialized
+    if (!dbInitialized) {
+      console.log('🔄 Database not initialized, initializing now...');
+      dbInitialized = await initDatabase();
+      if (!dbInitialized) {
+        console.error('❌ Failed to initialize database, falling back to memory');
+        throw new Error('Database not available');
+      }
+    }
+    
     // Use Postgres for production
     try {
+      console.log(`Saving to Postgres with ID: ${collectionId}`);
       await pool.query(
         'INSERT INTO collections (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = $2',
         [collectionId, JSON.stringify(collection)]
       );
-      console.log(`Collection saved to Postgres: ${collectionId}`);
+      console.log(`✅ Collection successfully saved to Postgres: ${collectionId}`);
     } catch (error) {
-      console.error('Error saving to Postgres:', error);
+      console.error('❌ Error saving to Postgres:', error);
       throw error;
     }
   } else {
     // Use file system for local development
+    console.log(`Saving to file system: ${collectionId}`);
     const filePath = path.join(collectionsDir, `${collectionId}.json`);
     fs.writeFileSync(filePath, JSON.stringify(collection, null, 2));
-    console.log(`Collection saved to file: ${collectionId}`);
+    console.log(`✅ Collection saved to file: ${collectionId}`);
   }
   
   return collectionId;
 }
 
 async function getCollection(collectionId) {
+  console.log(`Attempting to get collection: ${collectionId}`);
+  console.log(`Environment VERCEL: ${process.env.VERCEL}`);
+  console.log(`Pool available: ${!!pool}`);
+  
   if (process.env.VERCEL && pool) {
-    // Check Postgres for production
-    try {
-      const result = await pool.query('SELECT data FROM collections WHERE id = $1', [collectionId]);
-      if (result.rows.length === 0) {
+    // Ensure database is initialized
+    if (!dbInitialized) {
+      console.log('🔄 Database not initialized, initializing now...');
+      dbInitialized = await initDatabase();
+      if (!dbInitialized) {
+        console.error('❌ Failed to initialize database');
         throw new Error('Collection not found');
       }
-      return JSON.parse(result.rows[0].data);
+    }
+    
+    // Check Postgres for production
+    try {
+      console.log(`Querying Postgres for collection: ${collectionId}`);
+      const result = await pool.query('SELECT data FROM collections WHERE id = $1', [collectionId]);
+      console.log(`Query result: ${result.rows.length} rows found`);
+      
+      if (result.rows.length === 0) {
+        console.log(`❌ Collection not found in Postgres: ${collectionId}`);
+        throw new Error('Collection not found');
+      }
+      
+      console.log(`✅ Collection found in Postgres: ${collectionId}`);
+      const rawData = result.rows[0].data;
+      console.log(`Raw data type: ${typeof rawData}`);
+      
+      // JSONB columns return objects directly, not strings
+      if (typeof rawData === 'object') {
+        console.log(`✅ Returning JSONB object directly`);
+        return rawData;
+      } else {
+        console.log(`Parsing JSON string...`);
+        try {
+          return JSON.parse(rawData);
+        } catch (parseError) {
+          console.error(`❌ JSON parse error for collection ${collectionId}:`, parseError);
+          console.error(`Raw data preview: ${JSON.stringify(rawData).substring(0, 200)}...`);
+          throw new Error('Collection data corrupted');
+        }
+      }
     } catch (error) {
       if (error.message === 'Collection not found') {
         throw error;
       }
-      console.error('Error reading from Postgres:', error);
+      console.error('❌ Error reading from Postgres:', error);
       throw new Error('Collection not found');
     }
   } else {
     // Check file system for local development
+    console.log(`Checking file system for collection: ${collectionId}`);
     const filePath = path.join(collectionsDir, `${collectionId}.json`);
     
     if (!fs.existsSync(filePath)) {
+      console.log(`❌ Collection file not found: ${filePath}`);
       throw new Error('Collection not found');
     }
     
+    console.log(`✅ Collection found in file: ${filePath}`);
     const collection = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     return collection;
   }
