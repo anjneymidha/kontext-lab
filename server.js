@@ -733,6 +733,114 @@ app.get('/api/collection/:id', async (req, res) => {
   }
 });
 
+// API endpoint for iterative image editing
+app.post('/api/edit-image', async (req, res) => {
+  try {
+    const { prompt, input_image, steps = 50, guidance = 3.0 } = req.body;
+    
+    if (!prompt || !input_image) {
+      return res.status(400).json({ error: 'Prompt and input_image are required' });
+    }
+    
+    console.log(`🎨 Starting iterative edit with prompt: "${prompt}"`);
+    
+    // Clean the API key and call BFL API
+    const cleanApiKey = process.env.BFL_API_KEY.trim().replace(/[^\w-]/g, '');
+    
+    const requestBody = {
+      prompt: prompt,
+      input_image: input_image,
+      steps: parseInt(steps),
+      guidance: parseFloat(guidance)
+    };
+    
+    console.log('🔥 Calling BFL API for edit...');
+    const bflResponse = await fetch('https://api.us1.bfl.ai/v1/flux-bagel-alpha', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'x-key': cleanApiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    if (!bflResponse.ok) {
+      const errorData = await bflResponse.text();
+      console.error('BFL API Error:', errorData);
+      throw new Error(`BFL API error: ${bflResponse.status} - ${errorData}`);
+    }
+    
+    const bflResult = await bflResponse.json();
+    console.log('📬 Got BFL response:', bflResult);
+    
+    const requestId = bflResult.id;
+    if (!requestId) {
+      throw new Error('No request ID received from BFL API');
+    }
+    
+    // Poll for results
+    console.log('⏰ Polling for edit results...');
+    let attempts = 0;
+    const maxAttempts = 60; // 90 seconds timeout
+    
+    while (attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      attempts++;
+      
+      const resultResponse = await fetch(`https://api.us1.bfl.ai/v1/get_result?id=${requestId}`, {
+        headers: {
+          'accept': 'application/json',
+          'x-key': cleanApiKey
+        }
+      });
+      
+      if (!resultResponse.ok) {
+        console.error('Result fetch error:', resultResponse.status);
+        continue;
+      }
+      
+      const result = await resultResponse.json();
+      console.log(`📊 Polling attempt ${attempts}, status: ${result.status}`);
+      
+      if (result.status === 'Ready') {
+        const editedImageUrl = result.result.sample;
+        console.log('✅ Edit completed successfully');
+        
+        return res.json({
+          success: true,
+          imageUrl: editedImageUrl,
+          prompt: prompt,
+          moderated: false
+        });
+      } else if (result.status === 'Content Moderated') {
+        console.log('⚠️ Edit result was moderated');
+        return res.json({
+          success: false,
+          moderated: true,
+          prompt: prompt
+        });
+      } else if (result.status === 'Request Moderated') {
+        console.log('⚠️ Edit request was moderated');
+        return res.json({
+          success: false,
+          moderated: true,
+          prompt: prompt
+        });
+      }
+    }
+    
+    throw new Error('Edit timeout - request took too long');
+    
+  } catch (error) {
+    console.error('❌ Iterative edit error:', error);
+    res.status(500).json({ 
+      error: 'Failed to process iterative edit',
+      details: error.message 
+    });
+  }
+});
+
 // Error handling middleware for multer
 app.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {

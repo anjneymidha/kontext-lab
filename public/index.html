@@ -1191,6 +1191,76 @@
                 max-height: 20px;
             }
         }
+        
+        /* Prompt input box for iterative editing */
+        .prompt-input-container {
+            background: var(--neu-bg);
+            border-top: 1px solid var(--neu-accent);
+            padding: 6px;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        
+        .prompt-input {
+            flex: 1;
+            background: var(--cream);
+            border: none;
+            border-radius: 8px;
+            padding: 4px 6px;
+            font-size: 10px;
+            font-family: var(--font);
+            color: var(--black);
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .prompt-input:focus {
+            outline: none;
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.15), 0 0 0 1px var(--orange);
+        }
+        
+        .edit-btn {
+            background: var(--orange);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-neu-button);
+            touch-action: manipulation;
+        }
+        
+        .edit-btn:hover {
+            background: #e55a00;
+            transform: translateY(-1px);
+        }
+        
+        .edit-btn:active {
+            transform: translateY(0);
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .edit-btn:disabled {
+            background: var(--gray);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        @media (max-width: 768px) {
+            .prompt-input {
+                font-size: 11px;
+                padding: 6px 8px;
+            }
+            
+            .edit-btn {
+                font-size: 11px;
+                padding: 6px 10px;
+            }
+        }
 
         .moderated-overlay {
             position: absolute;
@@ -2426,6 +2496,72 @@
             }
         }
 
+        // Iterative editing using Kontext API
+        async function performIterativeEdit(sourceImageUrl, editPrompt, originalIteration) {
+            try {
+                addLogEntry(`Starting iterative edit: "${editPrompt}"`, 'info');
+                
+                // Convert image URL to base64
+                const response = await fetch(sourceImageUrl);
+                const blob = await response.blob();
+                const base64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.readAsDataURL(blob);
+                });
+                
+                // Create new iteration number (append 'E' for edited)
+                const newIteration = `${originalIteration}E`;
+                
+                // Create loading tile for the edit
+                const loadingTile = createResultTile(newIteration, null, `Editing: ${editPrompt}`, false, true);
+                const targetGrid = originalIteration <= 4 ? staticGrid : dynamicGrid;
+                targetGrid.appendChild(loadingTile);
+                
+                // Call Kontext API for iterative editing
+                const editResponse = await fetch('/api/edit-image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: editPrompt,
+                        input_image: base64,
+                        steps: 50,
+                        guidance: 3.0
+                    })
+                });
+                
+                if (!editResponse.ok) {
+                    throw new Error(`Edit API error: ${editResponse.status}`);
+                }
+                
+                const editResult = await editResponse.json();
+                
+                if (editResult.moderated) {
+                    // Replace loading tile with moderated tile
+                    const moderatedTile = createResultTile(newIteration, null, editPrompt, true, false);
+                    loadingTile.replaceWith(moderatedTile);
+                    addLogEntry(`Edit result moderated`, 'warning');
+                } else {
+                    // Replace loading tile with result
+                    const resultTile = createResultTile(newIteration, editResult.imageUrl, editPrompt, false, false);
+                    loadingTile.replaceWith(resultTile);
+                    addLogEntry(`Edit completed successfully`, 'success');
+                }
+                
+            } catch (error) {
+                console.error('Iterative edit error:', error);
+                addLogEntry(`Edit failed: ${error.message}`, 'error');
+                
+                // Remove loading tile on error
+                const loadingTile = document.getElementById(`result-${originalIteration}E`);
+                if (loadingTile) {
+                    loadingTile.remove();
+                }
+            }
+        }
+
         // Enhanced tile creation with animations and prompt reveal
         function createResultTile(iteration, imageUrl = null, prompt = '', isModerated = false, isLoading = false) {
             const tile = document.createElement('div');
@@ -2463,6 +2599,10 @@
                     </div>
                     <div class="result-label">Result ${iterationLabel}</div>
                     <div class="result-prompt">${prompt}</div>
+                    <div class="prompt-input-container">
+                        <input type="text" class="prompt-input" placeholder="Edit this result..." data-iteration="${iteration}">
+                        <button class="edit-btn" data-iteration="${iteration}">✨ Edit</button>
+                    </div>
                 `;
             }
             
@@ -2483,6 +2623,34 @@
                     downloadBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
                         downloadImage(imageUrl, `kontext-result-${iteration}`);
+                    });
+                }
+                
+                // Add edit functionality
+                const editBtn = tile.querySelector('.edit-btn');
+                const promptInput = tile.querySelector('.prompt-input');
+                
+                if (editBtn && promptInput) {
+                    editBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const editPrompt = promptInput.value.trim();
+                        if (editPrompt) {
+                            performIterativeEdit(imageUrl, editPrompt, iteration);
+                            promptInput.value = ''; // Clear input after submission
+                        }
+                    });
+                    
+                    // Allow Enter key to trigger edit
+                    promptInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            editBtn.click();
+                        }
+                    });
+                    
+                    // Prevent tile click when interacting with input
+                    promptInput.addEventListener('click', (e) => {
+                        e.stopPropagation();
                     });
                 }
                 
