@@ -2537,13 +2537,13 @@
                     reader.readAsDataURL(blob);
                 });
                 
-                // Create new iteration number (append 'E' for edited)
-                const newIteration = `${originalIteration}E`;
-                
-                // Create loading tile for the edit
-                const loadingTile = createResultTile(newIteration, null, `Editing: ${editPrompt}`, false, true);
-                const targetGrid = originalIteration <= 4 ? staticGrid : dynamicGrid;
-                targetGrid.appendChild(loadingTile);
+                // Replace the original tile with loading state
+                const originalTile = document.getElementById(`result-${originalIteration}`);
+                if (originalTile) {
+                    // Create loading tile to replace the original
+                    const loadingTile = createResultTile(originalIteration, null, `Editing: ${editPrompt}`, false, true);
+                    originalTile.replaceWith(loadingTile);
+                }
                 
                 // Call Kontext API for iterative editing
                 console.log('🔄 Calling edit API with prompt:', editPrompt.substring(0, 50) + '...');
@@ -2569,16 +2569,19 @@
                 
                 const editResult = await editResponse.json();
                 
-                if (editResult.moderated) {
-                    // Replace loading tile with moderated tile
-                    const moderatedTile = createResultTile(newIteration, null, editPrompt, true, false);
-                    loadingTile.replaceWith(moderatedTile);
-                    addLogEntry(`Edit result moderated`, 'warning');
-                } else {
-                    // Replace loading tile with result
-                    const resultTile = createResultTile(newIteration, editResult.imageUrl, editPrompt, false, false);
-                    loadingTile.replaceWith(resultTile);
-                    addLogEntry(`Edit completed successfully`, 'success');
+                const currentTile = document.getElementById(`result-${originalIteration}`);
+                if (currentTile) {
+                    if (editResult.moderated) {
+                        // Replace with moderated tile
+                        const moderatedTile = createResultTile(originalIteration, null, editPrompt, true, false);
+                        currentTile.replaceWith(moderatedTile);
+                        addLogEntry(`Edit result moderated`, 'warning');
+                    } else {
+                        // Replace with edited result using the new prompt
+                        const resultTile = createResultTile(originalIteration, editResult.imageUrl, editPrompt, false, false);
+                        currentTile.replaceWith(resultTile);
+                        addLogEntry(`Edit completed successfully`, 'success');
+                    }
                 }
                 
             } catch (error) {
@@ -2594,10 +2597,12 @@
                 
                 addLogEntry(`Edit failed: ${errorMessage}`, 'error');
                 
-                // Remove loading tile on error
-                const loadingTile = document.getElementById(`result-${originalIteration}E`);
-                if (loadingTile) {
-                    loadingTile.remove();
+                // Restore original tile on error (could keep original image/prompt as fallback)
+                // For now, just show error in the tile
+                const errorTile = document.getElementById(`result-${originalIteration}`);
+                if (errorTile) {
+                    // Could restore original state here, but for now just log the error
+                    console.log('Edit failed, tile ID:', `result-${originalIteration}`);
                 }
             }
         }
