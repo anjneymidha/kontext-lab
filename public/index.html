@@ -2764,6 +2764,10 @@
                     // Store the file for form submission
                     currentImageFile = file;
                     
+                    // Enable generate button
+                    submitBtn.disabled = false;
+                    submitBtn.classList.add('ready');
+                    
                     // Enhanced visual feedback
                     inputModule.classList.add('active');
                     addHapticFeedback(imagePreview);
@@ -3313,15 +3317,31 @@
             const form = document.getElementById('editForm');
             const submitBtn = document.getElementById('submitBtn');
             
-            // Reset preview
+            // Reset preview and image state
             if (previewImage) {
                 previewImage.style.display = 'none';
                 previewImage.src = '';
             }
             
-            // Reset file input
+            // Reset image preview container
+            if (imagePreview) {
+                imagePreview.classList.remove('has-image');
+                const placeholder = imagePreview.querySelector('.preview-placeholder');
+                if (placeholder) {
+                    placeholder.style.display = 'block';
+                }
+            }
+            
+            // Reset file input and current file
             if (imageInput) {
                 imageInput.value = '';
+            }
+            currentImageFile = null;
+            
+            // Reset input module state
+            const inputModule = document.getElementById('inputModule');
+            if (inputModule) {
+                inputModule.classList.remove('active');
             }
             
             // Reset generate button
