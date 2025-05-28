@@ -3162,6 +3162,8 @@
             const progressCounter = document.getElementById('progressCounter');
             const systemLog = document.getElementById('systemLog');
             const collectionBanner = document.getElementById('collectionBanner');
+            const form = document.getElementById('editForm');
+            const submitBtn = document.getElementById('submitBtn');
             
             // Reset preview
             if (previewImage) {
@@ -3179,6 +3181,18 @@
                 generateBtn.textContent = 'Generate Transformations';
                 generateBtn.disabled = true;
                 generateBtn.classList.remove('ready', 'processing');
+            }
+            
+            // Re-enable form for fresh interactions (clear view-only state)
+            if (form) {
+                form.style.opacity = '1';
+                form.style.pointerEvents = 'auto';
+            }
+            
+            // Reset submit button (clear view-only state)
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Generate Transformations';
             }
             
             // Reset status
