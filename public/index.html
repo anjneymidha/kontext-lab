@@ -2638,15 +2638,6 @@
             try {
                 addLogEntry(`Starting iterative edit: "${editPrompt}"`, 'info');
                 
-                // Convert image URL to base64
-                const response = await fetch(sourceImageUrl);
-                const blob = await response.blob();
-                const base64 = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result.split(',')[1]);
-                    reader.readAsDataURL(blob);
-                });
-                
                 // Add visual diffusion loading state to original tile
                 const originalTile = document.getElementById(`result-${originalIteration}`);
                 if (originalTile) {
@@ -2668,7 +2659,7 @@
                     }
                 }
                 
-                // Call Kontext API for iterative editing
+                // Call Kontext API for iterative editing (send URL, let server handle CORS)
                 console.log('🔄 Calling edit API with prompt:', editPrompt.substring(0, 50) + '...');
                 const editResponse = await fetch('/api/edit-image', {
                     method: 'POST',
@@ -2677,7 +2668,7 @@
                     },
                     body: JSON.stringify({
                         prompt: editPrompt,
-                        input_image: base64,
+                        source_image_url: sourceImageUrl,
                         steps: 50,
                         guidance: 3.0
                     })

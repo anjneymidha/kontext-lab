@@ -743,17 +743,38 @@ app.post('/api/edit-image', async (req, res) => {
   console.log('📥 Edit API endpoint hit');
   
   try {
-    const { prompt, input_image, steps = 50, guidance = 3.0 } = req.body;
+    const { prompt, source_image_url, input_image, steps = 50, guidance = 3.0 } = req.body;
     console.log('📋 Request body received:', { 
       hasPrompt: !!prompt, 
+      hasImageUrl: !!source_image_url,
       hasImage: !!input_image, 
       promptLength: prompt?.length,
-      imageLength: input_image?.length 
+      imageUrl: source_image_url
     });
     
-    if (!prompt || !input_image) {
-      console.error('❌ Missing required fields:', { hasPrompt: !!prompt, hasImage: !!input_image });
-      return res.status(400).json({ error: 'Prompt and input_image are required' });
+    if (!prompt || (!source_image_url && !input_image)) {
+      console.error('❌ Missing required fields:', { hasPrompt: !!prompt, hasImageUrl: !!source_image_url, hasImage: !!input_image });
+      return res.status(400).json({ error: 'Prompt and either source_image_url or input_image are required' });
+    }
+    
+    let base64Image;
+    if (source_image_url) {
+      // Fetch image server-side to avoid CORS issues
+      console.log('🌐 Fetching image from URL server-side:', source_image_url);
+      try {
+        const imageResponse = await fetch(source_image_url);
+        if (!imageResponse.ok) {
+          throw new Error(`Failed to fetch image: ${imageResponse.status}`);
+        }
+        const imageBuffer = await imageResponse.arrayBuffer();
+        base64Image = Buffer.from(imageBuffer).toString('base64');
+        console.log('✅ Successfully converted image URL to base64');
+      } catch (fetchError) {
+        console.error('❌ Error fetching image from URL:', fetchError);
+        return res.status(400).json({ error: 'Failed to fetch image from URL', details: fetchError.message });
+      }
+    } else {
+      base64Image = input_image;
     }
     
     console.log(`🎨 Starting iterative edit with prompt: "${prompt.substring(0, 100)}..."`);
@@ -764,7 +785,7 @@ app.post('/api/edit-image', async (req, res) => {
     
     const requestBody = {
       prompt: prompt,
-      input_image: input_image,
+      input_image: base64Image,
       steps: parseInt(steps),
       guidance: parseFloat(guidance)
     };
