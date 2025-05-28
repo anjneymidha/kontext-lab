@@ -1174,36 +1174,50 @@
         }
 
         
-        /* Large prompt field for iterative editing */
+        /* Tile content wrapper */
+        .tile-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            flex: 1;
+        }
+
+        /* Large prompt field for iterative editing - positioned over image */
         .prompt-input-container {
-            background: var(--neu-bg);
-            border-top: 1px solid var(--neu-accent);
-            padding: 12px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(186, 190, 204, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
+            z-index: 5;
         }
         
         .prompt-input {
             width: 100%;
-            background: var(--cream);
+            background: rgba(255, 255, 255, 0.9);
             border: none;
-            border-radius: 12px;
-            padding: 12px 16px;
-            font-size: 13px;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 12px;
             font-family: var(--font);
             color: var(--black);
-            box-shadow: inset 3px 3px 6px rgba(0,0,0,0.1);
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.1);
             transition: all 0.2s ease;
             resize: vertical;
-            min-height: 60px;
-            line-height: 1.4;
+            min-height: 40px;
+            line-height: 1.3;
             box-sizing: border-box;
         }
         
         .prompt-input:focus {
             outline: none;
-            box-shadow: inset 3px 3px 6px rgba(0,0,0,0.15), 0 0 0 2px var(--orange);
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.15), 0 0 0 2px var(--orange);
             background: var(--white);
         }
         
@@ -1211,16 +1225,16 @@
             background: var(--orange);
             color: var(--white);
             border: none;
-            border-radius: 12px;
-            padding: 12px 20px;
-            font-size: 14px;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: var(--shadow-neu-button);
             touch-action: manipulation;
             align-self: flex-end;
-            min-width: 120px;
+            min-width: 80px;
         }
         
         .edit-btn:hover {
@@ -1244,21 +1258,21 @@
         
         @media (max-width: 768px) {
             .prompt-input-container {
-                padding: 10px;
-                gap: 6px;
+                padding: 8px;
+                gap: 4px;
             }
             
             .prompt-input {
-                font-size: 14px;
-                padding: 10px 12px;
-                min-height: 50px;
-                border-radius: 10px;
+                font-size: 13px;
+                padding: 8px 10px;
+                min-height: 35px;
+                border-radius: 6px;
             }
             
             .edit-btn {
-                font-size: 13px;
-                padding: 10px 16px;
-                border-radius: 10px;
+                font-size: 12px;
+                padding: 8px 12px;
+                border-radius: 6px;
                 align-self: stretch;
                 min-width: auto;
             }
@@ -1266,14 +1280,14 @@
         
         @media (max-width: 480px) {
             .prompt-input {
-                font-size: 15px;
-                padding: 12px 14px;
-                min-height: 45px;
+                font-size: 14px;
+                padding: 8px 10px;
+                min-height: 32px;
             }
             
             .edit-btn {
-                font-size: 14px;
-                padding: 12px 18px;
+                font-size: 13px;
+                padding: 8px 12px;
             }
         }
 
@@ -2601,19 +2615,21 @@
                 `;
             } else {
                 tile.innerHTML = `
-                    <img src="${imageUrl}" alt="Result ${iteration}" class="result-image" loading="lazy">
-                    <div class="prompt-overlay">
-                        <div class="prompt-text">${prompt}</div>
-                        <div class="image-actions">
-                            <button class="action-btn expand-btn">🔍 View</button>
-                            <button class="action-btn download-btn">📥 Save</button>
+                    <div class="tile-content">
+                        <img src="${imageUrl}" alt="Result ${iteration}" class="result-image" loading="lazy">
+                        <div class="prompt-overlay">
+                            <div class="prompt-text">${prompt}</div>
+                            <div class="image-actions">
+                                <button class="action-btn expand-btn">🔍 View</button>
+                                <button class="action-btn download-btn">📥 Save</button>
+                            </div>
+                        </div>
+                        <div class="prompt-input-container">
+                            <textarea class="prompt-input" data-iteration="${iteration}">${prompt}</textarea>
+                            <button class="edit-btn" data-iteration="${iteration}">✨ Edit Result</button>
                         </div>
                     </div>
                     <div class="result-label">Result ${iterationLabel}</div>
-                    <div class="prompt-input-container">
-                        <textarea class="prompt-input" data-iteration="${iteration}">${prompt}</textarea>
-                        <button class="edit-btn" data-iteration="${iteration}">✨ Edit Result</button>
-                    </div>
                 `;
             }
             
