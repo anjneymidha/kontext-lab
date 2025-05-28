@@ -1643,16 +1643,8 @@
             gap: 8px;
         }
 
-        .result-tile:hover .prompt-overlay {
-            opacity: 1;
-        }
+        /* No dark overlay on hover anymore - clean interface */
         
-        /* Disable overlay when editing prompt */
-        .result-tile.editing-prompt .prompt-overlay {
-            opacity: 0 !important;
-            pointer-events: none !important;
-        }
-
         .result-tile.show-prompt .prompt-overlay {
             opacity: 1;
             pointer-events: auto;
@@ -2667,34 +2659,10 @@
                         }
                     });
                     
-                    // Prevent tile click when interacting with input and disable overlay
+                    // Prevent tile click when interacting with input
                     promptInput.addEventListener('click', (e) => {
                         e.stopPropagation();
                     });
-                    
-                    // Disable overlay when focusing on prompt input
-                    promptInput.addEventListener('focus', () => {
-                        tile.classList.add('editing-prompt');
-                    });
-                    
-                    // Re-enable overlay when leaving prompt input
-                    promptInput.addEventListener('blur', () => {
-                        tile.classList.remove('editing-prompt');
-                    });
-                    
-                    // Also disable overlay when hovering over prompt container
-                    const promptContainer = tile.querySelector('.prompt-input-container');
-                    if (promptContainer) {
-                        promptContainer.addEventListener('mouseenter', () => {
-                            tile.classList.add('editing-prompt');
-                        });
-                        
-                        promptContainer.addEventListener('mouseleave', () => {
-                            if (!promptInput.matches(':focus')) {
-                                tile.classList.remove('editing-prompt');
-                            }
-                        });
-                    }
                 }
                 
                 // Double-click to expand
