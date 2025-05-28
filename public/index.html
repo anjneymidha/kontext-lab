@@ -1173,24 +1173,6 @@
             background: var(--orange);
         }
 
-        .result-prompt {
-            background: var(--neu-bg);
-            padding: 3px 6px;
-            font-size: 8px;
-            line-height: 1.2;
-            max-height: 24px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            border-top: 1px solid var(--gray);
-        }
-        
-        @media (max-width: 768px) {
-            .result-prompt {
-                padding: 2px 4px;
-                font-size: 7px;
-                max-height: 20px;
-            }
-        }
         
         /* Prompt input box for iterative editing */
         .prompt-input-container {
@@ -2585,7 +2567,6 @@
                         <div class="prompt-overlay">${prompt}</div>
                     </div>
                     <div class="result-label">Result ${iterationLabel}</div>
-                    <div class="result-prompt">${prompt}</div>
                 `;
             } else {
                 tile.innerHTML = `
@@ -2598,7 +2579,6 @@
                         </div>
                     </div>
                     <div class="result-label">Result ${iterationLabel}</div>
-                    <div class="result-prompt">${prompt}</div>
                     <div class="prompt-input-container">
                         <input type="text" class="prompt-input" value="${prompt.replace(/"/g, '&quot;')}" data-iteration="${iteration}">
                         <button class="edit-btn" data-iteration="${iteration}">✨ Edit</button>
