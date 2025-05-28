@@ -1832,6 +1832,64 @@
             display: none !important;
         }
 
+        /* Home Button */
+        .home-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: var(--neu-bg);
+            border: none;
+            border-radius: 16px;
+            box-shadow: var(--shadow-neu-raised);
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--orange);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            touch-action: manipulation;
+        }
+        
+        .home-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                16px 16px 24px rgba(0,0,0,0.12),
+                -16px -16px 24px rgba(255,255,255,0.9),
+                inset 1px 1px 2px rgba(255,255,255,0.8);
+            color: #e55a00;
+        }
+        
+        .home-button:active {
+            transform: translateY(1px);
+            box-shadow: var(--shadow-neu-pressed);
+        }
+        
+        @media (max-width: 768px) {
+            .home-button {
+                top: 16px;
+                left: 16px;
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+                border-radius: 14px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .home-button {
+                top: 12px;
+                left: 12px;
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+                border-radius: 12px;
+            }
+        }
+
         /* Subtle Processing Mode */
         .processing-mode {
             background: var(--neu-bg);
@@ -1849,6 +1907,11 @@
     </style>
 </head>
 <body>
+    <!-- Home Button -->
+    <button class="home-button" onclick="goHome()" title="Start Fresh">
+        🏠
+    </button>
+    
     <div class="container">
         <!-- Collection Banner -->
         <div class="collection-banner" id="collectionBanner">
@@ -3082,6 +3145,12 @@
                     playTESound('success');
                 }
             }, 1000);
+        }
+
+        // Home button functionality
+        function goHome() {
+            // Clear any session data and navigate to fresh start
+            window.location.href = window.location.origin + window.location.pathname;
         }
 
         // Start the system
