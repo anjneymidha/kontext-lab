@@ -340,72 +340,204 @@
 
         .file-button {
             width: 100%;
-            height: 60px;
-            border: none;
-            background: var(--neu-bg);
+            height: 120px;
+            border: 4px dashed var(--orange);
+            background: linear-gradient(135deg, var(--orange) 0%, #ff8533 100%);
             font-family: var(--font);
-            font-size: 14px;
+            font-size: 18px;
             font-weight: 700;
+            color: white;
             text-transform: uppercase;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
-            border-radius: 16px;
-            box-shadow: var(--shadow-neu-raised);
+            border-radius: 20px;
+            box-shadow: 
+                0 8px 32px rgba(255, 103, 0, 0.3),
+                0 4px 16px rgba(255, 103, 0, 0.2),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            animation: pulse-upload 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-upload {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 
+                    0 8px 32px rgba(255, 103, 0, 0.3),
+                    0 4px 16px rgba(255, 103, 0, 0.2),
+                    inset 0 2px 4px rgba(255, 255, 255, 0.2);
+            }
+            50% { 
+                transform: scale(1.02);
+                box-shadow: 
+                    0 12px 40px rgba(255, 103, 0, 0.4),
+                    0 6px 20px rgba(255, 103, 0, 0.3),
+                    inset 0 2px 4px rgba(255, 255, 255, 0.3);
+            }
         }
         
         @media (max-width: 768px) {
             .file-button {
-                height: 80px;
-                font-size: 16px;
-                border-radius: 20px;
+                height: 140px;
+                font-size: 20px;
+                border-radius: 24px;
                 touch-action: manipulation;
-                min-height: 80px;
+                min-height: 140px;
+                gap: 12px;
             }
         }
         
         @media (max-width: 480px) {
             .file-button {
-                height: 90px;
-                font-size: 18px;
-                min-height: 90px;
-                padding: 16px;
+                height: 160px;
+                font-size: 22px;
+                min-height: 160px;
+                padding: 20px;
+                gap: 16px;
             }
         }
 
         .file-button::before {
-            content: '';
+            content: '📸';
             position: absolute;
-            top: 50%;
+            top: 20px;
             left: 50%;
-            width: 0;
-            height: 0;
-            background: var(--orange);
-            border-radius: 50%;
-            transition: all 0.3s ease;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
+            font-size: 32px;
             z-index: 1;
+            transition: all 0.3s ease;
         }
 
         .file-input:hover + .file-button {
-            color: var(--orange);
-            transform: translateY(-2px);
+            transform: translateY(-4px) scale(1.02);
+            background: linear-gradient(135deg, #ff8533 0%, var(--orange) 100%);
             box-shadow: 
-                12px 12px 24px rgba(0,0,0,0.1),
-                -12px -12px 24px rgba(255,255,255,0.9);
+                0 16px 48px rgba(255, 103, 0, 0.4),
+                0 8px 24px rgba(255, 103, 0, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.3);
+            animation: none;
         }
 
         .file-input:hover + .file-button::before {
-            width: 200%;
-            height: 400%;
+            transform: translateX(-50%) scale(1.2) rotate(5deg);
         }
 
         .file-button-text {
             position: relative;
             z-index: 2;
+            text-align: center;
+            line-height: 1.3;
+            margin-top: 30px;
+        }
+        
+        .file-button-text strong {
+            font-size: 1.2em;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .file-button-text small {
+            font-size: 0.8em;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+        
+        /* First-time user onboarding overlay */
+        .onboarding-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+        
+        .onboarding-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .onboarding-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            margin: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .onboarding-content {
+                padding: 24px;
+                margin: 16px;
+                max-width: calc(100vw - 32px);
+            }
+            
+            .onboarding-title {
+                font-size: 20px;
+            }
+            
+            .onboarding-text {
+                font-size: 14px;
+            }
+            
+            .onboarding-arrow {
+                font-size: 36px;
+            }
+        }
+        
+        .onboarding-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--orange);
+            margin-bottom: 16px;
+        }
+        
+        .onboarding-text {
+            font-size: 16px;
+            color: var(--gray);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        
+        .onboarding-arrow {
+            font-size: 48px;
+            color: var(--orange);
+            animation: bounce-arrow 1s ease-in-out infinite;
+        }
+        
+        @keyframes bounce-arrow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .onboarding-close {
+            background: var(--orange);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: all 0.2s ease;
+        }
+        
+        .onboarding-close:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 103, 0, 0.3);
         }
         
         .desktop-text {
@@ -2069,6 +2201,19 @@
     </style>
 </head>
 <body>
+    <!-- First-Time User Onboarding -->
+    <div class="onboarding-overlay" id="onboardingOverlay">
+        <div class="onboarding-content">
+            <div class="onboarding-title">Welcome to Kontext Lab! 🎨</div>
+            <div class="onboarding-text">
+                Transform any photo into 8 incredible AI variations.<br>
+                <strong>Step 1:</strong> Upload your photo to get started!
+            </div>
+            <div class="onboarding-arrow">↙️</div>
+            <button class="onboarding-close" onclick="hideOnboarding()">Got it!</button>
+        </div>
+    </div>
+
     <!-- Home Button -->
     <button class="home-button" onclick="goHome()" title="Start Fresh">
         🏠
@@ -2090,8 +2235,14 @@
                                 <input type="file" id="imageInput" class="file-input" accept="image/*" multiple="false">
                                 <div class="file-button">
                                     <span class="file-button-text">
-                                        <span class="desktop-text">Select Image or Paste</span>
-                                        <span class="mobile-text">📷 Camera / Photo Library</span>
+                                        <span class="desktop-text">
+                                            <strong>Upload Your Photo</strong><br>
+                                            <small>Click here or drag & drop</small>
+                                        </span>
+                                        <span class="mobile-text">
+                                            <strong>📷 Add Your Photo</strong><br>
+                                            <small>Camera or Photo Library</small>
+                                        </span>
                                     </span>
                                 </div>
                             </div>
@@ -2245,6 +2396,7 @@
         const inputModule = document.getElementById('inputModule');
         const statusModule = document.getElementById('statusModule');
         const systemModule = document.getElementById('systemModule');
+        const onboardingOverlay = document.getElementById('onboardingOverlay');
         
         // Enhanced UI Elements
         const currentTaskEl = document.getElementById('currentTask');
@@ -2261,6 +2413,34 @@
 
         // State
         let isProcessing = false;
+        let hasSeenOnboarding = localStorage.getItem('kontextlab-onboarding-seen') === 'true';
+        
+        // Onboarding Functions
+        function hideOnboarding() {
+            onboardingOverlay.classList.add('hidden');
+            localStorage.setItem('kontextlab-onboarding-seen', 'true');
+            hasSeenOnboarding = true;
+        }
+        
+        function showOnboardingIfNeeded() {
+            if (!hasSeenOnboarding && !currentCollection) {
+                onboardingOverlay.classList.remove('hidden');
+            }
+        }
+        
+        // Hide onboarding when user uploads an image
+        function hideOnboardingOnUpload() {
+            if (!hasSeenOnboarding) {
+                hideOnboarding();
+            }
+        }
+        
+        // Close onboarding when clicking outside
+        onboardingOverlay.addEventListener('click', function(e) {
+            if (e.target === onboardingOverlay) {
+                hideOnboarding();
+            }
+        });
         let completedCount = 0;
         let audioContext;
         let processingStartTime = null;
@@ -2905,6 +3085,15 @@
                     // Store the file for form submission
                     currentImageFile = file;
                     
+                    // Hide onboarding when user uploads an image
+                    hideOnboardingOnUpload();
+                    
+                    // Stop the pulsing animation once image is loaded
+                    const fileButton = document.querySelector('.file-button');
+                    if (fileButton) {
+                        fileButton.style.animation = 'none';
+                    }
+                    
                     // Enable generate button
                     submitBtn.disabled = false;
                     submitBtn.classList.add('ready');
@@ -3429,6 +3618,11 @@
             if (checkForSharedCollection()) {
                 return; // Don't initialize normal controls for shared collections
             }
+            
+            // Show onboarding for first-time users
+            setTimeout(() => {
+                showOnboardingIfNeeded();
+            }, 500);
             
             // Setup enhanced controls - ready
             
