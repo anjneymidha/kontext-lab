@@ -124,8 +124,8 @@
                 min-width: 100%;
                 border-radius: 0 0 24px 24px;
                 height: auto;
-                min-height: 320px;
-                max-height: 350px;
+                min-height: 400px;
+                max-height: 450px;
                 position: relative;
                 z-index: 10;
                 box-sizing: border-box;
@@ -188,10 +188,10 @@
                 gap: 8px;
                 padding: 12px;
                 overflow-y: auto;
-                max-height: 330px;
+                max-height: 420px;
                 width: 100%;
                 box-sizing: border-box;
-                min-height: 300px;
+                min-height: 380px;
                 justify-content: flex-start;
             }
         }
@@ -963,12 +963,14 @@
             .dual-grid-container {
                 flex-direction: column;
                 gap: 8px;
-                height: calc(100vh - 200px);
+                height: calc(100vh - 450px);
+                min-height: 300px;
+                overflow-y: auto;
             }
             
             .grid-section {
                 height: 50%;
-                min-height: 0;
+                min-height: 150px;
                 flex: 1;
             }
             
@@ -978,6 +980,7 @@
                 gap: 4px;
                 padding: 4px;
                 height: 100%;
+                min-height: 120px;
             }
             
             .grid-header h3 {
@@ -993,12 +996,14 @@
             .dual-grid-container {
                 gap: 6px;
                 padding: 4px;
-                height: calc(100vh - 180px);
+                height: calc(100vh - 450px);
+                min-height: 280px;
+                overflow-y: auto;
             }
             
             .grid-section {
                 height: 50%;
-                min-height: 0;
+                min-height: 140px;
                 flex: 1;
             }
             
@@ -1008,6 +1013,7 @@
                 gap: 3px;
                 padding: 3px;
                 height: 100%;
+                min-height: 110px;
             }
             
             .grid-header {
