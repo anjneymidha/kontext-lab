@@ -2600,7 +2600,7 @@
                     <div class="result-label">Result ${iterationLabel}</div>
                     <div class="result-prompt">${prompt}</div>
                     <div class="prompt-input-container">
-                        <input type="text" class="prompt-input" placeholder="Edit this result..." data-iteration="${iteration}">
+                        <input type="text" class="prompt-input" value="${prompt.replace(/"/g, '&quot;')}" data-iteration="${iteration}">
                         <button class="edit-btn" data-iteration="${iteration}">✨ Edit</button>
                     </div>
                 `;
