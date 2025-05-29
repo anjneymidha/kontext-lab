@@ -13,7 +13,7 @@
 
         body {
             font-family: 'SF Mono', 'Monaco', 'Consolas', 'Courier New', monospace;
-            background: #1C2A23;
+            background: #1a4a3a;
             overflow: hidden;
             height: 100vh;
             color: #FFFFFF;
@@ -41,14 +41,14 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            background: #1C2A23;
+            background: #1a4a3a;
             transform-origin: 0 0;
             will-change: transform;
             display: grid;
             grid-template-columns: 20% 80%;
             grid-template-rows: 100%;
-            gap: 1px;
-            padding: 4px;
+            gap: 2px;
+            padding: 8px;
         }
         
         /* Mobile layout adjustments */
@@ -64,25 +64,23 @@
 
         /* Left Section - Controls and Analysis */
         .left-section {
-            background: #1A251F;
-            border: 1px solid #4A635A;
-            padding: 12px;
+            background: #0f2f1f;
+            padding: 16px;
             display: grid;
             grid-template-columns: 1fr;
             grid-template-rows: auto auto 1fr;
-            gap: 8px;
+            gap: 12px;
             align-items: start;
         }
 
         /* Right Section - Generations Grid */
         .right-section {
-            background: #1A251F;
-            border: 1px solid #4A635A;
-            padding: 12px;
+            background: #0f2f1f;
+            padding: 16px;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-auto-rows: auto minmax(400px, auto);
-            gap: 4px;
+            gap: 8px;
             align-items: start;
             min-height: 100%;
         }
@@ -104,12 +102,10 @@
 
         /* Koncept Label for each row - now horizontal header */
         .koncept-label {
-            background: #5A7A70;
+            background: #1a4a3a;
             color: #FFFFFF;
-            border: 1px solid #4A635A;
-            border-radius: 0;
-            padding: 12px 16px;
-            font-size: 14px;
+            padding: 16px 20px;
+            font-size: 16px;
             font-weight: 700;
             text-align: left;
             text-transform: uppercase;
@@ -121,34 +117,31 @@
             cursor: text;
             position: relative;
             grid-column: 1 / -1; /* Span all columns */
-            min-height: 48px;
+            min-height: 56px;
         }
         
         .koncept-label::after {
-            content: "[E]";
+            content: "EDIT";
             position: absolute;
-            top: 4px;
-            right: 8px;
+            top: 8px;
+            right: 12px;
             font-size: 10px;
-            opacity: 0.8;
-            background: rgba(255,255,255,0.15);
-            padding: 4px 6px;
-            border-radius: 0;
+            opacity: 0.6;
+            background: rgba(255,255,255,0.1);
+            padding: 4px 8px;
             text-transform: none;
             letter-spacing: 0;
             font-weight: 400;
         }
         
         .koncept-label:hover {
-            background: #607B72;
-            color: #FFFFFF;
-            border-color: #4A635A;
+            background: #FFFFFF;
+            color: #1a4a3a;
         }
         
         .koncept-label.editing {
             background: #FFFFFF;
-            color: #1C2A23;
-            border: 2px solid #5A7A70;
+            color: #1a4a3a;
         }
         
         /* Mobile koncept labels */
@@ -235,14 +228,12 @@
             }
         }
 
-        /* Grid Element Base - Green Theme */
+        /* Grid Element Base - Clean Minimal */
         .canvas-element {
-            background: #5A7A70;
-            border-radius: 0;
-            border: 1px solid #4A635A;
+            background: #FFFFFF;
             cursor: pointer;
             user-select: none;
-            color: #FFFFFF;
+            color: #1a4a3a;
             width: 100%;
             height: 100%;
             max-width: 100%;
@@ -251,10 +242,8 @@
         }
 
         .canvas-element.selected {
-            background: #607B72;
+            background: #1a4a3a;
             color: #FFFFFF;
-            border-color: #FFFFFF;
-            border-width: 2px;
         }
 
         .canvas-element.dragging {
@@ -512,20 +501,18 @@
         .grid-result-2-2 { grid-column: 3; grid-row: 6; }
         .grid-result-2-3 { grid-column: 4; grid-row: 6; }
 
-        /* Element Header - Green Theme */
+        /* Element Header - Clean Minimal */
         .element-header {
-            padding: 8px 12px;
-            background: #4A635A;
+            padding: 12px 16px;
+            background: #1a4a3a;
             font-weight: 700;
             font-size: 12px;
             color: #FFFFFF;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            border-radius: 0;
-            border-bottom: 1px solid #506960;
         }
         
         /* Mobile element headers */
@@ -538,7 +525,7 @@
         }
 
         .element-content {
-            padding: 12px;
+            padding: 16px;
         }
         
         .upload-box .element-content {
@@ -556,12 +543,10 @@
         }
 
         .upload-zone {
-            border: 1px solid #4A635A;
-            border-radius: 0;
-            padding: 16px;
+            padding: 24px;
             text-align: center;
-            color: #B8C5C0;
-            background: #4A635A;
+            color: #1a4a3a;
+            background: #f5f5f5;
             cursor: pointer;
             transition: none;
             height: 100%;
@@ -572,22 +557,20 @@
         }
 
         .upload-zone:hover {
-            border-color: #FFFFFF;
-            background: #506960;
-            color: #FFFFFF;
+            background: #FFFFFF;
+            color: #1a4a3a;
         }
 
         .upload-zone.dragover {
-            border-color: #FFFFFF;
-            background: #506960;
-            color: #FFFFFF;
+            background: #FFFFFF;
+            color: #1a4a3a;
         }
 
         .upload-icon {
             font-size: 32px;
             margin-bottom: 12px;
             font-weight: 400;
-            color: #FFFFFF;
+            color: inherit;
         }
 
         /* Image Preview */
@@ -627,53 +610,47 @@
         /* Start Button */
         .start-button {
             width: 100%;
-            background: #FFFFFF;
-            color: #1C2A23;
-            border: 2px solid #FFFFFF;
-            border-radius: 0;
-            padding: 12px 16px;
+            background: #1a4a3a;
+            color: #FFFFFF;
+            padding: 16px 20px;
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
             transition: none;
-            margin-top: 12px;
+            margin-top: 16px;
             flex-shrink: 0;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
         
         .start-button:hover {
-            background: #B8C5C0;
-            border-color: #B8C5C0;
-            color: #1C2A23;
+            background: #FFFFFF;
+            color: #1a4a3a;
         }
         
         .start-button:active {
-            background: #607B72;
-            color: #FFFFFF;
+            background: #FFFFFF;
+            color: #1a4a3a;
         }
         
         /* Change Button */
         .change-button {
             width: 100%;
-            background: #4A635A;
-            color: #FFFFFF;
-            border: 1px solid #506960;
-            border-radius: 0;
-            padding: 10px 12px;
+            background: #f5f5f5;
+            color: #1a4a3a;
+            padding: 12px 16px;
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             transition: none;
-            margin-top: 8px;
+            margin-top: 12px;
             flex-shrink: 0;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         
         .change-button:hover {
-            background: #506960;
-            border-color: #607B72;
+            background: #1a4a3a;
             color: #FFFFFF;
         }
 
@@ -696,7 +673,7 @@
         .caption-text {
             font-size: 12px;
             line-height: 1.4;
-            color: #FFFFFF;
+            color: #1a4a3a;
             padding: 0;
             font-weight: 400;
             text-align: left;
@@ -716,10 +693,8 @@
         .vibe-node {
             width: 100%;
             height: 80px;
-            border-radius: 0;
-            background: #5A7A70;
+            background: #1a4a3a;
             color: #FFFFFF;
-            border: 1px solid #4A635A;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -735,8 +710,7 @@
 
         .vibe-node:hover {
             background: #FFFFFF;
-            color: #1C2A23;
-            border-color: #FFFFFF;
+            color: #1a4a3a;
         }
 
         .vibe-node.selected {
@@ -781,11 +755,9 @@
         }
         
         .share-btn {
-            background: rgba(255, 255, 255, 0.6);
+            background: rgba(26, 74, 58, 0.8);
             color: #FFFFFF;
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            padding: 6px 10px;
-            border-radius: 0;
+            padding: 8px 12px;
             cursor: pointer;
             font-size: 10px;
             font-weight: 700;
@@ -796,9 +768,8 @@
         }
         
         .share-btn:hover {
-            background: rgba(255, 255, 255, 0.8);
-            color: #1C2A23;
-            border-color: #FFFFFF;
+            background: #FFFFFF;
+            color: #1a4a3a;
         }
         
         .share-btn:active {
@@ -807,7 +778,7 @@
 
         .result-prompt {
             font-size: 10px;
-            color: #FFFFFF;
+            color: #1a4a3a;
             line-height: 1.3;
             max-height: 60px;
             overflow: hidden;
@@ -854,12 +825,10 @@
         
         @keyframes pulseGeneration {
             0%, 100% {
-                border-color: #FFFFFF;
-                background: #5A7A70;
+                background: #FFFFFF;
             }
             50% {
-                border-color: #B8C5C0;
-                background: #607B72;
+                background: #f0f0f0;
             }
         }
         
@@ -878,10 +847,8 @@
         }
 
         .control-btn {
-            background: #4A635A;
-            border: 1px solid #506960;
-            border-radius: 0;
-            padding: 8px 12px;
+            background: #1a4a3a;
+            padding: 10px 16px;
             cursor: pointer;
             font-size: 12px;
             font-weight: 700;
@@ -893,8 +860,7 @@
 
         .control-btn:hover {
             background: #FFFFFF;
-            color: #1C2A23;
-            border-color: #FFFFFF;
+            color: #1a4a3a;
         }
         
         /* Inline home button styling in title header */
@@ -951,12 +917,10 @@
 
         .zoom-indicator {
             position: fixed;
-            bottom: 12px;
-            left: 12px;
-            background: #4A635A;
-            border: 1px solid #506960;
-            border-radius: 0;
-            padding: 8px 12px;
+            bottom: 16px;
+            left: 16px;
+            background: #1a4a3a;
+            padding: 10px 16px;
             font-size: 12px;
             font-weight: 700;
             color: #FFFFFF;
@@ -976,10 +940,9 @@
 
         .progress-bar {
             width: 60%;
-            height: 2px;
-            background: #4A635A;
-            border: 1px solid #506960;
-            margin-bottom: 8px;
+            height: 3px;
+            background: #e0e0e0;
+            margin-bottom: 12px;
             position: relative;
             overflow: hidden;
         }
@@ -991,16 +954,15 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: #FFFFFF;
+            background: #1a4a3a;
             animation: progressSlide 2s infinite;
         }
 
         .progress-dot {
-            width: 4px;
-            height: 4px;
-            background: #FFFFFF;
-            border: 1px solid #B8C5C0;
-            margin-bottom: 4px;
+            width: 6px;
+            height: 6px;
+            background: #1a4a3a;
+            margin-bottom: 8px;
             opacity: 0.8;
         }
 
@@ -1010,7 +972,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             text-align: center;
-            color: #FFFFFF;
+            color: #1a4a3a;
         }
 
         .blank-result {
@@ -1023,9 +985,8 @@
         .blank-image {
             width: 100%;
             height: 120px;
-            background: #4A635A;
-            border: 1px solid #506960;
-            margin-bottom: 4px;
+            background: #f5f5f5;
+            margin-bottom: 8px;
             position: relative;
             overflow: hidden;
         }
@@ -1036,9 +997,9 @@
             top: 50%;
             left: 50%;
             font-size: 16px;
-            color: #B8C5C0;
+            color: #1a4a3a;
             transform: translate(-50%, -50%);
-            opacity: 0.6;
+            opacity: 0.3;
         }
 
         @keyframes progressSlide {
