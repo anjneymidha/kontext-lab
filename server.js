@@ -341,8 +341,8 @@ async function submitKontextRequest(imageBuffer, prompt) {
       output_format: 'jpeg'
     };
 
-    console.log('Making request to: https://api.us1.bfl.ai/v1/flux-kontext-max');
-    const response = await axios.post('https://api.us1.bfl.ai/v1/flux-kontext-max', requestData, {
+    console.log('Making request to: https://api.us1.bfl.ai/v1/flux-kontext-pro');
+    const response = await axios.post('https://api.us1.bfl.ai/v1/flux-kontext-pro', requestData, {
       headers: {
         'accept': 'application/json',
         'x-key': BFL_API_KEY,
@@ -1226,7 +1226,7 @@ app.post('/api/edit-image', async (req, res) => {
     };
     
     console.log('🔥 Calling BFL API for edit...');
-    const bflResponse = await fetch('https://api.us1.bfl.ai/v1/flux-kontext-max', {
+    const bflResponse = await fetch('https://api.us1.bfl.ai/v1/flux-kontext-pro', {
       method: 'POST',
       headers: {
         'accept': 'application/json',
@@ -1351,7 +1351,7 @@ app.post('/api/start-generation', async (req, res) => {
     };
     
     console.log('🔥 Calling BFL API to start generation...');
-    const bflResponse = await fetch('https://api.us1.bfl.ai/v1/flux-kontext-max', {
+    const bflResponse = await fetch('https://api.us1.bfl.ai/v1/flux-kontext-pro', {
       method: 'POST',
       headers: {
         'accept': 'application/json',
