@@ -1253,7 +1253,7 @@ app.post('/api/edit-image', async (req, res) => {
     // Poll for results
     console.log('⏰ Polling for edit results...');
     let attempts = 0;
-    const maxAttempts = 60; // 90 seconds timeout
+    const maxAttempts = 30; // 45 seconds timeout (30 attempts × 1.5s)
     
     while (attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 1500));

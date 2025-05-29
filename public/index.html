@@ -2606,11 +2606,12 @@
             return resultBoxes;
         }
         
-        async function generateSingleKonceptImage(prompt, resultBoxId, koncept, index, konceptIndex) {
+        async function generateSingleKonceptImage(prompt, resultBoxId, koncept, index, konceptIndex, retryCount = 0) {
             const resultBox = document.getElementById(resultBoxId);
+            const maxRetries = 2;
             
             try {
-                console.log(`🎨 Generating image ${index} for ${koncept}:`, prompt);
+                console.log(`🎨 Generating image ${index} for ${koncept} (attempt ${retryCount + 1}/${maxRetries + 1}):`, prompt);
                 
                 // Add generating animation
                 if (resultBox) {
@@ -2630,6 +2631,12 @@
                 });
                 
                 if (!response.ok) {
+                    // Check if it's a timeout (504) and retry
+                    if (response.status === 504 && retryCount < maxRetries) {
+                        console.log(`⚠️ Timeout detected for image ${index}, retrying in 3 seconds... (${retryCount + 1}/${maxRetries})`);
+                        await new Promise(resolve => setTimeout(resolve, 3000));
+                        return generateSingleKonceptImage(prompt, resultBoxId, koncept, index, konceptIndex, retryCount + 1);
+                    }
                     throw new Error(`Failed to generate image: ${response.status}`);
                 }
                 
@@ -2689,9 +2696,12 @@
                 // Update result box to show error
                 if (resultBox) {
                     const content = resultBox.querySelector('.element-content');
+                    const errorMessage = error.message.includes('504') && retryCount >= maxRetries 
+                        ? '❌ TIMEOUT (RETRIES EXHAUSTED)' 
+                        : '❌ FAILED';
                     content.innerHTML = `
                         <div class="error-result">
-                            <div class="progress-text">❌ FAILED</div>
+                            <div class="progress-text">${errorMessage}</div>
                         </div>
                     `;
                     resultBox.style.background = '#ff6600';
