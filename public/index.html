@@ -1434,10 +1434,15 @@
                 disableUploadForSharedSession();
                 
             } catch (error) {
-                console.error('❌ Error loading shared session:', error);
-                alert('Could not load shared session. Starting a new session instead.');
-                currentSessionId = generateSessionId();
+                console.log('📝 Session not found in database, treating as new session:', sessionId);
+                
+                // Don't show error alert - this is normal for new sessions
+                // Keep the session ID from the URL and treat as a new session
+                currentSessionId = sessionId;
                 isSharedSession = false;
+                
+                // No need to update URL since it's already correct
+                console.log('✅ New session initialized with ID:', currentSessionId);
             }
         }
         
