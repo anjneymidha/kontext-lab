@@ -1424,6 +1424,12 @@
                 // Load the results
                 loadSessionResults(sessionData.results);
                 
+                // Load the caption if it exists
+                if (sessionData.caption) {
+                    console.log('🔄 Loading session caption:', sessionData.caption);
+                    fillCaptionBox(sessionData.caption);
+                }
+                
                 // Disable upload for shared sessions
                 disableUploadForSharedSession();
                 
@@ -2874,13 +2880,24 @@
                 
                 if (flatResults.length === 0) return;
                 
+                // Get current caption from caption box
+                let currentCaption = null;
+                const captionBox = document.getElementById('caption-box');
+                if (captionBox) {
+                    const captionText = captionBox.querySelector('.caption-text');
+                    if (captionText) {
+                        currentCaption = captionText.textContent || captionText.innerText;
+                    }
+                }
+                
                 const response = await fetch('/api/save-session', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         originalImage: currentImageBase64,
                         results: flatResults,
-                        sessionId: currentSessionId
+                        sessionId: currentSessionId,
+                        caption: currentCaption
                     })
                 });
                 

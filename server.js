@@ -562,7 +562,7 @@ async function processIterations(imageBuffer, res, totalIterations = 8) {
 }
 
 // Collection management functions
-async function saveCollection(originalImageBuffer, results, sessionId) {
+async function saveCollection(originalImageBuffer, results, sessionId, caption = null) {
   const collectionId = sessionId || crypto.randomBytes(8).toString('hex');
   
   // Convert image buffer to base64
@@ -598,7 +598,8 @@ async function saveCollection(originalImageBuffer, results, sessionId) {
     id: collectionId,
     createdAt: new Date().toISOString(),
     originalImage: originalImageBase64,
-    results: processedResults
+    results: processedResults,
+    caption: caption
   };
   
   // Save to Postgres or file depending on environment
@@ -1023,7 +1024,7 @@ app.post('/api/save-session', async (req, res) => {
   console.log('💾 Save session endpoint hit');
   
   try {
-    const { originalImage, results, sessionId } = req.body;
+    const { originalImage, results, sessionId, caption } = req.body;
     console.log('📋 Session data received:', { 
       hasOriginalImage: !!originalImage, 
       resultsCount: results?.length,
@@ -1047,7 +1048,7 @@ app.post('/api/save-session', async (req, res) => {
     }));
     
     console.log('🔄 Saving session with transformed results...');
-    const collectionId = await saveCollection(originalImageBuffer, transformedResults, sessionId);
+    const collectionId = await saveCollection(originalImageBuffer, transformedResults, sessionId, caption);
     const shareUrl = `${req.protocol}://${req.get('host')}/session/${collectionId}`;
     
     console.log('✅ Session saved successfully:', collectionId);
