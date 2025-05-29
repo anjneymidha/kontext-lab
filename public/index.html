@@ -2162,11 +2162,42 @@
 
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const base64 = reader.result.split(',')[1];
+                const img = new Image();
+                img.onload = () => {
+                    // Compress if image is too large
+                    const maxWidth = 2048;
+                    const maxHeight = 2048;
+                    const quality = 0.8;
+                    
+                    let { width, height } = img;
+                    
+                    // Calculate new dimensions if resizing needed
+                    if (width > maxWidth || height > maxHeight) {
+                        const ratio = Math.min(maxWidth / width, maxHeight / height);
+                        width = Math.floor(width * ratio);
+                        height = Math.floor(height * ratio);
+                        console.log(`📏 Resizing image from ${img.width}x${img.height} to ${width}x${height}`);
+                    }
+                    
+                    // Create canvas and compress
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // Draw and compress
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                    const base64 = compressedDataUrl.split(',')[1];
+                    
+                    console.log(`📦 Compressed image: ${base64.length} characters (${(base64.length/1024/1024*3/4).toFixed(1)}MB)`);
                     resolve(base64);
                 };
+                img.onerror = reject;
+                
+                // Load image for compression
+                const reader = new FileReader();
+                reader.onload = (e) => img.src = e.target.result;
                 reader.onerror = reject;
                 reader.readAsDataURL(file);
             });
