@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vibe Studio - a BFL Kontext experiment</title>
+    <title>AutoVibe - AI Writes All Your Prompts</title>
     <style>
         * {
             margin: 0;
@@ -298,9 +298,21 @@
             font-size: 11px;
             line-height: 1.4;
             color: #666666;
+            padding: 0 12px 6px 12px;
+            font-weight: 400;
+            text-align: center;
+        }
+        
+        .value-prop {
+            font-size: 9px;
+            line-height: 1.3;
+            color: #888888;
             padding: 0 12px 12px 12px;
             font-weight: 400;
             text-align: center;
+            border-top: 1px solid #eee;
+            margin-top: 6px;
+            padding-top: 8px;
         }
         
         /* Mobile title and subtitle */
@@ -313,6 +325,11 @@
             
             .subtitle-text {
                 font-size: 9px;
+                padding: 0 12px 6px 12px;
+            }
+            
+            .value-prop {
+                font-size: 8px;
                 padding: 0 12px 12px 12px;
             }
         }
@@ -1262,8 +1279,9 @@
                             <button class="home-btn-inline" onclick="startNewSession()" title="Start New Session"></button>
                         </div>
                         <div class="element-content">
-                            <div class="title-text">Vibe Studio</div>
-                            <div class="subtitle-text">A BFL Kontext experiment</div>
+                            <div class="title-text">AutoVibe</div>
+                            <div class="subtitle-text">AI writes all your prompts</div>
+                            <div class="value-prop">Upload image → AI creates wild prompts → See magic happen</div>
                         </div>
                     </div>
                 </div>
@@ -1277,7 +1295,7 @@
                         <div class="element-content">
                             <div class="upload-zone" id="uploadZone">
                                 <div class="upload-icon">+</div>
-                                <div>Drop image here or click to upload</div>
+                                <div>Drop image → AI makes wild prompts</div>
                                 <input type="file" id="fileInput" accept="image/*" style="display: none;">
                             </div>
                         </div>
@@ -3471,7 +3489,7 @@
                 uploadZone.style.opacity = '';
                 uploadZone.innerHTML = `
                     <div class="upload-icon">+</div>
-                    <div>Drop image here or click to upload</div>
+                    <div>Drop image → AI makes wild prompts</div>
                 `;
             }
             

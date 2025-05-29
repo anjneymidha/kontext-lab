@@ -716,8 +716,8 @@ function generateOpenGraphTags(sessionData, sessionId, req) {
   const sessionUrl = `${baseUrl}/session/${sessionId}`;
   
   // Default values
-  let title = 'Vibe Studio - a BFL Kontext experiment';
-  let description = 'Vibe Studio - a BFL Kontext experiment';
+  let title = 'AutoVibe - AI Writes All Your Prompts';
+  let description = 'Upload image → AI creates wild prompts → See magic happen. No prompting skills needed!';
   let imageUrl = `${baseUrl}/og-image.svg`; // Default image
   
   if (sessionData) {
@@ -728,7 +728,7 @@ function generateOpenGraphTags(sessionData, sessionId, req) {
       : 'AI transformations';
     
     // Custom title with koncept names
-    title = `${konceptText} | Vibe Studio Session`;
+    title = `${konceptText} | AutoVibe Session`;
     
     // Custom description with session details
     const resultCount = sessionData.results ? sessionData.results.filter(r => !r.hasError && !r.isModerated).length : 0;
@@ -760,7 +760,7 @@ function generateOpenGraphTags(sessionData, sessionId, req) {
     <meta property="og:image" content="${imageUrl}">
     <meta property="og:url" content="${sessionUrl}">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Vibe Studio">
+    <meta property="og:site_name" content="AutoVibe">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${safeTitle}">
     <meta name="twitter:description" content="${safeDescription}">
@@ -788,7 +788,7 @@ app.get('/session/:id', async (req, res) => {
     const ogTags = generateOpenGraphTags(sessionData, sessionId, req);
     
     // Inject Open Graph tags into HTML head
-    html = html.replace('<title>Vibe Studio - a BFL Kontext experiment</title>', ogTags);
+    html = html.replace('<title>AutoVibe - AI Writes All Your Prompts</title>', ogTags);
     
     res.send(html);
     
@@ -1124,7 +1124,7 @@ Respond with exactly 4 prompts, numbered 1-4. Make them so creative they feel li
   }
 });
 
-// API endpoint for saving Vibe Studio sessions
+// API endpoint for saving AutoVibe sessions
 app.post('/api/save-session', async (req, res) => {
   console.log('💾 Save session endpoint hit');
   
@@ -1544,9 +1544,9 @@ app.get('/image/:sessionId/:konceptIndex/:resultIndex', async (req, res) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vibe Studio - Generated Image</title>
-    <meta property="og:title" content="Vibe Studio - AI Generated Image">
-    <meta property="og:description" content="Check out this AI-generated image transformation from Vibe Studio">
+    <title>AutoVibe - AI Generated Image</title>
+    <meta property="og:title" content="AutoVibe - AI Generated Image">
+    <meta property="og:description" content="Check out this AI-generated image transformation from AutoVibe">
     <meta property="og:image" content="${imageData.imageUrl || imageData.image}">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
@@ -1614,7 +1614,7 @@ app.get('/image/:sessionId/:konceptIndex/:resultIndex', async (req, res) => {
 </head>
 <body>
     <div class="container">
-        <h1>🎨 Vibe Studio</h1>
+        <h1>🎨 AutoVibe</h1>
         <p>AI-Generated Image Transformation</p>
         
         <div class="image-container">
