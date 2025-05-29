@@ -1305,6 +1305,15 @@
         // Modal navigation state
         let modalImages = [];
         let currentModalIndex = 0;
+        let modalPrompts = {}; // Store prompts by unique ID
+        let promptIdCounter = 0;
+        
+        // Generate unique prompt ID and store prompt
+        function storePrompt(promptText) {
+            const promptId = `prompt_${promptIdCounter++}`;
+            modalPrompts[promptId] = promptText || 'AI generated transformation';
+            return promptId;
+        }
         
         // Custom koncept state
         let customKonceptCount = 0;
@@ -1494,12 +1503,13 @@
             if (resultBox && result.image) {
                 const content = resultBox.querySelector('.element-content');
                 const imageUrl = `data:image/jpeg;base64,${result.image}`;
+                const promptId = storePrompt(result.prompt);
                 
                 content.innerHTML = `
                     <div class="result-image-container">
                         <img src="${imageUrl}" class="result-image" style="
                             cursor: zoom-in;
-                        " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${(result.prompt || '').replace(/['"\\]/g, '\\$&')}')">
+                        " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')">
                     </div>
                 `;
                 
@@ -1899,7 +1909,8 @@
                         // Add click handler for image expansion
                         img.onclick = (e) => {
                             e.stopPropagation();
-                            openImageModal(img.src, 'Original Upload', 'Source image for AI transformation');
+                            const promptId = storePrompt('Source image for AI transformation');
+                            openImageModal(img.src, 'Original Upload', promptId);
                         };
                         
                         // Replace upload zone with image preview
@@ -2599,6 +2610,7 @@
                     // Update the result box with the generated image
                     if (resultBox) {
                         const content = resultBox.querySelector('.element-content');
+                        const promptId = storePrompt(prompt);
                         content.innerHTML = `
                             <div class="result-image-container">
                                 <img src="${result.imageUrl}" class="result-image" style="
@@ -2607,7 +2619,7 @@
                                     height: auto;
                                     min-height: 400px;
                                     object-fit: contain;
-                                " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${prompt.replace(/['"\\]/g, '\\$&')}')">
+                                " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')">
                             </div>
                         `;
                         
@@ -2695,9 +2707,14 @@
         }
 
         // Image Modal Functions
-        function openImageModal(imageSrc, title, prompt) {
+        function openImageModal(imageSrc, title, promptId) {
             console.log('🖼️ Opening image modal:', title);
             console.log('🖼️ Image source:', imageSrc);
+            console.log('🖼️ Prompt ID:', promptId);
+            
+            // Get actual prompt text from stored prompts
+            const promptText = modalPrompts[promptId] || 'AI generated transformation';
+            console.log('🖼️ Prompt text:', promptText);
             
             // Collect all available images for navigation
             collectModalImages();
@@ -2707,7 +2724,7 @@
             currentModalIndex = modalImages.findIndex(img => img.src === imageSrc);
             if (currentModalIndex === -1) {
                 // If not found, add current image and set as current
-                modalImages.push({ src: imageSrc, title, prompt });
+                modalImages.push({ src: imageSrc, title, prompt: promptText });
                 currentModalIndex = modalImages.length - 1;
                 console.log('🖼️ Added new image to modal collection');
             }
