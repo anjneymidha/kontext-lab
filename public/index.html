@@ -2098,10 +2098,10 @@
                         // Create start button outside of clickable area
                         const startButton = document.createElement('button');
                         startButton.className = 'start-button';
-                        startButton.innerHTML = 'Explore';
+                        startButton.innerHTML = 'AutoVibe';
                         startButton.onclick = (e) => {
                             e.stopPropagation();
-                            console.log('🎯 Explore button clicked, starting autoplay...');
+                            console.log('🎯 AutoVibe button clicked, starting autoplay...');
                             startButton.style.display = 'none';
                             autoplaySequence();
                         };
@@ -2109,7 +2109,7 @@
                         // Ensure button is enabled and clickable
                         startButton.disabled = false;
                         startButton.style.pointerEvents = 'auto';
-                        console.log('✅ Explore button created and ready to click');
+                        console.log('✅ AutoVibe button created and ready to click');
                         
                         // Create change image button
                         const changeButton = document.createElement('button');
