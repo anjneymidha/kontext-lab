@@ -1847,11 +1847,31 @@
         }
 
         async function processImageFile(file) {
-            // Get fresh reference to upload zone in case DOM changed
-            const currentUploadZone = document.getElementById('uploadZone') || uploadZone;
+            // Find the upload container - could be original uploadZone or modified structure
+            let uploadContainer = document.getElementById('uploadZone');
+            let isFirstUpload = true;
+            
+            // If uploadZone doesn't exist, look for the upload box container
+            if (!uploadContainer) {
+                uploadContainer = document.querySelector('.upload-box .element-content');
+                isFirstUpload = false;
+            }
+            
+            if (!uploadContainer) {
+                console.error('Could not find upload container');
+                return;
+            }
+            
+            console.log('📤 Processing image file, first upload:', isFirstUpload);
             
             // Show loading state
-            currentUploadZone.classList.add('loading');
+            if (isFirstUpload) {
+                uploadContainer.classList.add('loading');
+            } else {
+                // Add loading state to the upload box
+                const uploadBox = uploadContainer.closest('.upload-box');
+                if (uploadBox) uploadBox.classList.add('loading');
+            }
             
             try {
                 // Clear previous session state when loading new image
@@ -1913,13 +1933,8 @@
                             openImageModal(img.src, 'Original Upload', promptId);
                         };
                         
-                        // Replace upload zone with image preview
-                        const uploadContent = currentUploadZone.parentElement;
-                        if (!uploadContent) {
-                            console.error('Upload content parent not found for element:', currentUploadZone);
-                            return;
-                        }
-                        uploadContent.innerHTML = '';
+                        // Clear and rebuild upload container
+                        uploadContainer.innerHTML = '';
                         
                         // Create image container
                         const imageContainer = document.createElement('div');
@@ -1951,12 +1966,18 @@
                             fileInput.click();
                         };
                         
-                        // Add elements to upload content
-                        uploadContent.appendChild(imageContainer);
-                        uploadContent.appendChild(startButton);
-                        uploadContent.appendChild(changeButton);
+                        // Add elements to upload container
+                        uploadContainer.appendChild(imageContainer);
+                        uploadContainer.appendChild(startButton);
+                        uploadContainer.appendChild(changeButton);
                         
-                        currentUploadZone.classList.remove('loading');
+                        // Remove loading state
+                        if (isFirstUpload) {
+                            uploadContainer.classList.remove('loading');
+                        } else {
+                            const uploadBox = uploadContainer.closest('.upload-box');
+                            if (uploadBox) uploadBox.classList.remove('loading');
+                        }
                         
                         console.log(`📏 Upload image loaded: ${img.naturalWidth}x${img.naturalHeight}`);
                     };
@@ -1965,7 +1986,15 @@
                 
             } catch (error) {
                 console.error('Error processing image:', error);
-                currentUploadZone.classList.remove('loading');
+                
+                // Remove loading state on error
+                if (isFirstUpload) {
+                    uploadContainer.classList.remove('loading');
+                } else {
+                    const uploadBox = uploadContainer.closest('.upload-box');
+                    if (uploadBox) uploadBox.classList.remove('loading');
+                }
+                
                 alert('Error processing image. Please try again.');
             }
         }
