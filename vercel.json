@@ -28,6 +28,10 @@
       "dest": "/server.js"
     },
     {
+      "src": "/image/(.*)",
+      "dest": "/server.js"
+    },
+    {
       "src": "/collection/(.*)",
       "dest": "/server.js"
     },
