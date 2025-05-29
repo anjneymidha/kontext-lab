@@ -710,14 +710,85 @@ async function getCollection(collectionId) {
   }
 }
 
+// Function to generate Open Graph meta tags for session sharing
+function generateOpenGraphTags(sessionData, sessionId, req) {
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+  const sessionUrl = `${baseUrl}/session/${sessionId}`;
+  
+  // Default values
+  let title = 'Kontext Lab - AI Image Transformation Studio';
+  let description = 'Experience wild AI image transformations with hilarious prompts and viral-worthy results';
+  let imageUrl = `${baseUrl}/og-image.svg`; // Default image
+  
+  if (sessionData) {
+    // Extract koncept names for title
+    const konceptNames = sessionData.konceptNames || [];
+    const konceptText = konceptNames.length > 0 
+      ? konceptNames.slice(0, 2).join(' + ') 
+      : 'AI transformations';
+    
+    // Custom title with koncept names
+    title = `${konceptText} | Kontext Lab Session`;
+    
+    // Custom description with session details
+    const resultCount = sessionData.results ? sessionData.results.filter(r => !r.hasError && !r.isModerated).length : 0;
+    description = sessionData.caption 
+      ? `"${sessionData.caption.substring(0, 120)}..." - See ${resultCount} wild AI transformations`
+      : `Check out ${resultCount} wild AI transformations with ${konceptText}`;
+    
+    // Use first successful result image if available
+    const firstImage = sessionData.results?.find(r => r.image && !r.hasError && !r.isModerated);
+    if (firstImage && firstImage.image) {
+      // Use image serving endpoint instead of data URL
+      imageUrl = `${baseUrl}/api/session/${sessionId}/preview-image`;
+    }
+  }
+  
+  // Escape HTML entities for safe injection
+  const escapeHtml = (str) => str.replace(/[&<>"']/g, (match) => {
+    const escapeMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    return escapeMap[match];
+  });
+  
+  const safeTitle = escapeHtml(title);
+  const safeDescription = escapeHtml(description);
+  
+  // Generate meta tags
+  return `<title>${safeTitle}</title>
+    <meta property="og:title" content="${safeTitle}">
+    <meta property="og:description" content="${safeDescription}">
+    <meta property="og:image" content="${imageUrl}">
+    <meta property="og:url" content="${sessionUrl}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Kontext Lab">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${safeTitle}">
+    <meta name="twitter:description" content="${safeDescription}">
+    <meta name="twitter:image" content="${imageUrl}">
+    <meta name="description" content="${safeDescription}">`;
+}
+
 // Collection sharing routes
-// Session URL route - always serve the app, let frontend handle session loading
+// Session URL route - serve app with dynamic Open Graph meta tags
 app.get('/session/:id', async (req, res) => {
   try {
-    // Always serve the main app regardless of whether session exists
-    // The frontend will handle checking if the session exists and act accordingly
+    const sessionId = req.params.id;
     const indexPath = path.join(__dirname, 'public', 'index.html');
     let html = fs.readFileSync(indexPath, 'utf8');
+    
+    // Try to get session data for Open Graph tags
+    let sessionData = null;
+    try {
+      sessionData = await getCollection(sessionId);
+    } catch (error) {
+      console.log(`Session ${sessionId} not found in database, using default OG tags`);
+    }
+    
+    // Generate dynamic Open Graph meta tags
+    const ogTags = generateOpenGraphTags(sessionData, sessionId, req);
+    
+    // Inject Open Graph tags into HTML head
+    html = html.replace('<title>Kontext Lab - AI Image Transformation Studio</title>', ogTags);
     
     res.send(html);
     
@@ -761,6 +832,41 @@ app.get('/api/collection/:id', async (req, res) => {
   } catch (error) {
     console.error('Error loading collection:', error);
     res.status(404).json({ error: 'Collection not found' });
+  }
+});
+
+// Serve preview image for Open Graph
+app.get('/api/session/:id/preview-image', async (req, res) => {
+  try {
+    const sessionData = await getCollection(req.params.id);
+    
+    // Find first successful result image
+    const firstImage = sessionData.results?.find(r => r.image && !r.hasError && !r.isModerated);
+    
+    if (firstImage && firstImage.image) {
+      // Convert base64 to buffer and serve as JPEG
+      const imageBuffer = Buffer.from(firstImage.image, 'base64');
+      
+      res.set({
+        'Content-Type': 'image/jpeg',
+        'Content-Length': imageBuffer.length,
+        'Cache-Control': 'public, max-age=86400' // Cache for 24 hours
+      });
+      
+      res.send(imageBuffer);
+    } else {
+      // Return default image if no results
+      const defaultImagePath = path.join(__dirname, 'public', 'og-image.svg');
+      if (fs.existsSync(defaultImagePath)) {
+        res.sendFile(defaultImagePath);
+      } else {
+        res.status(404).json({ error: 'No preview image available' });
+      }
+    }
+    
+  } catch (error) {
+    console.error('Error serving preview image:', error);
+    res.status(404).json({ error: 'Preview image not found' });
   }
 });
 
