@@ -716,8 +716,8 @@ function generateOpenGraphTags(sessionData, sessionId, req) {
   const sessionUrl = `${baseUrl}/session/${sessionId}`;
   
   // Default values
-  let title = 'AutoVibe - AI Writes All Your Prompts';
-  let description = 'Upload image → AI creates wild prompts → See magic happen. No prompting skills needed!';
+  let title = 'AutoVibe - AI Writes All Your Prompts | BFL Kontext';
+  let description = 'Upload image → AI creates wild prompts → See magic happen. A BFL Kontext experiment. No prompting skills needed!';
   let imageUrl = `${baseUrl}/og-image.svg`; // Default image
   
   if (sessionData) {
@@ -728,7 +728,7 @@ function generateOpenGraphTags(sessionData, sessionId, req) {
       : 'AI transformations';
     
     // Custom title with koncept names
-    title = `${konceptText} | AutoVibe Session`;
+    title = `${konceptText} | AutoVibe - BFL Kontext`;
     
     // Custom description with session details
     const resultCount = sessionData.results ? sessionData.results.filter(r => !r.hasError && !r.isModerated).length : 0;
@@ -788,7 +788,7 @@ app.get('/session/:id', async (req, res) => {
     const ogTags = generateOpenGraphTags(sessionData, sessionId, req);
     
     // Inject Open Graph tags into HTML head
-    html = html.replace('<title>AutoVibe - AI Writes All Your Prompts</title>', ogTags);
+    html = html.replace('<title>AutoVibe - AI Writes All Your Prompts | BFL Kontext</title>', ogTags);
     
     res.send(html);
     
@@ -1544,9 +1544,9 @@ app.get('/image/:sessionId/:konceptIndex/:resultIndex', async (req, res) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoVibe - AI Generated Image</title>
-    <meta property="og:title" content="AutoVibe - AI Generated Image">
-    <meta property="og:description" content="Check out this AI-generated image transformation from AutoVibe">
+    <title>AutoVibe - AI Generated Image | BFL Kontext</title>
+    <meta property="og:title" content="AutoVibe - AI Generated Image | BFL Kontext">
+    <meta property="og:description" content="Check out this AI-generated image transformation from AutoVibe - a BFL Kontext experiment">
     <meta property="og:image" content="${imageData.imageUrl || imageData.image}">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
@@ -1616,6 +1616,7 @@ app.get('/image/:sessionId/:konceptIndex/:resultIndex', async (req, res) => {
     <div class="container">
         <h1>🎨 AutoVibe</h1>
         <p>AI-Generated Image Transformation</p>
+        <p style="font-size: 12px; color: #888; margin-top: 10px;">A <a href="https://bfl.ai/" style="color: #ff6600;">BFL Kontext</a> experiment</p>
         
         <div class="image-container">
             <img src="${imageData.imageUrl || imageData.image}" alt="Generated Image" class="generated-image">
