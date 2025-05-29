@@ -12,15 +12,16 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #ffffff;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', 'Courier New', monospace;
+            background: #000000;
             overflow: hidden;
             height: 100vh;
-            color: #1d1d1f;
-            font-size: 14px;
-            line-height: 1.5;
+            color: #ffffff;
+            font-size: 12px;
+            line-height: 1.3;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            font-weight: 400;
         }
 
         .whiteboard-container {
@@ -40,14 +41,14 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            background: #ffffff;
+            background: #000000;
             transform-origin: 0 0;
             will-change: transform;
             display: grid;
             grid-template-columns: 20% 80%;
             grid-template-rows: 100%;
-            gap: 2px;
-            padding: 8px;
+            gap: 1px;
+            padding: 4px;
         }
         
         /* Mobile layout adjustments */
@@ -63,23 +64,25 @@
 
         /* Left Section - Controls and Analysis */
         .left-section {
-            background: #ffffff;
-            padding: 20px;
+            background: #111111;
+            border: 1px solid #333333;
+            padding: 12px;
             display: grid;
             grid-template-columns: 1fr;
             grid-template-rows: auto auto 1fr;
-            gap: 20px;
+            gap: 8px;
             align-items: start;
         }
 
         /* Right Section - Generations Grid */
         .right-section {
-            background: #ffffff;
-            padding: 20px;
+            background: #111111;
+            border: 1px solid #333333;
+            padding: 12px;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            grid-auto-rows: auto minmax(450px, auto);
-            gap: 16px;
+            grid-auto-rows: auto minmax(400px, auto);
+            gap: 4px;
             align-items: start;
             min-height: 100%;
         }
@@ -101,15 +104,16 @@
 
         /* Koncept Label for each row - now horizontal header */
         .koncept-label {
-            background: #1d1d1f;
-            color: #ffffff;
-            border-radius: 8px;
-            padding: 16px 20px;
-            font-size: 13px;
-            font-weight: 600;
+            background: #ffff00;
+            color: #000000;
+            border: 1px solid #000000;
+            border-radius: 0;
+            padding: 8px 12px;
+            font-size: 10px;
+            font-weight: 700;
             text-align: left;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 1px;
             font-family: inherit;
             display: flex;
             align-items: center;
@@ -117,35 +121,34 @@
             cursor: text;
             position: relative;
             grid-column: 1 / -1; /* Span all columns */
-            min-height: 52px;
+            min-height: 32px;
         }
         
         .koncept-label::after {
-            content: "Edit";
+            content: "[E]";
             position: absolute;
-            top: 8px;
-            right: 12px;
-            font-size: 10px;
-            opacity: 0.7;
-            background: rgba(255,255,255,0.15);
-            padding: 4px 8px;
-            border-radius: 4px;
+            top: 2px;
+            right: 4px;
+            font-size: 7px;
+            opacity: 0.6;
+            background: rgba(0,0,0,0.1);
+            padding: 2px 4px;
+            border-radius: 0;
             text-transform: none;
             letter-spacing: 0;
             font-weight: 400;
         }
         
         .koncept-label:hover {
-            background: #0071e3;
-            color: #ffffff;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+            background: #ff6600;
+            color: #000000;
+            border-color: #000000;
         }
         
         .koncept-label.editing {
-            background: #f5f5f7;
-            color: #1d1d1f;
-            border: 2px solid #0071e3;
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid #ff6600;
         }
         
         /* Mobile koncept labels */
@@ -232,27 +235,26 @@
             }
         }
 
-        /* Grid Element Base - Clean Professional */
+        /* Grid Element Base - TE Minimal */
         .canvas-element {
-            background: #ffffff;
-            border-radius: 8px;
-            border: 1px solid #e5e5e7;
+            background: #222222;
+            border-radius: 0;
+            border: 1px solid #444444;
             cursor: pointer;
             user-select: none;
-            color: #1d1d1f;
+            color: #ffffff;
             width: 100%;
             height: 100%;
             max-width: 100%;
             max-height: 100%;
-            transition: all 0.2s ease;
+            transition: none;
         }
 
         .canvas-element.selected {
-            background: #fff;
-            color: #1d1d1f;
-            border-color: #0071e3;
-            box-shadow: 0 4px 16px rgba(0, 113, 227, 0.2);
-            transform: translateY(-2px);
+            background: #333333;
+            color: #ffff00;
+            border-color: #ffff00;
+            border-width: 2px;
         }
 
         .canvas-element.dragging {
@@ -296,50 +298,56 @@
         }
 
         .title-text {
-            font-size: 24px;
-            line-height: 1.3;
-            color: #1d1d1f;
-            padding: 20px;
+            font-size: 14px;
+            line-height: 1.2;
+            color: #ffff00;
+            padding: 12px;
             font-weight: 700;
-            letter-spacing: -0.5px;
+            letter-spacing: 2px;
             text-align: center;
-            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
 
         .subtitle-text {
-            font-size: 14px;
-            line-height: 1.4;
-            color: #86868b;
-            padding: 0 20px 8px 20px;
+            font-size: 8px;
+            line-height: 1.2;
+            color: #888888;
+            padding: 0 12px 4px 12px;
             font-weight: 400;
             text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .value-prop {
-            font-size: 12px;
-            line-height: 1.4;
-            color: #86868b;
-            padding: 0 20px 12px 20px;
+            font-size: 7px;
+            line-height: 1.2;
+            color: #666666;
+            padding: 0 12px 8px 12px;
             font-weight: 400;
             text-align: center;
-            border-top: 1px solid #e5e5e7;
-            margin-top: 12px;
-            padding-top: 12px;
+            border-top: 1px solid #333333;
+            margin-top: 8px;
+            padding-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .attribution {
-            font-size: 11px;
-            line-height: 1.3;
-            color: #a1a1a6;
-            padding: 0 20px 20px 20px;
+            font-size: 6px;
+            line-height: 1.2;
+            color: #555555;
+            padding: 0 12px 12px 12px;
             font-weight: 400;
             text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .attribution a {
-            color: #0071e3;
+            color: #ffff00;
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 700;
         }
         
         .attribution a:hover {
@@ -517,20 +525,20 @@
         .grid-result-2-2 { grid-column: 3; grid-row: 6; }
         .grid-result-2-3 { grid-column: 4; grid-row: 6; }
 
-        /* Element Header - Professional Style */
+        /* Element Header - TE Style */
         .element-header {
-            padding: 12px 16px;
-            background: #f5f5f7;
-            font-weight: 600;
-            font-size: 12px;
-            color: #86868b;
+            padding: 4px 8px;
+            background: #333333;
+            font-weight: 700;
+            font-size: 7px;
+            color: #ffff00;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            border-radius: 8px 8px 0 0;
-            border-bottom: 1px solid #e5e5e7;
+            letter-spacing: 1px;
+            border-radius: 0;
+            border-bottom: 1px solid #555555;
         }
         
         /* Mobile element headers */
@@ -543,7 +551,7 @@
         }
 
         .element-content {
-            padding: 16px;
+            padding: 8px;
         }
         
         .upload-box .element-content {
@@ -561,14 +569,14 @@
         }
 
         .upload-zone {
-            border: 2px dashed #e5e5e7;
-            border-radius: 12px;
-            padding: 24px;
+            border: 1px solid #555555;
+            border-radius: 0;
+            padding: 16px;
             text-align: center;
-            color: #86868b;
-            background: #fbfbfd;
+            color: #888888;
+            background: #1a1a1a;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: none;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -577,22 +585,22 @@
         }
 
         .upload-zone:hover {
-            border-color: #0071e3;
-            background: #fff;
-            color: #0071e3;
+            border-color: #ffff00;
+            background: #222222;
+            color: #ffff00;
         }
 
         .upload-zone.dragover {
-            border-color: #0071e3;
-            background: #fff;
-            color: #0071e3;
+            border-color: #ffff00;
+            background: #222222;
+            color: #ffff00;
         }
 
         .upload-icon {
-            font-size: 32px;
-            margin-bottom: 12px;
-            font-weight: 300;
-            color: #86868b;
+            font-size: 20px;
+            margin-bottom: 8px;
+            font-weight: 400;
+            color: #666666;
         }
 
         /* Image Preview */
@@ -632,53 +640,54 @@
         /* Start Button */
         .start-button {
             width: 100%;
-            background: #0071e3;
-            color: #ffffff;
-            border: 1px solid #0071e3;
-            border-radius: 8px;
-            padding: 16px 20px;
-            font-size: 14px;
-            font-weight: 600;
+            background: #ffff00;
+            color: #000000;
+            border: 2px solid #000000;
+            border-radius: 0;
+            padding: 8px 12px;
+            font-size: 10px;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s ease;
-            margin-top: 12px;
+            transition: none;
+            margin-top: 8px;
             flex-shrink: 0;
-            text-transform: none;
-            letter-spacing: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .start-button:hover {
-            background: #005bb5;
-            border-color: #005bb5;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+            background: #ff6600;
+            border-color: #000000;
+            color: #000000;
         }
         
         .start-button:active {
-            background: #004494;
-            transform: translateY(0);
+            background: #ffffff;
+            color: #000000;
         }
         
         /* Change Button */
         .change-button {
             width: 100%;
-            background: #f5f5f7;
-            color: #86868b;
-            border: 1px solid #e5e5e7;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-size: 12px;
-            font-weight: 500;
+            background: #333333;
+            color: #ffffff;
+            border: 1px solid #555555;
+            border-radius: 0;
+            padding: 6px 8px;
+            font-size: 8px;
+            font-weight: 400;
             cursor: pointer;
-            transition: all 0.2s ease;
-            margin-top: 8px;
+            transition: none;
+            margin-top: 4px;
             flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .change-button:hover {
-            background: #e8e8ed;
-            border-color: #d2d2d7;
-            color: #515154;
+            background: #444444;
+            border-color: #666666;
+            color: #ffff00;
         }
 
         /* Caption Box */
@@ -698,9 +707,9 @@
         }
 
         .caption-text {
-            font-size: 14px;
-            line-height: 1.6;
-            color: #1d1d1f;
+            font-size: 8px;
+            line-height: 1.3;
+            color: #cccccc;
             padding: 0;
             font-weight: 400;
             text-align: left;
@@ -719,31 +728,28 @@
         /* Vibe Node */
         .vibe-node {
             width: 100%;
-            height: 80px;
-            border-radius: 8px;
-            background: #1d1d1f;
-            color: #0071e3;
-            border: 2px solid #e5e5e7;
+            height: 60px;
+            border-radius: 0;
+            background: #222222;
+            color: #ffffff;
+            border: 1px solid #444444;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 12px;
+            font-size: 8px;
             text-align: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: none;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 1px;
         }
 
         .vibe-node:hover {
-            background: #0071e3;
-            color: #fff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
-            border-color: #0071e3;
+            background: #ffff00;
+            color: #000000;
+            border-color: #000000;
         }
 
         .vibe-node.selected {
@@ -788,22 +794,24 @@
         }
         
         .share-btn {
-            background: rgba(0, 0, 0, 0.75);
-            color: #fff;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
+            background: #333333;
+            color: #ffffff;
+            border: 1px solid #555555;
+            padding: 4px 8px;
+            border-radius: 0;
             cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            backdrop-filter: blur(8px);
-            transition: all 0.2s ease;
+            font-size: 7px;
+            font-weight: 700;
+            transition: none;
             white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .share-btn:hover {
-            background: rgba(0, 113, 227, 0.9);
-            transform: scale(1.05);
+            background: #ffff00;
+            color: #000000;
+            border-color: #000000;
         }
         
         .share-btn:active {
@@ -811,16 +819,18 @@
         }
 
         .result-prompt {
-            font-size: 12px;
-            color: #86868b;
-            line-height: 1.4;
-            max-height: 68px;
+            font-size: 6px;
+            color: #888888;
+            line-height: 1.2;
+            max-height: 48px;
             overflow: hidden;
             text-overflow: ellipsis;
             display: -webkit-box;
             -webkit-line-clamp: 4;
             line-clamp: 4;
             -webkit-box-orient: vertical;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* Remove connection styling - using grid layout instead */
@@ -857,12 +867,12 @@
         
         @keyframes pulseGeneration {
             0%, 100% {
-                box-shadow: 0 6px 20px rgba(255, 102, 0, 0.3);
-                border-color: #ff6600;
+                border-color: #ffff00;
+                background: #333333;
             }
             50% {
-                box-shadow: 0 8px 30px rgba(255, 102, 0, 0.5);
                 border-color: #ff6600;
+                background: #2a2a2a;
             }
         }
         
@@ -873,32 +883,31 @@
         /* Controls */
         .canvas-controls {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 8px;
+            right: 8px;
             display: flex;
-            gap: 8px;
+            gap: 2px;
             z-index: 1000;
         }
 
         .control-btn {
-            background: #ffffff;
-            border: 1px solid #e5e5e7;
-            border-radius: 8px;
-            padding: 10px 16px;
+            background: #333333;
+            border: 1px solid #555555;
+            border-radius: 0;
+            padding: 4px 8px;
             cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            color: #86868b;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            font-size: 8px;
+            font-weight: 700;
+            transition: none;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .control-btn:hover {
-            background: #0071e3;
-            color: #ffffff;
-            border-color: #0071e3;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+            background: #ffff00;
+            color: #000000;
+            border-color: #000000;
         }
         
         /* Inline home button styling in title header */
@@ -955,16 +964,17 @@
 
         .zoom-indicator {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: white;
-            border: 1px solid #e5e5e7;
-            border-radius: 8px;
-            padding: 10px 16px;
-            font-size: 12px;
-            font-weight: 500;
-            color: #86868b;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            bottom: 8px;
+            left: 8px;
+            background: #333333;
+            border: 1px solid #555555;
+            border-radius: 0;
+            padding: 4px 8px;
+            font-size: 8px;
+            font-weight: 700;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* Teenage Engineering Progress States */
@@ -978,10 +988,11 @@
         }
 
         .progress-bar {
-            width: 80%;
-            height: 4px;
-            background: #333;
-            margin-bottom: 12px;
+            width: 60%;
+            height: 2px;
+            background: #333333;
+            border: 1px solid #555555;
+            margin-bottom: 8px;
             position: relative;
             overflow: hidden;
         }
@@ -993,25 +1004,26 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: #fff;
+            background: #ffff00;
             animation: progressSlide 2s infinite;
         }
 
         .progress-dot {
-            width: 8px;
-            height: 8px;
-            background: #fff;
-            margin-bottom: 8px;
-            opacity: 0.7;
+            width: 4px;
+            height: 4px;
+            background: #ffff00;
+            border: 1px solid #666666;
+            margin-bottom: 4px;
+            opacity: 0.8;
         }
 
         .progress-text {
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 7px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 1px;
             text-align: center;
-            color: #86868b;
+            color: #888888;
         }
 
         .blank-result {
@@ -1023,23 +1035,23 @@
 
         .blank-image {
             width: 100%;
-            height: 140px;
-            background: #333;
-            margin-bottom: 8px;
+            height: 120px;
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            margin-bottom: 4px;
             position: relative;
             overflow: hidden;
         }
 
         .blank-image::after {
-            content: '';
+            content: '□';
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 4px;
-            height: 4px;
-            background: #666;
+            font-size: 16px;
+            color: #444444;
             transform: translate(-50%, -50%);
-            opacity: 0.5;
+            opacity: 0.6;
         }
 
         @keyframes progressSlide {
