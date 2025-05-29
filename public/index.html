@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoVibe - AI Writes All Your Prompts | BFL Kontext</title>
+    <title>AutoVibe - Let AI do the prompting for you | BFL Kontext</title>
     <style>
         * {
             margin: 0;
@@ -35,16 +35,14 @@
 
         .canvas-surface {
             position: relative;
-            min-width: 100%;
-            min-height: 100vh;
-            width: max-content;
-            height: max-content;
+            width: 100vw;
+            height: 100vh;
             background: #1C2A23;
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 280px 1fr;
             grid-template-rows: 100vh;
-            gap: 4px;
-            padding: 16px;
+            gap: 6px;
+            padding: 6px;
         }
         
         /* Mobile layout adjustments */
@@ -52,89 +50,134 @@
             .canvas-surface {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto 1fr;
-                gap: 10px;
-                padding: 10px;
-                overflow-y: auto;
+                gap: 8px;
+                padding: 8px;
+            }
+            
+            .left-section {
+                padding: 16px;
+                max-height: 40vh;
+            }
+            
+            .right-section {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 12px;
+                padding: 16px;
+            }
+            
+            .image-card {
+                min-height: 300px;
             }
         }
 
         /* Left Section - Controls and Analysis */
         .left-section {
             background: #FFFFFF;
-            padding: 24px;
-            display: grid;
-            grid-template-columns: 1fr;
-            grid-template-rows: auto auto 1fr;
-            gap: 16px;
-            align-items: start;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
         }
 
-        /* Right Section - Generations Grid */
+        /* Right Section - High Velocity Grid */
         .right-section {
             background: #FFFFFF;
-            padding: 24px;
+            padding: 8px;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-auto-rows: auto minmax(400px, auto);
-            gap: 12px;
-            align-items: start;
-            min-height: 100vh;
-            width: 100%;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 8px;
+            align-content: start;
+            overflow-y: auto;
         }
         
-        /* Mobile responsiveness */
-        @media (max-width: 768px) {
-            .left-section {
-                padding: 16px;
-                gap: 16px;
-            }
-            
-            .right-section {
-                grid-template-columns: 1fr;
-                grid-auto-rows: auto;
-                gap: 12px;
-                padding: 16px;
-            }
-        }
 
-        /* Koncept Label for each row - now horizontal header */
-        .koncept-label {
+        /* Individual Image Card - Maximum Image Space */
+        .image-card {
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            min-height: 180px;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.05s ease;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .image-card:hover {
+            transform: scale(1.02);
+            z-index: 10;
+        }
+        
+        /* Row/Column regeneration controls */
+        .regenerate-row-btn, .regenerate-col-btn {
+            position: absolute;
             background: #1C2A23;
             color: #FFFFFF;
-            padding: 20px 24px;
-            font-size: 18px;
-            font-weight: 600;
-            text-align: left;
-            font-family: inherit;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 100;
+            opacity: 0;
+            transition: all 0.1s ease;
             display: flex;
             align-items: center;
-            word-break: break-word;
-            cursor: text;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .regenerate-row-btn {
+            right: -16px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .regenerate-col-btn {
+            bottom: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .right-section:hover .regenerate-row-btn,
+        .right-section:hover .regenerate-col-btn {
+            opacity: 0.8;
+        }
+        
+        .regenerate-row-btn:hover,
+        .regenerate-col-btn:hover {
+            opacity: 1;
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .regenerate-col-btn:hover {
+            transform: translateX(-50%) scale(1.1);
+        }
+        
+        .image-card-header {
+            display: none;
+        }
+        
+        .image-card-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2px;
             position: relative;
-            grid-column: 1 / -1; /* Span all columns */
-            min-height: 64px;
         }
         
-        .koncept-label::after {
-            content: "Edit";
-            position: absolute;
-            top: 12px;
-            right: 16px;
-            font-size: 12px;
-            opacity: 0.7;
-            background: rgba(255,255,255,0.1);
-            padding: 6px 10px;
-            font-weight: 400;
-        }
-        
-        .koncept-label:hover {
-            background: #FFFFFF;
-            color: #1C2A23;
-        }
-        
-        .koncept-label.editing {
-            background: #FFFFFF;
-            color: #1C2A23;
+        .image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+            border-radius: 2px;
         }
         
         /* Mobile koncept labels */
@@ -221,22 +264,13 @@
             }
         }
 
-        /* Grid Element Base - Clean Minimal */
-        .canvas-element {
-            background: #FFFFFF;
-            cursor: pointer;
-            user-select: none;
-            color: #1C2A23;
-            width: 100%;
-            height: 100%;
-            max-width: 100%;
-            max-height: 100%;
-            transition: all 0.15s ease;
+        /* Upload Area Styling */
+        .upload-container {
+            margin-bottom: 12px;
         }
 
-        .canvas-element.selected {
-            background: #1C2A23;
-            color: #FFFFFF;
+        .upload-preview {
+            margin-bottom: 20px;
         }
 
         .canvas-element.dragging {
@@ -280,33 +314,36 @@
         }
 
         .title-text {
-            font-size: 28px;
+            font-size: 24px;
             line-height: 1.2;
             color: #1C2A23;
             padding: 0 0 8px 0;
             font-weight: 700;
             text-align: left;
+            margin-bottom: 12px;
         }
 
         .subtitle-text {
-            font-size: 16px;
+            font-size: 14px;
             line-height: 1.4;
             color: #1C2A23;
-            padding: 0 0 16px 0;
+            padding: 0 0 8px 0;
             font-weight: 400;
             text-align: left;
             opacity: 0.7;
+            margin-bottom: 8px;
         }
         
         
         .attribution {
-            font-size: 14px;
+            font-size: 12px;
             line-height: 1.4;
             color: #1C2A23;
             padding: 16px 0 0 0;
             font-weight: 400;
             text-align: left;
             opacity: 0.6;
+            margin-top: auto;
         }
         
         .attribution a {
@@ -354,7 +391,7 @@
             font-size: 13px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.1s ease;
             text-transform: uppercase;
             letter-spacing: 0.8px;
             font-family: inherit;
@@ -380,7 +417,7 @@
             font-family: inherit;
             margin-top: 12px;
             outline: none;
-            transition: all 0.2s ease;
+            transition: all 0.1s ease;
         }
 
         .custom-koncept-input::placeholder {
@@ -403,7 +440,7 @@
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.1s ease;
             margin-top: 12px;
             text-transform: none;
             letter-spacing: 0;
@@ -520,6 +557,45 @@
             height: calc(100% - 48px);
             display: flex;
             flex-direction: column;
+            gap: 8px;
+        }
+        
+        .image-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-height: 120px;
+            overflow: hidden;
+        }
+        
+        .start-button, .change-button {
+            width: 100%;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.1s ease;
+        }
+        
+        .start-button {
+            background: #1C2A23;
+            color: #FFFFFF;
+        }
+        
+        .start-button:hover {
+            background: #0F1A16;
+        }
+        
+        .change-button {
+            background: #f5f5f7;
+            color: #1C2A23;
+            border: 1px solid #e5e5e7;
+        }
+        
+        .change-button:hover {
+            background: #e5e5e7;
         }
 
         /* Upload Box */
@@ -530,33 +606,38 @@
         }
 
         .upload-zone {
-            padding: 32px;
+            padding: 16px;
             text-align: center;
             color: #1C2A23;
-            background: #FFFFFF;
+            background: #f8f8f8;
             cursor: pointer;
             transition: all 0.15s ease;
-            height: 100%;
+            min-height: 140px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             box-sizing: border-box;
             opacity: 0.8;
+            border: none;
+            border-radius: 6px;
         }
 
         .upload-zone:hover {
             opacity: 1;
+            background: #FFFFFF;
+            border-color: #1C2A23;
         }
 
         .upload-zone.dragover {
             opacity: 1;
             background: #1C2A23;
             color: #FFFFFF;
+            border-color: #1C2A23;
         }
 
         .upload-icon {
-            font-size: 40px;
-            margin-bottom: 16px;
+            font-size: 32px;
+            margin-bottom: 12px;
             font-weight: 300;
             color: inherit;
         }
@@ -564,6 +645,7 @@
         /* Image Preview */
         .image-preview {
             width: 100%;
+            max-height: 120px;
             object-fit: contain;
             border-radius: 6px;
             margin-bottom: 8px;
@@ -644,7 +726,7 @@
         .caption-box {
             width: 100%;
             height: 100%;
-            min-height: 450px;
+            min-height: 200px;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -738,25 +820,6 @@
             z-index: 2;
         }
         
-        .share-btn {
-            background: rgba(28, 42, 35, 0.8);
-            color: #FFFFFF;
-            padding: 10px 14px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-            transition: all 0.15s ease;
-            white-space: nowrap;
-        }
-        
-        .share-btn:hover {
-            background: #FFFFFF;
-            color: #1C2A23;
-        }
-        
-        .share-btn:active {
-            transform: scale(0.95);
-        }
 
         .result-prompt {
             font-size: 12px;
@@ -853,7 +916,7 @@
             font-size: 11px;
             padding: 6px 10px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.1s ease;
             margin-left: auto;
             outline: none;
             font-weight: 500;
@@ -981,6 +1044,85 @@
         .loading {
             opacity: 0.8;
         }
+        
+        /* Image Cards for responsive grid */
+        .image-card {
+            background: #FFFFFF;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+        }
+        
+        
+        .image-card-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loading-cards {
+            display: contents;
+        }
+        
+        .loading-card {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            animation: pulseLoading 2s ease-in-out infinite;
+        }
+        
+        .loading-card::after {
+            content: 'Loading...';
+            color: #666;
+            font-weight: 500;
+        }
+        
+        @keyframes pulseLoading {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 0.8; }
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1C2A23;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status-text {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .error-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #d32f2f;
+            font-weight: 500;
+        }
 
         /* Hide original canvas section */
         .canvas-section { display: none; }
@@ -1035,7 +1177,7 @@
             font-size: 24px;
             color: #fff;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.1s ease;
             backdrop-filter: blur(10px);
         }
 
@@ -1094,7 +1236,7 @@
             font-size: 20px;
             color: #fff;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.1s ease;
             backdrop-filter: blur(15px);
             user-select: none;
         }
@@ -1154,6 +1296,13 @@
                 position: static;
                 height: auto;
                 min-height: 100vh;
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+            
+            .right-section {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(4, 1fr);
             }
             
             /* Mobile koncept grid - single column with koncept above each row */
@@ -1247,6 +1396,11 @@
                 padding: 12px;
             }
             
+            .right-section {
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(8, 1fr);
+            }
+            
             .mobile-results-grid {
                 grid-template-columns: 1fr;
             }
@@ -1272,7 +1426,7 @@
                         </div>
                         <div class="element-content">
                             <div class="title-text">AutoVibe</div>
-                            <div class="subtitle-text">AI writes all your prompts</div>
+                            <div class="subtitle-text">Let AI do the prompting for you</div>
                             <div class="attribution">A <a href="https://bfl.ai/" target="_blank">BFL Kontext</a> experiment</div>
                         </div>
                     </div>
@@ -1282,12 +1436,12 @@
                 <div class="upload-container">
                     <div class="canvas-element upload-box" id="uploadElement">
                         <div class="element-header">
-                            📤 UPLOAD IMAGE
+                            🎨 START HERE
                         </div>
                         <div class="element-content">
                             <div class="upload-zone" id="uploadZone">
                                 <div class="upload-icon">+</div>
-                                <div>Drop image → AI makes wild prompts</div>
+                                <div>Drop or click to upload image</div>
                                 <input type="file" id="fileInput" accept="image/*" style="display: none;">
                             </div>
                         </div>
@@ -1585,11 +1739,6 @@
                         <img src="${imageUrl}" class="result-image" data-prompt-id="${promptId}" style="
                             cursor: zoom-in;
                         " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')">
-                        <div class="image-actions">
-                            <button class="share-btn" onclick="shareIndividualImage(event, ${conceptIndex}, ${resultIndex})" title="Share this image">
-                                🔗 Share
-                            </button>
-                        </div>
                     </div>
                 `;
                 
@@ -1969,13 +2118,8 @@
             console.log('🎬 Starting autoplay sequence...');
             
             // Step 1: Create entire blank layout immediately
-            console.log('📐 Creating layout structure...');
+            console.log('📏 Creating layout structure...');
             createBlankLayout();
-            
-            // Auto-position camera to show the complete layout
-            setTimeout(() => {
-                autoPositionCamera();
-            }, 500);
             
             // Step 2: Start AI analysis
             console.log('🤖 Analyzing image with AI...');
@@ -1985,29 +2129,53 @@
                 const analysisResult = await analyzeImageWithMistral(currentImageBase64);
                 console.log('🎯 Analysis result:', analysisResult);
                 
-                // Step 3: Fill in caption
-                await animatedDelay(800);
+                // Step 3: Immediately show caption while generating images
                 fillCaptionBox(analysisResult.caption);
                 
-                // Step 4: Fill in koncept labels
-                await animatedDelay(600);
-                fillKonceptLabels(analysisResult.vibes);
+                // Step 4: Start generating all 8 images in parallel
+                console.log('🎨 Starting parallel image generation...');
                 
-                // Step 5: Auto-generate images for each koncept in sequence
-                console.log('🎨 Starting automatic koncept generation...');
-                for (let i = 0; i < 3; i++) {
-                    const koncept = analysisResult.vibes[i] || 'creative';
-                    console.log(`🎯 Auto-generating for koncept: ${koncept}`);
-                    await autoGenerateKonceptImages(koncept, `koncept-${i}`, i);
-                    await animatedDelay(500);
+                // Clear loading cards and start generating images
+                const rightSection = document.querySelector('.right-section');
+                if (rightSection) {
+                    rightSection.innerHTML = '';
                 }
                 
-                console.log('✨ Autoplay sequence complete!');
+                // Generate 18 images in parallel with different prompts for maximum velocity
+                const promises = [];
+                for (let i = 1; i <= 18; i++) {
+                    const vibeIndex = (i - 1) % analysisResult.vibes.length;
+                    const vibe = analysisResult.vibes[vibeIndex] || 'creative';
+                    
+                    console.log(`🎭 Starting generation ${i} with vibe: ${vibe}`);
+                    
+                    // Create loading card immediately
+                    updateCardLoading(i, `Generating ${vibe} transformation...`);
+                    
+                    // Start generation
+                    const promise = generateSingleCardImage(vibe, i);
+                    promises.push(promise);
+                    
+                    // Minimal delay for maximum velocity
+                    await animatedDelay(25);
+                }
+                
+                console.log('✨ All generations started in parallel!');
+                
+                // Don't wait for all to complete - let them finish individually
+                
             } catch (error) {
                 console.error('❌ Error in autoplay sequence:', error);
-                // Fill with fallback data
-                fillCaptionBox('Analysis failed - using fallback data');
-                fillKonceptLabels(['creative', 'bold', 'mysterious']);
+                // Show error message
+                const rightSection = document.querySelector('.right-section');
+                if (rightSection) {
+                    rightSection.innerHTML = `
+                        <div class="error-card">
+                            <h3>Analysis Failed</h3>
+                            <p>Unable to analyze image. Please try again.</p>
+                        </div>
+                    `;
+                }
             }
         }
         
@@ -2016,57 +2184,16 @@
         }
 
         function createBlankLayout() {
-            // Get container references
-            const captionContainer = document.querySelector('.caption-container');
-            const rightSection = document.getElementById('rightSection');
+            console.log('🎨 Creating responsive image card layout...');
             
-            // Create caption box in left section
-            const captionElement = document.createElement('div');
-            captionElement.className = 'canvas-element caption-box';
-            captionElement.id = 'caption-box';
-            captionElement.innerHTML = `
-                <div class="element-header">🔍 EXPLORING IMAGE SPACE</div>
-                <div class="element-content">
-                    <div class="progress-state">
-                        <div class="progress-bar"></div>
-                        <div class="progress-text">ANALYZING...</div>
-                    </div>
-                </div>
-            `;
-            captionContainer.appendChild(captionElement);
+            const rightSection = document.querySelector('.right-section');
+            if (!rightSection) return;
             
-            // Create koncept labels and result boxes for each koncept (3 rows total) in right section
-            for (let konceptIndex = 0; konceptIndex < 3; konceptIndex++) {
-                // Create koncept label for this row
-                const konceptLabel = document.createElement('div');
-                konceptLabel.className = `koncept-label grid-koncept-label-${konceptIndex}`;
-                konceptLabel.id = `koncept-label-${konceptIndex}`;
-                konceptLabel.innerHTML = `
-                    <div class="progress-dot"></div>
-                    <div class="progress-text">KONCEPT ${konceptIndex + 1}</div>
-                `;
-                rightSection.appendChild(konceptLabel);
-                
-                // Create 4 result boxes for this koncept
-                for (let resultIndex = 0; resultIndex < 4; resultIndex++) {
-                    const resultElement = document.createElement('div');
-                    resultElement.className = `canvas-element result-box grid-result-${konceptIndex}-${resultIndex}`;
-                    resultElement.id = `result-${konceptIndex}-${resultIndex}`;
-                    resultElement.innerHTML = `
-                        <div class="element-header">🎨 RESULT ${resultIndex + 1}</div>
-                        <div class="element-content">
-                            <div class="blank-result">
-                                <div class="blank-image"></div>
-                                <div class="progress-text">WAITING...</div>
-                            </div>
-                        </div>
-                    `;
-                    rightSection.appendChild(resultElement);
-                }
-            }
+            // Clear and prepare for 18 loading cards
+            rightSection.innerHTML = '';
             
-            // Add the "Add Custom Koncept" empty state row
-            createAddKonceptRow(rightSection);
+            // Add regeneration controls for high-velocity iteration
+            setTimeout(() => addRegenerationControls(), 100);
         }
         
         function createAddKonceptRow(rightSection) {
@@ -2101,48 +2228,25 @@
 
         function fillCaptionBox(caption) {
             console.log('🔄 Filling caption box with:', caption.substring(0, 50) + '...');
-            const captionBox = document.getElementById('caption-box');
-            console.log('Caption box element:', captionBox);
-            if (captionBox) {
-                const content = captionBox.querySelector('.element-content');
-                console.log('Caption content element:', content);
-                if (content) {
-                    content.innerHTML = `
+            
+            // Always create/recreate caption box to ensure it shows up immediately
+            const captionContainer = document.querySelector('.caption-container');
+            if (captionContainer) {
+                // Clear any existing content first
+                captionContainer.innerHTML = '';
+                const captionElement = document.createElement('div');
+                captionElement.className = 'canvas-element caption-box';
+                captionElement.id = 'caption-box';
+                captionElement.innerHTML = `
+                    <div class="element-header">🔍 AI ANALYSIS</div>
+                    <div class="element-content">
                         <div class="caption-text">${caption}</div>
-                    `;
-                    console.log('✅ Caption box updated');
-                } else {
-                    console.error('❌ Caption content element not found in existing caption box');
-                    // Fallback: replace entire content
-                    captionBox.innerHTML = `
-                        <div class="element-header">🔍 EXPLORING IMAGE SPACE</div>
-                        <div class="element-content">
-                            <div class="caption-text">${caption}</div>
-                        </div>
-                    `;
-                    console.log('✅ Caption box content replaced');
-                }
+                    </div>
+                `;
+                captionContainer.appendChild(captionElement);
+                console.log('✅ Caption box created and filled immediately');
             } else {
-                console.error('❌ Caption box not found, creating new one');
-                // Try to create it if it doesn't exist
-                const captionContainer = document.querySelector('.caption-container');
-                if (captionContainer) {
-                    // Clear any existing content first
-                    captionContainer.innerHTML = '';
-                    const captionElement = document.createElement('div');
-                    captionElement.className = 'canvas-element caption-box';
-                    captionElement.id = 'caption-box';
-                    captionElement.innerHTML = `
-                        <div class="element-header">🔍 EXPLORING IMAGE SPACE</div>
-                        <div class="element-content">
-                            <div class="caption-text">${caption}</div>
-                        </div>
-                    `;
-                    captionContainer.appendChild(captionElement);
-                    console.log('✅ Caption box created and filled');
-                } else {
-                    console.error('❌ Caption container not found');
-                }
+                console.error('❌ Caption container not found');
             }
         }
 
@@ -2461,47 +2565,159 @@
             }
         }
         
-        async function autoGenerateKonceptImages(koncept, konceptNodeId, konceptIndex) {
+        // New function to generate a single image for the card layout
+        async function generateSingleCardImage(vibe, iteration) {
             try {
-                console.log(`🎭 Auto-generating prompts for ${koncept}...`);
+                console.log(`🎨 Generating card image ${iteration} with vibe: ${vibe}`);
                 
-                // Generate koncept-specific prompts using Mistral
+                // Generate vibe-specific prompts using Mistral
                 const promptResponse = await fetch('/api/generate-vibe-prompts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         image: currentImageBase64,
-                        vibe: koncept 
+                        vibe: vibe 
                     })
                 });
                 
-                if (!promptResponse.ok) {
-                    throw new Error('Failed to generate koncept prompts');
+                let prompt;
+                if (promptResponse.ok) {
+                    const promptData = await promptResponse.json();
+                    const prompts = promptData.prompts || [];
+                    prompt = prompts[0] || `Transform the image to emphasize ${vibe} qualities`;
+                } else {
+                    prompt = `Transform the image to emphasize ${vibe} qualities`;
                 }
                 
-                const promptData = await promptResponse.json();
-                const prompts = promptData.prompts || [];
+                console.log(`📝 Using prompt for card ${iteration}: ${prompt.substring(0, 100)}...`);
                 
-                console.log(`✨ Generated ${prompts.length} prompts for ${koncept}`);
+                // Start generation and get request ID
+                const startResponse = await fetch('/api/start-generation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        input_image: currentImageBase64,
+                        steps: 50,
+                        guidance: 3.0
+                    })
+                });
                 
-                // Generate images for each of the 4 result boxes
-                for (let i = 0; i < 4; i++) {
-                    const resultBoxId = `result-${konceptIndex}-${i}`;
-                    const prompt = prompts[i] || `Transform the image to emphasize ${koncept} qualities`;
-                    
-                    // Update progress state
-                    updateResultProgress(resultBoxId, 'GENERATING...');
-                    
-                    // Start generation with staggered timing
-                    setTimeout(() => {
-                        generateSingleKonceptImage(prompt, resultBoxId, koncept, i + 1, konceptIndex);
-                    }, i * 500);
+                if (!startResponse.ok) {
+                    throw new Error(`Failed to start generation: ${startResponse.status}`);
                 }
                 
-                await animatedDelay(2000);
+                const startResult = await startResponse.json();
+                if (!startResult.success || !startResult.requestId) {
+                    throw new Error('Failed to get request ID');
+                }
+                
+                console.log(`⏳ Generation started for card ${iteration}, polling for completion...`);
+                
+                // Poll for completion
+                const result = await pollForCompletion(startResult.requestId, iteration);
+                
+                if (result.success && result.imageUrl) {
+                    // Update the card with the completed image
+                    updateCardComplete(iteration, result.imageUrl, prompt);
+                    
+                    console.log(`✅ Card ${iteration} completed successfully`);
+                    
+                    // Save result to session
+                    saveResultToSession(0, iteration - 1, {
+                        prompt: prompt,
+                        imageUrl: result.imageUrl,
+                        status: 'completed'
+                    });
+                    
+                } else if (result.moderated) {
+                    updateCardError(iteration, 'Content moderated');
+                } else {
+                    throw new Error('Generation failed');
+                }
                 
             } catch (error) {
-                console.error('Error in auto-generation:', error);
+                console.error(`❌ Error generating card ${iteration}:`, error);
+                updateCardError(iteration, error.message.includes('timeout') ? 'Generation timeout' : 'Generation failed');
+            }
+        }
+        
+        // Update card with loading state
+        function updateCardLoading(iteration, status) {
+            const cardId = `image-card-${iteration}`;
+            let card = document.getElementById(cardId);
+            
+            const rightSection = document.querySelector('.right-section');
+            if (!rightSection) return;
+            
+            // Create card if it doesn't exist
+            if (!card) {
+                const cardHTML = `
+                    <div class="image-card" id="${cardId}">
+                        <div class="image-card-content">
+                            <div class="loading-spinner"></div>
+                            <p class="status-text">${status}</p>
+                        </div>
+                    </div>
+                `;
+                rightSection.insertAdjacentHTML('beforeend', cardHTML);
+                card = document.getElementById(cardId);
+            } else {
+                // Update existing card
+                const content = card.querySelector('.image-card-content');
+                if (content) {
+                    content.innerHTML = `
+                        <div class="loading-spinner"></div>
+                        <p class="status-text">${status}</p>
+                    `;
+                }
+            }
+        }
+        
+        // Update card with completed image
+        function updateCardComplete(iteration, imageUrl, prompt) {
+            const cardId = `image-card-${iteration}`;
+            const card = document.getElementById(cardId);
+            
+            if (!card) return;
+            
+            const promptId = storePrompt(prompt);
+            const content = card.querySelector('.image-card-content');
+            
+            if (content) {
+                content.innerHTML = `
+                    <div class="result-image-container">
+                        <img src="${imageUrl}" class="result-image" 
+                             data-prompt-id="${promptId}" 
+                             onclick="openImageModal('${imageUrl}', 'Transformation ${iteration}', '${promptId}')" 
+                             style="cursor: zoom-in;"
+                             title="Click to view full size">
+                    </div>
+                `;
+            }
+            
+            // Add to modal images array
+            modalImages.push({
+                url: imageUrl,
+                title: `Transformation ${iteration}`,
+                promptId: promptId
+            });
+        }
+        
+        // Update card with error state
+        function updateCardError(iteration, errorMessage) {
+            const cardId = `image-card-${iteration}`;
+            const card = document.getElementById(cardId);
+            
+            if (!card) return;
+            
+            const content = card.querySelector('.image-card-content');
+            if (content) {
+                content.innerHTML = `
+                    <div class="error-state">
+                        <p>❌ ${errorMessage}</p>
+                    </div>
+                `;
             }
         }
 
@@ -2623,11 +2839,6 @@
                                     min-height: 400px;
                                     object-fit: contain;
                                 " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')">
-                                <div class="image-actions">
-                                    <button class="share-btn" onclick="shareIndividualImage(event, ${konceptIndex}, ${index})" title="Share this image">
-                                        🔗 Share
-                                    </button>
-                                </div>
                             </div>
                         `;
                         
@@ -3326,7 +3537,7 @@
                 uploadZone.style.opacity = '';
                 uploadZone.innerHTML = `
                     <div class="upload-icon">+</div>
-                    <div>Drop image → AI makes wild prompts</div>
+                    <div>Drop or click to upload image</div>
                 `;
             }
             
@@ -3337,6 +3548,220 @@
             console.log('🧹 Workspace cleared');
         }
         
+        // Spawn 18 variations from clicked image for maximum exploration
+        async function spawnVariationsFromImage(imageUrl, title, promptId) {
+            console.log('🚀 Spawning variations from clicked image:', title);
+            
+            // Clear current grid
+            const rightSection = document.querySelector('.right-section');
+            if (rightSection) {
+                rightSection.innerHTML = '';
+            }
+            
+            // Generate analysis vibes for variation prompts
+            const variationVibes = [
+                'dramatic', 'ethereal', 'vibrant', 'moody', 'cinematic', 'surreal',
+                'minimalist', 'bold', 'dreamy', 'intense', 'elegant', 'gritty',
+                'futuristic', 'vintage', 'abstract', 'realistic', 'artistic', 'experimental'
+            ];
+            
+            // Generate 18 variations instantly
+            const promises = [];
+            for (let i = 1; i <= 18; i++) {
+                const vibe = variationVibes[(i - 1) % variationVibes.length];
+                
+                // Create loading card immediately
+                updateCardLoading(i, `Spawning ${vibe} variation...`);
+                
+                // Start generation with variation prompt
+                const variationPrompt = `Transform this image with a ${vibe} aesthetic, maintaining the core subject but exploring new ${vibe} interpretations`;
+                const promise = generateImageFromSource(imageUrl, variationPrompt, i);
+                promises.push(promise);
+                
+                // Ultra-fast flow
+                await animatedDelay(10);
+            }
+            
+            console.log('✨ All 18 variations spawning in parallel!');
+        }
+        
+        // Generate image from source image (for variations)
+        async function generateImageFromSource(sourceImageUrl, prompt, iteration) {
+            try {
+                // Convert source image to base64 for img2img
+                const response = await fetch(sourceImageUrl);
+                const blob = await response.blob();
+                const base64 = await blobToBase64(blob);
+                
+                // Generate with img2img
+                const result = await generateImageFromPrompt(prompt, base64);
+                
+                if (result?.imageUrl) {
+                    updateCardComplete(iteration, result.imageUrl, prompt);
+                } else {
+                    updateCardError(iteration, 'Generation failed');
+                }
+                
+            } catch (error) {
+                console.error(`❌ Error generating variation ${iteration}:`, error);
+                updateCardError(iteration, 'Failed to generate');
+            }
+        }
+        
+        // Regenerate specific row (6 images)
+        async function regenerateRow(rowIndex) {
+            console.log(`🔄 Regenerating row ${rowIndex + 1}`);
+            
+            const startIndex = rowIndex * 6 + 1;
+            const endIndex = startIndex + 5;
+            
+            for (let i = startIndex; i <= endIndex; i++) {
+                updateCardLoading(i, `Regenerating position ${i}...`);
+                
+                // Get current analysis for new generation
+                const analysisResult = window.currentAnalysis;
+                if (analysisResult?.vibes) {
+                    const vibeIndex = (i - 1) % analysisResult.vibes.length;
+                    const vibe = analysisResult.vibes[vibeIndex] || 'creative';
+                    
+                    const promise = generateSingleCardImage(vibe, i);
+                    // Don't wait, let it complete individually
+                }
+            }
+        }
+        
+        // Regenerate specific column (3 images)
+        async function regenerateColumn(colIndex) {
+            console.log(`🔄 Regenerating column ${colIndex + 1}`);
+            
+            const positions = [colIndex + 1, colIndex + 7, colIndex + 13]; // Row 1, 2, 3
+            
+            for (const pos of positions) {
+                updateCardLoading(pos, `Regenerating position ${pos}...`);
+                
+                // Get current analysis for new generation
+                const analysisResult = window.currentAnalysis;
+                if (analysisResult?.vibes) {
+                    const vibeIndex = (pos - 1) % analysisResult.vibes.length;
+                    const vibe = analysisResult.vibes[vibeIndex] || 'creative';
+                    
+                    const promise = generateSingleCardImage(vibe, pos);
+                    // Don't wait, let it complete individually
+                }
+            }
+        }
+        
+        // Add regeneration controls to grid
+        function addRegenerationControls() {
+            const rightSection = document.querySelector('.right-section');
+            if (!rightSection) return;
+            
+            // Remove existing controls
+            rightSection.querySelectorAll('.regenerate-row-btn, .regenerate-col-btn').forEach(btn => btn.remove());
+            
+            // Add row regeneration buttons (3 rows)
+            for (let row = 0; row < 3; row++) {
+                const rowBtn = document.createElement('button');
+                rowBtn.className = 'regenerate-row-btn';
+                rowBtn.innerHTML = '↻';
+                rowBtn.title = `Regenerate row ${row + 1}`;
+                rowBtn.style.top = `${16.66 + (row * 33.33)}%`;
+                rowBtn.onclick = () => regenerateRow(row);
+                rightSection.appendChild(rowBtn);
+            }
+            
+            // Add column regeneration buttons (6 columns)
+            for (let col = 0; col < 6; col++) {
+                const colBtn = document.createElement('button');
+                colBtn.className = 'regenerate-col-btn';
+                colBtn.innerHTML = '↻';
+                colBtn.title = `Regenerate column ${col + 1}`;
+                colBtn.style.left = `${8.33 + (col * 16.67)}%`;
+                colBtn.onclick = () => regenerateColumn(col);
+                rightSection.appendChild(colBtn);
+            }
+        }
+        
+        // Spawn 18 text-only variations (no img2img, avoids CORS)
+        async function spawnTextOnlyVariations() {
+            console.log('🚀 Spawning 18 text-only variations...');
+            
+            // Clear current grid
+            const rightSection = document.querySelector('.right-section');
+            if (rightSection) {
+                rightSection.innerHTML = '';
+            }
+            
+            // Get current analysis for variation prompts
+            const analysisResult = window.currentAnalysis;
+            if (!analysisResult?.vibes) {
+                console.log('❌ No analysis available for variations');
+                return;
+            }
+            
+            // Enhanced variation styles for maximum diversity
+            const variationStyles = [
+                'photorealistic portrait', 'digital art', 'oil painting', 'watercolor', 
+                'pencil sketch', 'cyberpunk style', 'steampunk aesthetic', 'vintage photo',
+                'neon noir', 'minimalist design', 'abstract art', 'pop art style',
+                'renaissance painting', 'anime style', 'comic book art', 'surreal art',
+                'black and white photography', 'fantasy illustration'
+            ];
+            
+            // Generate 18 variations instantly
+            const promises = [];
+            for (let i = 1; i <= 18; i++) {
+                const baseVibe = analysisResult.vibes[(i - 1) % analysisResult.vibes.length];
+                const style = variationStyles[(i - 1) % variationStyles.length];
+                
+                // Create loading card immediately
+                updateCardLoading(i, `Creating ${style} variation...`);
+                
+                // Enhanced prompt combining base analysis with style
+                const variationPrompt = `${baseVibe}, rendered as ${style}, high quality, detailed`;
+                const promise = generateSingleCardImage(variationPrompt, i);
+                promises.push(promise);
+                
+                // Ultra-fast flow
+                await animatedDelay(10);
+            }
+            
+            console.log('✨ All 18 text-only variations spawning in parallel!');
+        }
+
+        // High-velocity keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ignore if typing in input fields
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            switch(e.key.toLowerCase()) {
+                case 'r':
+                    e.preventDefault();
+                    // Regenerate all images
+                    const autoplayBtn = document.querySelector('button[onclick*="autoplaySequence"]');
+                    if (autoplayBtn) autoplayBtn.click();
+                    break;
+                case 'v':
+                    e.preventDefault();
+                    // Spawn variations using original image
+                    console.log('🎨 Spawning 18 text-only variations...');
+                    spawnTextOnlyVariations();
+                    break;
+                case 'c':
+                    e.preventDefault();
+                    // Clear all images
+                    const rightSection = document.querySelector('.right-section');
+                    if (rightSection) rightSection.innerHTML = '';
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    // Spacebar to regenerate
+                    const autoplayBtn2 = document.querySelector('button[onclick*="autoplaySequence"]');
+                    if (autoplayBtn2) autoplayBtn2.click();
+                    break;
+            }
+        });
+
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initWhiteboard);
     </script>
