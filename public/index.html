@@ -28,25 +28,21 @@
             position: relative;
             width: 100vw;
             height: 100vh;
-            overflow: hidden;
-            cursor: grab;
-            touch-action: none;
+            overflow: auto;
+            cursor: default;
         }
 
-        .whiteboard-container.grabbing {
-            cursor: grabbing;
-        }
 
         .canvas-surface {
-            position: absolute;
-            width: 100%;
-            height: 100%;
+            position: relative;
+            min-width: 100%;
+            min-height: 100vh;
+            width: max-content;
+            height: max-content;
             background: #1C2A23;
-            transform-origin: 0 0;
-            will-change: transform;
             display: grid;
-            grid-template-columns: 20% 80%;
-            grid-template-rows: 100%;
+            grid-template-columns: 300px 1fr;
+            grid-template-rows: 100vh;
             gap: 4px;
             padding: 16px;
         }
@@ -82,7 +78,8 @@
             grid-auto-rows: auto minmax(400px, auto);
             gap: 12px;
             align-items: start;
-            min-height: 100%;
+            min-height: 100vh;
+            width: 100%;
         }
         
         /* Mobile responsiveness */
@@ -825,10 +822,10 @@
         /* Controls */
         .canvas-controls {
             position: fixed;
-            top: 8px;
-            right: 8px;
+            top: 20px;
+            right: 20px;
             display: flex;
-            gap: 2px;
+            gap: 8px;
             z-index: 1000;
         }
 
@@ -899,16 +896,6 @@
             }
         }
 
-        .zoom-indicator {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: #1C2A23;
-            padding: 12px 18px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #FFFFFF;
-        }
 
         /* Teenage Engineering Progress States */
         .progress-state {
@@ -1320,15 +1307,6 @@
         </div>
     </div>
 
-    <!-- Controls -->
-    <div class="canvas-controls">
-        <button class="control-btn" onclick="autoPositionCamera()">FIT</button>
-        <button class="control-btn" onclick="resetZoom()">RESET</button>
-        <button class="control-btn" onclick="zoomIn()">+</button>
-        <button class="control-btn" onclick="zoomOut()">-</button>
-    </div>
-
-    <div class="zoom-indicator" id="zoomIndicator">100%</div>
 
     <!-- Image Modal -->
     <div class="image-modal" id="imageModal" style="display: none;">
@@ -1345,17 +1323,6 @@
 
     <script>
         // Global state
-        let currentZoom = 0.95;
-        let panX = 0;
-        let panY = 0;
-        let isDragging = false;
-        let dragElement = null;
-        let dragOffset = { x: 0, y: 0 };
-        let isPanning = false;
-        let panStart = { x: 0, y: 0 };
-        let elements = [];
-        let connections = [];
-        let elementIdCounter = 0;
         let currentImageBase64 = null;
         
         // Modal navigation state
@@ -1453,32 +1420,19 @@
         }
         let isSharedSession = false;
 
-        // Inertia scrolling state
-        let velocity = { x: 0, y: 0 };
-        let lastPanTime = 0;
-        let lastPanPosition = { x: 0, y: 0 };
-        let inertiaAnimation = null;
-        let panHistory = [];
 
         // DOM elements
         const container = document.getElementById('whiteboardContainer');
         const surface = document.getElementById('canvasSurface');
-        const svg = document.getElementById('connectionSvg');
-        const zoomIndicator = document.getElementById('zoomIndicator');
         const uploadZone = document.getElementById('uploadZone');
         const fileInput = document.getElementById('fileInput');
 
-        // Initialize the whiteboard
+        // Initialize the app
         function initWhiteboard() {
             setupEventListeners();
-            updateZoomIndicator();
-            updateTransform(); // Apply initial zoom
             
             // Check if this is a shared session
             checkForSharedSession();
-            
-            // Auto-position camera for optimal viewing
-            autoPositionCamera();
             
             // Handle mobile layout
             handleMobileLayout();
@@ -1487,19 +1441,11 @@
         // Handle mobile-specific layout adjustments
         function handleMobileLayout() {
             if (window.innerWidth <= 768) {
-                // Disable zoom/pan on mobile
-                container.style.overflow = 'auto';
-                surface.style.position = 'static';
-                surface.style.transform = 'none';
-                
-                // Hide zoom controls on mobile
+                // Mobile-specific adjustments if needed
                 const controls = document.querySelector('.canvas-controls');
                 if (controls) {
                     controls.style.display = 'none';
                 }
-                
-                // Hide zoom indicator on mobile
-                const zoomIndicator = document.getElementById('zoomIndicator');
                 if (zoomIndicator) {
                     zoomIndicator.style.display = 'none';
                 }
@@ -1664,17 +1610,6 @@
         }
 
         function setupEventListeners() {
-            // Pan and zoom
-            container.addEventListener('mousedown', handleMouseDown);
-            container.addEventListener('mousemove', handleMouseMove);
-            container.addEventListener('mouseup', handleMouseUp);
-            container.addEventListener('wheel', handleWheel, { passive: false });
-
-            // Touch events for mobile
-            container.addEventListener('touchstart', handleTouchStart);
-            container.addEventListener('touchmove', handleTouchMove);
-            container.addEventListener('touchend', handleTouchEnd);
-
             // Upload functionality
             uploadZone.addEventListener('click', () => fileInput.click());
             uploadZone.addEventListener('dragover', handleDragOver);
@@ -1698,110 +1633,7 @@
             });
         }
 
-        function registerElement(elementId, type) {
-            const element = document.getElementById(elementId);
-            if (!element) return;
-
-            const elementData = {
-                id: elementId,
-                type: type,
-                element: element,
-                x: parseInt(element.style.left) || 0,
-                y: parseInt(element.style.top) || 0
-            };
-
-            elements.push(elementData);
-
-            // Add drag handlers specific to elements
-            element.addEventListener('mousedown', (e) => {
-                e.stopPropagation();
-                startDragging(element, e);
-            });
-        }
-
-        function startDragging(element, e) {
-            isDragging = true;
-            dragElement = element;
-            element.classList.add('dragging');
-
-            const rect = element.getBoundingClientRect();
-            const surfaceRect = surface.getBoundingClientRect();
-            
-            dragOffset.x = e.clientX - rect.left;
-            dragOffset.y = e.clientY - rect.top;
-        }
-
-        function handleMouseDown(e) {
-            // Allow panning from container, surface, or grid sections (but not interactive elements)
-            const allowPanning = e.target === container || 
-                                e.target === surface || 
-                                e.target.classList.contains('left-section') ||
-                                e.target.classList.contains('right-section');
-            
-            // Prevent panning on interactive elements
-            const isInteractiveElement = e.target.tagName === 'BUTTON' ||
-                                       e.target.tagName === 'INPUT' ||
-                                       e.target.classList.contains('canvas-element') ||
-                                       e.target.classList.contains('koncept-text') ||
-                                       e.target.classList.contains('regenerate-row-btn') ||
-                                       e.target.closest('.canvas-element');
-            
-            if (allowPanning && !isInteractiveElement) {
-                isPanning = true;
-                panStart.x = e.clientX - panX;
-                panStart.y = e.clientY - panY;
-                container.classList.add('grabbing');
-                
-                // Stop any ongoing inertia animation
-                if (inertiaAnimation) {
-                    cancelAnimationFrame(inertiaAnimation);
-                    inertiaAnimation = null;
-                }
-                
-                // Reset pan tracking
-                velocity = { x: 0, y: 0 };
-                panHistory = [];
-                lastPanTime = Date.now();
-                lastPanPosition = { x: e.clientX, y: e.clientY };
-            }
-        }
-
-        function handleMouseMove(e) {
-            if (isDragging && dragElement) {
-                const surfaceRect = surface.getBoundingClientRect();
-                const x = (e.clientX - surfaceRect.left - dragOffset.x) / currentZoom;
-                const y = (e.clientY - surfaceRect.top - dragOffset.y) / currentZoom;
-                
-                dragElement.style.left = x + 'px';
-                dragElement.style.top = y + 'px';
-                
-                // No connections needed with grid layout
-            } else if (isPanning) {
-                const currentTime = Date.now();
-                const currentPosition = { x: e.clientX, y: e.clientY };
-                
-                // Calculate movement with reduced sensitivity
-                const newPanX = (e.clientX - panStart.x) * 0.8; // 20% less sensitive
-                const newPanY = (e.clientY - panStart.y) * 0.8; // 20% less sensitive
-                
-                // Track velocity for inertia
-                if (currentTime - lastPanTime > 0) {
-                    velocity.x = (currentPosition.x - lastPanPosition.x) / (currentTime - lastPanTime) * 16; // Normalize to 60fps
-                    velocity.y = (currentPosition.y - lastPanPosition.y) / (currentTime - lastPanTime) * 16;
-                    
-                    // Keep a short history for smoother velocity calculation
-                    panHistory.push({ velocity: { ...velocity }, time: currentTime });
-                    if (panHistory.length > 5) panHistory.shift();
-                }
-                
-                panX = newPanX;
-                panY = newPanY;
-                updateTransform();
-                
-                lastPanTime = currentTime;
-                lastPanPosition = currentPosition;
-            }
-        }
+        // Removed zoom/pan functionality for simpler scrolling interface
 
         function handleMouseUp(e) {
             if (isDragging && dragElement) {
