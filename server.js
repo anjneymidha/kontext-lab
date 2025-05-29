@@ -716,8 +716,8 @@ function generateOpenGraphTags(sessionData, sessionId, req) {
   const sessionUrl = `${baseUrl}/session/${sessionId}`;
   
   // Default values
-  let title = 'Kontext Lab - AI Image Transformation Studio';
-  let description = 'Experience wild AI image transformations with hilarious prompts and viral-worthy results';
+  let title = 'Vibe Studio - a BFL Kontext experiment';
+  let description = 'Vibe Studio - a BFL Kontext experiment';
   let imageUrl = `${baseUrl}/og-image.svg`; // Default image
   
   if (sessionData) {
@@ -728,7 +728,7 @@ function generateOpenGraphTags(sessionData, sessionId, req) {
       : 'AI transformations';
     
     // Custom title with koncept names
-    title = `${konceptText} | Kontext Lab Session`;
+    title = `${konceptText} | Vibe Studio Session`;
     
     // Custom description with session details
     const resultCount = sessionData.results ? sessionData.results.filter(r => !r.hasError && !r.isModerated).length : 0;
@@ -760,7 +760,7 @@ function generateOpenGraphTags(sessionData, sessionId, req) {
     <meta property="og:image" content="${imageUrl}">
     <meta property="og:url" content="${sessionUrl}">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Kontext Lab">
+    <meta property="og:site_name" content="Vibe Studio">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${safeTitle}">
     <meta name="twitter:description" content="${safeDescription}">
@@ -788,7 +788,7 @@ app.get('/session/:id', async (req, res) => {
     const ogTags = generateOpenGraphTags(sessionData, sessionId, req);
     
     // Inject Open Graph tags into HTML head
-    html = html.replace('<title>Kontext Lab - AI Image Transformation Studio</title>', ogTags);
+    html = html.replace('<title>Vibe Studio - a BFL Kontext experiment</title>', ogTags);
     
     res.send(html);
     
@@ -1124,7 +1124,7 @@ Respond with exactly 4 prompts, numbered 1-4. Make them so creative they feel li
   }
 });
 
-// API endpoint for saving Kontext Lab sessions
+// API endpoint for saving Vibe Studio sessions
 app.post('/api/save-session', async (req, res) => {
   console.log('💾 Save session endpoint hit');
   
