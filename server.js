@@ -1275,8 +1275,20 @@ app.post('/api/edit-image', async (req, res) => {
       console.log(`📊 Polling attempt ${attempts}, status: ${result.status}`);
       
       if (result.status === 'Ready') {
-        const editedImageUrl = result.result.sample;
+        const imageData = result.result.sample;
         console.log('✅ Edit completed successfully');
+        
+        // Check if imageData is a URL or base64 data
+        let editedImageUrl;
+        if (imageData.startsWith('http')) {
+          // It's a URL, use it directly
+          editedImageUrl = imageData;
+        } else {
+          // It's base64 data, create a data URL
+          editedImageUrl = `data:image/jpeg;base64,${imageData}`;
+        }
+        
+        console.log('🖼️ Edit image URL type:', imageData.startsWith('http') ? 'URL' : 'base64');
         
         return res.json({
           success: true,
@@ -1427,7 +1439,18 @@ app.get('/api/check-generation/:requestId', async (req, res) => {
         return res.json({ status: 'error', error: 'No image data in result' });
       }
       
-      const imageUrl = `data:image/jpeg;base64,${imageData}`;
+      // Check if imageData is a URL or base64 data
+      let imageUrl;
+      if (imageData.startsWith('http')) {
+        // It's a URL, use it directly
+        imageUrl = imageData;
+      } else {
+        // It's base64 data, create a data URL
+        imageUrl = `data:image/jpeg;base64,${imageData}`;
+      }
+      
+      console.log('🖼️ Image URL type:', imageData.startsWith('http') ? 'URL' : 'base64');
+      
       res.json({ 
         status: 'completed',
         success: true,
