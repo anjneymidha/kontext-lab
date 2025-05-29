@@ -245,17 +245,19 @@ async function generateDynamicPrompts(imageBuffer) {
           content: [
             {
               type: "text",
-              text: `Analyze this image and generate exactly 4 creative, wild, and unexpected image transformation prompts. Each prompt should:
+              text: `You are a creative prompt engineer. Your task is to analyze the provided image and then generate exactly 4 distinct image transformation *instructions*. These instructions are intended to be used directly as prompts for a sophisticated image editing/reference AI model. Therefore, each generated line *must be* a clear, actionable instruction.
 
-1. Be completely unique and creative - think of things humans would never expect to ask
-2. Preserve the subject's exact pose, facial features, and body position 
-3. Be absurd, funny, or surprising in some way
-4. Be detailed enough for an AI image generator
-5. Start with an action verb like "Transform", "Change", "Convert", etc.
+Each instruction must:
 
-Look at what's in the image and create 4 wildly creative transformation ideas that play with the subject, setting, style, or concept in unexpected ways. Be imaginative!
+1.  Be a completely unique and creative transformation idea – aim for concepts humans would find highly unexpected to request from an image AI.
+2.  Crucially, preserve the subject's exact pose, facial features, and body position from the original image in the transformed output.
+3.  Be absurd, funny, or surprising in its concept or outcome.
+4.  Be concise.
+5.  Begin with a strong action verb (e.g., "Transform", "Reimagine", "Convert", "Morph", "Render", "Depict").
 
-Respond with exactly 4 prompts, each on a new line, numbered 1-4.`
+Based on the visual content of the image, craft 4 wildly creative transformation instructions. These should play with the subject, setting, artistic style, or conceptual theme in unexpected ways.
+
+Your response must consist of exactly 4 numbered lines (1-4). Each line is a complete instruction for the image editing AI. Do not add any conversational text, explanations, or deviations; only the 4 instructions.`
             },
             {
               type: "image_url",
