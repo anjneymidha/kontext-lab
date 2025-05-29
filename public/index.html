@@ -1853,6 +1853,10 @@
                     console.log('🔄 New session created for image change:', currentSessionId);
                 }
                 
+                // Reset any ongoing operations
+                // (Add any cleanup for running processes here if needed)
+                console.log('🔄 Resetting session state for new image');
+                
                 // Clear existing results from the grid (but preserve structure)
                 const rightSection = document.getElementById('rightSection');
                 if (rightSection) {
@@ -1913,9 +1917,15 @@
                         startButton.innerHTML = 'Explore';
                         startButton.onclick = (e) => {
                             e.stopPropagation();
+                            console.log('🎯 Explore button clicked, starting autoplay...');
                             startButton.style.display = 'none';
                             autoplaySequence();
                         };
+                        
+                        // Ensure button is enabled and clickable
+                        startButton.disabled = false;
+                        startButton.style.pointerEvents = 'auto';
+                        console.log('✅ Explore button created and ready to click');
                         
                         // Create change image button
                         const changeButton = document.createElement('button');
