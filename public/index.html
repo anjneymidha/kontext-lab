@@ -1823,6 +1823,37 @@
             uploadZone.classList.add('loading');
             
             try {
+                // Clear previous session state when loading new image
+                sessionResults = [];
+                totalKonceptRows = 3;
+                customKonceptCount = 0;
+                
+                // If this was a shared session, create a new session for the new image
+                if (isSharedSession) {
+                    isSharedSession = false;
+                    currentSessionId = generateSessionId();
+                    window.history.pushState({}, '', `/session/${currentSessionId}`);
+                    console.log('🔄 New session created for image change:', currentSessionId);
+                }
+                
+                // Clear existing results from the grid
+                const rightSection = document.getElementById('rightSection');
+                if (rightSection) {
+                    rightSection.innerHTML = '';
+                }
+                
+                // Clear caption container
+                const captionContainer = document.querySelector('.caption-container');
+                if (captionContainer) {
+                    captionContainer.innerHTML = '';
+                }
+                
+                // Remove share button since this is a new session
+                const shareButton = document.getElementById('shareButton');
+                if (shareButton) {
+                    shareButton.remove();
+                }
+                
                 // Store the base64 data for later use
                 currentImageBase64 = await fileToBase64(file);
                 
