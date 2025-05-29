@@ -1029,8 +1029,12 @@
         .modal-info p {
             margin: 0;
             font-size: 14px;
-            line-height: 1.4;
+            line-height: 1.5;
             opacity: 0.9;
+            max-height: 120px;
+            overflow-y: auto;
+            word-wrap: break-word;
+            white-space: pre-wrap;
         }
 
         /* Modal Navigation */
@@ -1495,7 +1499,7 @@
                     <div class="result-image-container">
                         <img src="${imageUrl}" class="result-image" style="
                             cursor: zoom-in;
-                        " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${(result.prompt || '').replace(/'/g, "\\'")}')">
+                        " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', `${(result.prompt || '').replace(/[`'"\\]/g, (char) => '\\' + char)}`)">
                     </div>
                 `;
                 
@@ -2603,7 +2607,7 @@
                                     height: auto;
                                     min-height: 400px;
                                     object-fit: contain;
-                                " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${prompt.replace(/'/g, "\\'")}')">
+                                " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', `${prompt.replace(/[`'"\\]/g, (char) => '\\' + char)}`)">
                             </div>
                         `;
                         
@@ -2776,7 +2780,14 @@
             const image = modalImages[index];
             modalImage.src = image.src;
             modalTitle.textContent = image.title;
-            modalPrompt.textContent = image.prompt;
+            
+            // Show full prompt or fallback message
+            const promptText = image.prompt && image.prompt !== 'undefined' && image.prompt.trim() 
+                ? image.prompt 
+                : 'AI generated transformation';
+            modalPrompt.textContent = promptText;
+            
+            console.log('📝 Modal showing prompt:', promptText.substring(0, 100) + '...');
             modalCounter.textContent = `${index + 1} / ${modalImages.length}`;
             
             // Update navigation buttons
