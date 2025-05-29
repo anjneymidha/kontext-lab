@@ -1499,7 +1499,7 @@
                     <div class="result-image-container">
                         <img src="${imageUrl}" class="result-image" style="
                             cursor: zoom-in;
-                        " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${(result.prompt || '').replace(/['"\\]/g, '\\\\$&')}')">
+                        " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${(result.prompt || '').replace(/['"\\]/g, '\\$&')}')">
                     </div>
                 `;
                 
@@ -2607,7 +2607,7 @@
                                     height: auto;
                                     min-height: 400px;
                                     object-fit: contain;
-                                " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${prompt.replace(/['"\\]/g, '\\\\$&')}')">
+                                " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${prompt.replace(/['"\\]/g, '\\$&')}')">
                             </div>
                         `;
                         
@@ -2697,9 +2697,11 @@
         // Image Modal Functions
         function openImageModal(imageSrc, title, prompt) {
             console.log('🖼️ Opening image modal:', title);
+            console.log('🖼️ Image source:', imageSrc);
             
             // Collect all available images for navigation
             collectModalImages();
+            console.log('🖼️ Collected modal images:', modalImages.length);
             
             // Find the current image index
             currentModalIndex = modalImages.findIndex(img => img.src === imageSrc);
@@ -2707,33 +2709,43 @@
                 // If not found, add current image and set as current
                 modalImages.push({ src: imageSrc, title, prompt });
                 currentModalIndex = modalImages.length - 1;
+                console.log('🖼️ Added new image to modal collection');
             }
+            console.log('🖼️ Current modal index:', currentModalIndex);
             
             showModalImage(currentModalIndex);
             
             const modal = document.getElementById('imageModal');
-            modal.style.display = 'flex';
-            
-            // Trigger animation after display
-            setTimeout(() => {
-                modal.classList.add('show');
-            }, 10);
-            
-            // Prevent body scrolling
-            document.body.style.overflow = 'hidden';
-            
-            // Close on background click
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    closeImageModal();
-                }
-            });
-            
-            // Add event listeners
-            document.addEventListener('keydown', handleModalKeydown);
-            document.addEventListener('touchstart', handleModalTouchStart);
-            document.addEventListener('touchmove', handleModalTouchMove);
-            document.addEventListener('touchend', handleModalTouchEnd);
+            console.log('🖼️ Modal element:', modal);
+            if (modal) {
+                modal.style.display = 'flex';
+                console.log('🖼️ Modal display set to flex');
+                
+                // Trigger animation after display
+                setTimeout(() => {
+                    modal.classList.add('show');
+                    console.log('🖼️ Modal show class added');
+                }, 10);
+                
+                // Prevent body scrolling
+                document.body.style.overflow = 'hidden';
+                
+                // Close on background click
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeImageModal();
+                    }
+                });
+                
+                // Add event listeners
+                document.addEventListener('keydown', handleModalKeydown);
+                document.addEventListener('touchstart', handleModalTouchStart);
+                document.addEventListener('touchmove', handleModalTouchMove);
+                document.addEventListener('touchend', handleModalTouchEnd);
+            } else {
+                console.error('🖼️ Modal element not found!');
+                return;
+            }
         }
         
         function collectModalImages() {
@@ -2768,7 +2780,11 @@
         }
         
         function showModalImage(index) {
-            if (index < 0 || index >= modalImages.length) return;
+            console.log('🖼️ showModalImage called with index:', index, 'of', modalImages.length);
+            if (index < 0 || index >= modalImages.length) {
+                console.error('🖼️ Invalid modal index:', index);
+                return;
+            }
             
             const modalImage = document.getElementById('modalImage');
             const modalTitle = document.getElementById('modalTitle');
@@ -2777,9 +2793,18 @@
             const modalPrev = document.getElementById('modalPrev');
             const modalNext = document.getElementById('modalNext');
             
+            console.log('🖼️ Modal elements found:', {
+                image: !!modalImage,
+                title: !!modalTitle,
+                prompt: !!modalPrompt,
+                counter: !!modalCounter
+            });
+            
             const image = modalImages[index];
-            modalImage.src = image.src;
-            modalTitle.textContent = image.title;
+            console.log('🖼️ Setting modal image:', image);
+            
+            if (modalImage) modalImage.src = image.src;
+            if (modalTitle) modalTitle.textContent = image.title;
             
             // Show full prompt or fallback message
             const promptText = image.prompt && image.prompt !== 'undefined' && image.prompt.trim() 
