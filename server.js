@@ -341,8 +341,8 @@ async function submitKontextRequest(imageBuffer, prompt) {
       output_format: 'jpeg'
     };
 
-    console.log('Making request to: https://api.us1.bfl.ai/v1/flux-kontext-pro');
-    const response = await axios.post('https://api.us1.bfl.ai/v1/flux-kontext-pro', requestData, {
+    console.log('Making request to: https://api.us1.bfl.ai/v1/flux-kontext-max');
+    const response = await axios.post('https://api.us1.bfl.ai/v1/flux-kontext-max', requestData, {
       headers: {
         'accept': 'application/json',
         'x-key': BFL_API_KEY,
@@ -375,6 +375,18 @@ async function checkKontextStatus(requestId) {
     return response.data;
   } catch (error) {
     console.error('Error checking status:', error);
+    
+    // If BFL API returns 500, check if there's useful data in the response
+    if (error.response && error.response.status === 500 && error.response.data) {
+      const bflData = error.response.data;
+      console.log('BFL 500 response data:', bflData);
+      
+      // If BFL provides status info even in error response, use it
+      if (bflData.status) {
+        return bflData;
+      }
+    }
+    
     throw error;
   }
 }
@@ -497,7 +509,26 @@ async function processIterations(imageBuffer, res, totalIterations = 8) {
           
           break; // Move on immediately after first moderation
         } else if (resultResponse.status === 'Error') {
-          throw new Error(`Request failed: ${resultResponse.error}`);
+          console.log(`Iteration ${i} failed with BFL Error status, skipping to next`);
+          
+          const result = {
+            iteration: i,
+            prompt: prompt,
+            status: 'error',
+            message: 'BFL processing failed for this transformation'
+          };
+          
+          results.push(result);
+          
+          // Send error result but continue processing
+          res.write(`data: ${JSON.stringify({
+            type: 'iteration_error',
+            iteration: i,
+            message: 'BFL processing failed, trying next transformation',
+            prompt: prompt
+          })}\n\n`);
+          
+          break; // Move to next iteration
         }
         
         attempts++;
@@ -738,6 +769,304 @@ app.get('/api/edit-test', (req, res) => {
   res.json({ status: 'Edit API is working', timestamp: new Date().toISOString() });
 });
 
+// API endpoint for vibe analysis
+app.post('/api/analyze-vibes', async (req, res) => {
+  console.log('📸 Vibe analysis endpoint hit');
+  
+  try {
+    const { image } = req.body;
+    console.log('📋 Request body received:', { hasImage: !!image, imageLength: image?.length });
+    
+    if (!image) {
+      console.error('❌ Missing image data');
+      return res.status(400).json({ error: 'Image data is required' });
+    }
+    
+    console.log('🎨 Starting vibe analysis with Mistral...');
+    
+    const requestData = {
+      model: "pixtral-large-2411",
+      max_tokens: 500,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Analyze this image and provide two things:\n\n1. DESCRIPTION: Give a detailed description of what you see in the image - the person, their appearance, pose, setting, clothing, expression, etc. Be specific and observational.\n\n2. VIBES: Extract 3 ULTRA-SPECIFIC, viral-worthy transformation directions that would make people say \"How did they even think of this?!\" Focus on:\n\nIMPOSSIBLE AESTHETIC MASHUPS:\n- \"[obscure culture]-[internet meme]\" → \"amish-vaporwave\", \"viking-kawaii\", \"medieval-cyberpunk\"\n- \"[art movement]-[modern subculture]\" → \"baroque-streetwear\", \"dadaist-goth\", \"impressionist-gamer\"\n- \"[time period]-[opposite era]\" → \"stone-age-futurism\", \"1800s-cyberpunk\", \"ancient-modern\"\n\nABSURD MATERIAL/CONTEXT COMBOS:\n- \"[impossible material]-[unexpected setting]\" → \"crystal-underground\", \"smoke-formal\", \"liquid-metal-cozy\"\n- \"[physics-defying]-[mundane activity]\" → \"floating-domestic\", \"microscopic-epic\", \"giant-delicate\"\n\nVIRAL CONTRADICTION VIBES:\n- Combine 3+ completely opposite concepts\n- Make it feel like an AI fever dream\n- Ensure maximum shareability and \"wtf\" factor\n\nExamples: 'holographic-amish-cyberpunk', 'microscopic-epic-medieval', 'liquid-brutalist-kawaii', 'floating-goth-tropical'\n\nFormat your response as:\nDESCRIPTION: [detailed description here]\nVIBES: impossible-mashup-1, absurd-combination-2, viral-contradiction-3"
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${image}`
+              }
+            }
+          ]
+        }
+      ]
+    };
+
+    const response = await axios.post('https://api.mistral.ai/v1/chat/completions', requestData, {
+      headers: {
+        'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const fullResponse = response.data.choices[0].message.content.trim();
+    console.log('🎯 Mistral analysis response:', fullResponse);
+    
+    // Parse the structured response
+    let description = "Image analyzed successfully";
+    let vibes = ['creative', 'unique', 'interesting'];
+    
+    try {
+      // Extract description
+      const descMatch = fullResponse.match(/DESCRIPTION:\s*(.+?)(?=\nVIBES:|$)/s);
+      if (descMatch) {
+        description = descMatch[1].trim();
+      }
+      
+      // Extract vibes
+      const vibesMatch = fullResponse.match(/VIBES:\s*(.+)/);
+      if (vibesMatch) {
+        vibes = vibesMatch[1]
+          .split(',')
+          .map(word => word.trim().toLowerCase())
+          .filter(word => word.length > 0)
+          .slice(0, 4); // Limit to 4 words max
+      }
+    } catch (parseError) {
+      console.warn('⚠️ Could not parse structured response, using fallback parsing');
+      // Fallback: try to extract vibes from anywhere in the response
+      const words = fullResponse.toLowerCase().split(/[,\s]+/);
+      vibes = words.filter(word => word.length > 3).slice(0, 4);
+    }
+    
+    console.log('✅ Extracted description:', description.substring(0, 100) + '...');
+    console.log('✅ Extracted vibes:', vibes);
+    
+    return res.json({
+      success: true,
+      description: description,
+      vibes: vibes,
+      rawResponse: fullResponse
+    });
+    
+  } catch (error) {
+    console.error('❌ Vibe analysis error:', error);
+    
+    // More specific error handling
+    let errorMessage = 'Failed to analyze vibes';
+    let statusCode = 500;
+    
+    if (error.response && error.response.status === 500) {
+      const mistralError = error.response.data;
+      if (mistralError && mistralError.message) {
+        if (mistralError.message.includes('could not be loaded as a valid image')) {
+          errorMessage = 'Invalid image format - please try a different image';
+          statusCode = 400;
+        } else {
+          errorMessage = `Mistral API error: ${mistralError.message}`;
+        }
+      }
+    } else if (error.code === 'ECONNREFUSED') {
+      errorMessage = 'Cannot connect to Mistral API';
+    }
+    
+    res.status(statusCode).json({ 
+      error: errorMessage,
+      details: error.message,
+      mistralError: error.response?.data 
+    });
+  }
+});
+
+// API endpoint for generating vibe-specific prompts
+app.post('/api/generate-vibe-prompts', async (req, res) => {
+  console.log('🎯 Vibe-specific prompt generation endpoint hit');
+  
+  try {
+    const { image, vibe } = req.body;
+    console.log('📋 Request body received:', { hasImage: !!image, vibe, imageLength: image?.length });
+    
+    if (!image || !vibe) {
+      console.error('❌ Missing required data');
+      return res.status(400).json({ error: 'Image data and vibe are required' });
+    }
+    
+    console.log(`🔮 Generating prompts to maximize "${vibe}" vibe...`);
+    
+    const requestData = {
+      model: "pixtral-large-2411",
+      max_tokens: 1000,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Analyze this image and create 4 WILD, VIRAL transformation prompts for "${vibe}" that will make people stop scrolling and share immediately.
+
+ULTRA-CREATIVE PROMPT FORMULAS:
+
+1. IMPOSSIBLE COMBINATIONS:
+   - "Transform into [absurd material] sculpture but [impossible context]"
+   - Examples: "Made of flowing lava but sitting in an ice cream parlor", "Constructed from pure light but underground in caves"
+
+2. VIRAL MEME POTENTIAL:
+   - Pop culture mashups: "As a character in [unexpected movie/game/show] but [plot twist]"
+   - Internet culture: "As the main character in a TikTok trend but [absurd scenario]"
+
+3. SCALE & PHYSICS BREAKS:
+   - "Tiny microscopic version living inside [unexpected place]"
+   - "Giant kaiju-sized version but [wholesome activity]"
+   - "Floating weightless but [grounded activity]"
+
+4. AESTHETIC CHAOS:
+   - "${vibe} meets [completely opposite vibe] in [impossible location]"
+   - Mix 3+ completely different art styles/eras/cultures
+
+SPECIFIC TO "${vibe}" - Push these boundaries:
+- Make it 10x more extreme than expected
+- Add impossible physics or materials
+- Include viral/meme potential
+- Create "How is this even possible?" moments
+- Ensure it's screenshot-worthy and shareable
+
+MUST maintain perfect character likeness while being absolutely WILD.
+
+Respond with exactly 4 prompts, numbered 1-4. Make them so creative they feel like they came from an AI fever dream.`
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${image}`
+              }
+            }
+          ]
+        }
+      ]
+    };
+
+    const response = await axios.post('https://api.mistral.ai/v1/chat/completions', requestData, {
+      headers: {
+        'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const promptText = response.data.choices[0].message.content.trim();
+    console.log(`🎯 Mistral ${vibe} prompts response:`, promptText);
+    
+    // Extract numbered prompts from the response
+    const prompts = promptText
+      .split('\n')
+      .filter(line => line.match(/^\d+\./))
+      .map(line => line.replace(/^\d+\.\s*/, '').trim())
+      .filter(prompt => prompt.length > 0)
+      .slice(0, 4); // Limit to 4 prompts
+    
+    if (prompts.length < 4) {
+      console.warn(`Only got ${prompts.length} prompts from Mistral, padding with variations`);
+      // Add fallback prompts if needed
+      const fallbackPrompts = [
+        `Transform the subject to have a more ${vibe} appearance with enhanced styling and visual elements.`,
+        `Change the environment around the subject to create a ${vibe} atmosphere with appropriate lighting and background.`,
+        `Add ${vibe} accessories and clothing while maintaining the subject's core features and expression.`,
+        `Enhance the overall composition to maximize the ${vibe} feeling through colors, textures, and styling.`
+      ];
+      
+      while (prompts.length < 4) {
+        prompts.push(fallbackPrompts[prompts.length]);
+      }
+    }
+    
+    console.log(`✅ Generated ${prompts.length} ${vibe} prompts:`, prompts);
+    
+    return res.json({
+      success: true,
+      prompts: prompts,
+      vibe: vibe,
+      rawResponse: promptText
+    });
+    
+  } catch (error) {
+    console.error(`❌ ${vibe} prompt generation error:`, error);
+    
+    // More specific error handling
+    let errorMessage = 'Failed to generate vibe-specific prompts';
+    let statusCode = 500;
+    
+    if (error.response && error.response.status === 500) {
+      const mistralError = error.response.data;
+      if (mistralError && mistralError.message) {
+        if (mistralError.message.includes('could not be loaded as a valid image')) {
+          errorMessage = 'Invalid image format for prompt generation';
+          statusCode = 400;
+        } else {
+          errorMessage = `Mistral API error: ${mistralError.message}`;
+        }
+      }
+    }
+    
+    res.status(statusCode).json({ 
+      error: errorMessage,
+      details: error.message,
+      mistralError: error.response?.data 
+    });
+  }
+});
+
+// API endpoint for saving Kontext Lab sessions
+app.post('/api/save-session', async (req, res) => {
+  console.log('💾 Save session endpoint hit');
+  
+  try {
+    const { originalImage, results, sessionId } = req.body;
+    console.log('📋 Session data received:', { 
+      hasOriginalImage: !!originalImage, 
+      resultsCount: results?.length,
+      sessionId 
+    });
+    
+    if (!originalImage || !results || !Array.isArray(results)) {
+      console.error('❌ Missing required session data');
+      return res.status(400).json({ error: 'Original image and results are required' });
+    }
+    
+    // Convert base64 to buffer for consistency with existing saveCollection function
+    const originalImageBuffer = Buffer.from(originalImage, 'base64');
+    
+    // Transform results to match expected format
+    const transformedResults = results.map((result, index) => ({
+      iteration: index + 1,
+      prompt: result.prompt || `Koncept transformation ${index + 1}`,
+      imageUrl: result.imageUrl || null,
+      status: result.status || 'completed'
+    }));
+    
+    console.log('🔄 Saving session with transformed results...');
+    const collectionId = await saveCollection(originalImageBuffer, transformedResults, sessionId);
+    const shareUrl = `${req.protocol}://${req.get('host')}/session/${collectionId}`;
+    
+    console.log('✅ Session saved successfully:', collectionId);
+    
+    return res.json({
+      success: true,
+      sessionId: collectionId,
+      shareUrl: shareUrl
+    });
+    
+  } catch (error) {
+    console.error('❌ Save session error:', error);
+    res.status(500).json({ 
+      error: 'Failed to save session',
+      details: error.message 
+    });
+  }
+});
+
 // API endpoint for iterative image editing
 app.post('/api/edit-image', async (req, res) => {
   console.log('📥 Edit API endpoint hit');
@@ -780,7 +1109,7 @@ app.post('/api/edit-image', async (req, res) => {
     console.log(`🎨 Starting iterative edit with prompt: "${prompt.substring(0, 100)}..."`);
     
     // Clean the API key and call BFL API
-    const cleanApiKey = process.env.BFL_API_KEY.trim().replace(/[^\w-]/g, '');
+    const cleanApiKey = BFL_API_KEY;
     console.log('🔑 API key available:', !!cleanApiKey);
     
     const requestBody = {
@@ -791,7 +1120,7 @@ app.post('/api/edit-image', async (req, res) => {
     };
     
     console.log('🔥 Calling BFL API for edit...');
-    const bflResponse = await fetch('https://api.us1.bfl.ai/v1/flux-bagel-alpha', {
+    const bflResponse = await fetch('https://api.us1.bfl.ai/v1/flux-kontext-max', {
       method: 'POST',
       headers: {
         'accept': 'application/json',
@@ -888,6 +1217,165 @@ app.use((error, req, res, next) => {
   }
   next(error);
 });
+
+// Route to handle vibe-specific transformations
+app.post('/process-vibe', upload.single('image'), async (req, res) => {
+  console.log('🎯 Received vibe transformation request');
+  
+  // Set headers for SSE
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Cache-Control'
+  });
+  
+  try {
+    if (!req.file) {
+      throw new Error('No image file provided');
+    }
+    
+    const vibePrompts = JSON.parse(req.body.vibePrompts || '[]');
+    const selectedVibe = req.body.selectedVibe;
+    
+    if (!vibePrompts.length || !selectedVibe) {
+      throw new Error('Missing vibe prompts or selected vibe');
+    }
+    
+    console.log(`🎨 Starting ${selectedVibe} vibe processing with ${vibePrompts.length} prompts`);
+    
+    // Process vibe-specific iterations
+    const results = await processVibeIterations(req.file.buffer, vibePrompts, selectedVibe, res);
+    
+    // Send completion
+    res.write(`data: ${JSON.stringify({
+      type: 'vibe_complete',
+      vibe: selectedVibe,
+      results: results
+    })}\n\n`);
+    
+  } catch (error) {
+    console.error('Vibe processing error:', error);
+    res.write(`data: ${JSON.stringify({
+      type: 'vibe_error',
+      message: error.message
+    })}\n\n`);
+  }
+  
+  res.end();
+});
+
+// Function to process vibe-specific iterations
+async function processVibeIterations(imageBuffer, vibePrompts, selectedVibe, res) {
+  const results = [];
+  
+  for (let i = 0; i < vibePrompts.length; i++) {
+    try {
+      console.log(`Starting ${selectedVibe} iteration ${i + 1}`);
+      
+      // Send iteration start event
+      res.write(`data: ${JSON.stringify({
+        type: 'vibe_iteration_start',
+        iteration: i + 1,
+        vibe: selectedVibe
+      })}\n\n`);
+      
+      const prompt = vibePrompts[i];
+      
+      // Submit request using original image
+      const requestId = await submitKontextRequest(imageBuffer, prompt);
+      
+      // Poll for result
+      let attempts = 0;
+      const maxAttempts = 60; // 5 minutes max
+      
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+        
+        const resultResponse = await checkKontextStatus(requestId);
+        console.log(`${selectedVibe} iteration ${i + 1} status:`, resultResponse.status);
+        
+        if (resultResponse.status === 'Ready') {
+          console.log(`${selectedVibe} iteration ${i + 1} completed successfully`);
+          
+          const result = {
+            iteration: i + 1,
+            prompt: prompt,
+            imageUrl: resultResponse.result.sample,
+            status: 'completed',
+            vibe: selectedVibe
+          };
+          
+          results.push(result);
+          
+          // Send result update
+          res.write(`data: ${JSON.stringify({
+            type: 'vibe_iteration_complete',
+            iteration: i + 1,
+            image: resultResponse.result.sample,
+            prompt: prompt,
+            vibe: selectedVibe
+          })}\n\n`);
+          
+          break;
+        } else if (resultResponse.status === 'Content Moderated' || resultResponse.status === 'Request Moderated') {
+          console.log(`${selectedVibe} iteration ${i + 1} moderated`);
+          
+          const result = {
+            iteration: i + 1,
+            prompt: prompt,
+            status: 'moderated',
+            vibe: selectedVibe,
+            message: 'Content was moderated'
+          };
+          
+          results.push(result);
+          
+          // Send moderated result
+          res.write(`data: ${JSON.stringify({
+            type: 'vibe_iteration_error',
+            iteration: i + 1,
+            message: 'Content moderated',
+            vibe: selectedVibe
+          })}\n\n`);
+          
+          break;
+        } else if (resultResponse.status === 'Error') {
+          throw new Error(`Request failed: ${resultResponse.error}`);
+        }
+        
+        attempts++;
+      }
+      
+      if (attempts >= maxAttempts) {
+        throw new Error(`${selectedVibe} iteration ${i + 1} timed out`);
+      }
+      
+    } catch (error) {
+      console.error(`Error in ${selectedVibe} iteration ${i + 1}:`, error);
+      
+      const errorResult = {
+        iteration: i + 1,
+        status: 'error',
+        message: error.message,
+        vibe: selectedVibe
+      };
+      
+      results.push(errorResult);
+      
+      // Send error update
+      res.write(`data: ${JSON.stringify({
+        type: 'vibe_iteration_error',
+        iteration: i + 1,
+        message: error.message,
+        vibe: selectedVibe
+      })}\n\n`);
+    }
+  }
+  
+  return results;
+}
 
 // Route to handle image upload and processing
 app.post('/process', upload.single('image'), async (req, res) => {
