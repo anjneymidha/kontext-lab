@@ -1584,7 +1584,21 @@
         }
 
         function handleMouseDown(e) {
-            if (e.target === container || e.target === surface) {
+            // Allow panning from container, surface, or grid sections (but not interactive elements)
+            const allowPanning = e.target === container || 
+                                e.target === surface || 
+                                e.target.classList.contains('left-section') ||
+                                e.target.classList.contains('right-section');
+            
+            // Prevent panning on interactive elements
+            const isInteractiveElement = e.target.tagName === 'BUTTON' ||
+                                       e.target.tagName === 'INPUT' ||
+                                       e.target.classList.contains('canvas-element') ||
+                                       e.target.classList.contains('koncept-text') ||
+                                       e.target.classList.contains('regenerate-row-btn') ||
+                                       e.target.closest('.canvas-element');
+            
+            if (allowPanning && !isInteractiveElement) {
                 isPanning = true;
                 panStart.x = e.clientX - panX;
                 panStart.y = e.clientY - panY;
