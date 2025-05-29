@@ -1,0 +1,1428 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red251\green0\blue7;\red27\green98\blue165;
+\red0\green0\blue255;}
+{\*\expandedcolortbl;;\csgray\c0;\cspthree\c91747\c20037\c13852;\cspthree\c23219\c45992\c68663;
+\cspthree\c22\c0\c95960;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs34\fsmilli17121 \cf2 FLUX.1 Kontext: Flow Matching for In-Context Image\
+
+\fs34\fsmilli17215 Generation and Editing in Latent Space\
+
+\fs19\fsmilli9963 Black Forest Labs\
+
+\fs19\fsmilli9973 Figure 1: Consistent character synthesis with FLUX.1 Kontext. Generated images can be iteratively\
+
+\fs20\fsmilli10062 used as context for new generations, enabling applications such as story-telling and \cf3 ... \cf4 A: show\
+
+\fs19\fsmilli9928 text-to-image starting image, add prompts for image in the grid. should be more clear what is edited\
+
+\fs19\fsmilli9963 how\
+
+\fs23\fsmilli11955 \cf2 Abstract\
+
+\fs19\fsmilli9968 We present FLUX.1 Kontext, a generative flow-matching model for unified image\
+
+\fs20\fsmilli10062 generation and editing that performs in-context learning by extracting semantic\
+concepts from text and input images to generate accurate views without task-\
+
+\fs19\fsmilli9928 specific training. FLUX.1 Kontext uses a simple sequence concatenation approach\
+
+\fs19\fsmilli9893 to handle both local editing and generative in-context tasks in a single architecture.\
+
+\fs20\fsmilli10027 Current editing models exhibit degradation in character consistency and stability\
+
+\fs20\fsmilli10062 across multiple turns. In contrast, FLUX.1 Kontext improves the preservation of\
+objects and characters, enabling robust iterative workflows. The model achieves\
+
+\fs17\fsmilli8966 Preprint. Under review.
+\fs19\fsmilli9878 state-of-the-art performance with interactive inference speed, matching proprietary\
+
+\fs19\fsmilli9963 systems while delivering faster generation suitable for interactive applications.\
+
+\fs19\fsmilli9893 Further, we present KontextBench, a comprehensive benchmark with 1,026 image-\
+
+\fs19\fsmilli9988 prompt pairs covering five task categories: local editing, global editing, character\
+
+\fs19\fsmilli9963 reference, style reference and text editing. Detailed evaluations show the superior\
+
+\fs19\fsmilli9863 performance of FLUX.1 Kontext in terms of both single-turn quality and multi-turn\
+
+\fs19\fsmilli9963 consistency, setting new standards for unified image processing models.\
+
+\fs23\fsmilli11955 1 Introduction\
+
+\fs19\fsmilli9973 Images are a foundation of modern communication and form the basis for areas as diverse as social\
+
+\fs20\fsmilli10062 media, e-commerce, scientific visualization, entertainment, and memes. As the volume and speed\
+
+\fs19\fsmilli9973 of visual content increases, so does the demand for intuitive but faithful and accurate image editing.\
+
+\fs19\fsmilli9878 Professional and casual users expect tools that preserve fine detail, maintain semantic coherence, and\
+
+\fs20\fsmilli10062 respond to increasingly natural language commands. The advent of large-scale generative models\
+
+\fs19\fsmilli9918 has changed this landscape, enabling purely text-driven image synthesis and modifications that were\
+
+\fs19\fsmilli9963 previously impractical or impossible [15, 34, 35, 33, 2, 10, 40, 19].\
+
+\fs20\fsmilli10062 Traditional image processing pipelines work by directly manipulating pixel values or by applying\
+
+\fs19\fsmilli9863 geometric and photometric transformations under explicit user control [
+\fs19\fsmilli9963 12
+\fs19\fsmilli9863 , 
+\fs19\fsmilli9963 45
+\fs19\fsmilli9863 ]. In contrast, generative\
+
+\fs20\fsmilli10062 processing uses deep learning models and their learned representations to synthesize content that\
+seamlessly fits into the new scene. Two complementary capabilities are central to this paradigm\
+
+\fs19\fsmilli9963 (\cf3 make Figure X for viz\cf2 )\
+\'95 
+\fs20\fsmilli10062 Local editing. Local, limited modifications that keep the surrounding context intact (e.g.\
+
+\fs20\fsmilli10052 changing the color of a car while preserving the background or replacing the background\
+
+\fs20\fsmilli10062 while keeping the subject in the foreground). Generative inpainting systems such as\
+LaMa [
+\fs19\fsmilli9963 44
+\fs20\fsmilli10062 ], LatentDiffusion inpainting [
+\fs19\fsmilli9963 35
+\fs20\fsmilli10062 ], RePaint [
+\fs19\fsmilli9963 28
+\fs20\fsmilli10062 ], and the Stable Diffusion In-\
+painting variants
+\fs13\fsmilli6974 12 
+\fs20\fsmilli10062 make such context-aware edits instantaneous; see also Palette [
+\fs19\fsmilli9963 38
+\fs20\fsmilli10062 ]\
+and Paint-by-Example [
+\fs19\fsmilli9963 47
+\fs20\fsmilli10062 ]. Beyond inpainting, ControlNet [
+\fs19\fsmilli9963 49
+\fs20\fsmilli10062 ] enables mask-guided\
+background replacement, while DragGAN [
+\fs19\fsmilli9963 31
+\fs20\fsmilli10062 ] offers interactive point-based geometric\
+
+\fs19\fsmilli9963 manipulation.\
+\'95 
+\fs19\fsmilli9863 Generative editing. Extraction of a visual concept (e.g. a particular figure or logo), followed\
+
+\fs20\fsmilli10062 by its faithful reproduction in new environments, potentially synthesized under a new\
+viewpoint or rendering in a new visual context. Similarly to in-context learning in large\
+
+\fs19\fsmilli9863 language models, where the network learns a task from the examples provided in the prompt\
+without any parameter updates [
+\fs19\fsmilli9963 6
+\fs19\fsmilli9863 ], the generator adapts its output to the conditioning context\
+
+\fs20\fsmilli10062 on the fly. This property enables personalization of generative image and video models\
+without the need for finetuning [
+\fs19\fsmilli9963 36
+\fs20\fsmilli10062 ] or LoRA training [
+\fs19\fsmilli9963 17
+\fs20\fsmilli10062 , 
+\fs19\fsmilli9963 24
+\fs20\fsmilli10062 , 
+\fs19\fsmilli9963 18
+\fs20\fsmilli10062 ]. Early works on such\
+
+\fs19\fsmilli9873 training-free subject-driven image synthesis include IP-Adapter [
+\fs19\fsmilli9963 48
+\fs19\fsmilli9873 ] or retrieval-augmented\
+
+\fs19\fsmilli9963 diffusion variants [7, 3].\
+
+\fs19\fsmilli9863 Recent Advances. InstructPix2Pix [
+\fs19\fsmilli9963 5
+\fs19\fsmilli9863 ] and subsequent work [
+\fs19\fsmilli9963 4
+\fs19\fsmilli9863 ] demonstrated the promise of synthetic\
+
+\fs20\fsmilli10062 instruction-response pairs for fine-tuning a diffusion model for image editing, while learning-free\
+
+\fs19\fsmilli9863 methods such as Textual Inversion[
+\fs19\fsmilli9963 11
+\fs19\fsmilli9863 ] and its variants [] enable image modification with off-the-shelf,\
+
+\fs20\fsmilli10062 high-performance image generation models [
+\fs19\fsmilli9963 35
+\fs20\fsmilli10062 , 
+\fs19\fsmilli9963 33
+\fs20\fsmilli10062 ]. Subsequent instruction-driven editors such\
+
+\fs20\fsmilli10017 as Emu Edit [
+\fs19\fsmilli9963 42
+\fs20\fsmilli10017 ], OmniGen [
+\fs19\fsmilli9963 46
+\fs20\fsmilli10017 ], HiDream-E1[
+\fs19\fsmilli9963 13
+\fs20\fsmilli10017 ] and IceEdit [
+\fs19\fsmilli9963 50
+\fs20\fsmilli10017 ] - extend these ideas to refined\
+
+\fs20\fsmilli10032 datasets and model architectures \cf3 maybe be a tad more specific, depending on related work\cf2 . Huang\
+
+\fs19\fsmilli9992 et al. 
+\fs19\fsmilli9963 [18] 
+\fs19\fsmilli9992 introduce in-context LoRAs for diffusion transformers on specific tasks, where each task\
+
+\fs19\fsmilli9973 needs to train dedicated LoRA weights. Novel proprietary systems embedded in multimodal LLMs\
+
+\fs20\fsmilli10022 (e.g., GPT-Image[
+\fs19\fsmilli9963 30
+\fs20\fsmilli10022 ] and Gemini Native Image Gen [
+\fs19\fsmilli9963 21
+\fs20\fsmilli10022 ]) further blur the line between dialog and\
+
+\fs19\fsmilli9938 editing. Generative platforms such as Midjourney[
+\fs19\fsmilli9963 29
+\fs19\fsmilli9938 ] and RunwayML[
+\fs19\fsmilli9963 37
+\fs19\fsmilli9938 ] integrate these advances\
+
+\fs19\fsmilli9963 into end-to-end creative workflows.\
+
+\fs20\fsmilli10062 Shortcomings of recent approaches. In terms of results, current approaches struggle with three\
+
+\fs19\fsmilli9918 major shortcomins: (i) instruction-based methods trained on synthetic pairs inherit the shortcomings\
+
+\fs11\fsmilli5978 1
+\fs17\fsmilli8966 \cf5 https://huggingface.co/runwayml/stable-diffusion-inpainting\
+
+\fs11\fsmilli5978 \cf2 2
+\fs17\fsmilli8966 \cf5 https://huggingface.co/stabilityai/stable-diffusion-2-inpainting\
+
+\fs19\fsmilli9963 \cf2 2
+\fs17\fsmilli8966 (a) Input image (b) \'93remove the thing from her face\'94\
+(c) \'93she is now taking a selfie in the streets of\
+Freiburg, it\'92s a lovely day out.\'94\
+
+\fs17\fsmilli8877 (d) \'93it\'92s now snowing, everything is covered in snow.\'94\
+
+\fs20\fsmilli10062 Figure 2: Iterative, instruction-driven editing. Starting from a reference photo (a), our model\
+
+\fs20\fsmilli10037 successively applies three natural-language edits\'97first removing an occlusion (b), then relocating\
+
+\fs19\fsmilli9928 the subject to Freiburg (c), and finally transforming the scene into snowy weather (d). Identity, pose,\
+
+\fs19\fsmilli9963 clothing, and overall photographic style remain consistent throughout the sequence.\
+
+\fs20\fsmilli10062 of their generation pipelines, limiting the variety and realism of achievable edits; (ii) maintaining\
+the accurate appearance of characters and objects across multiple edits remains an open problem,\
+
+\fs19\fsmilli9873 hindering story-telling and brand-sensitive applications; (iii) in addition to lower quality compared to\
+
+\fs19\fsmilli9903 denoising-based approaches, autoregressive editing models integrated into large multimodal systems\
+
+\fs19\fsmilli9963 often come with long runtimes that are incompatible with interactive use.\
+
+\fs19\fsmilli9933 Our Solution. We introduce FLUX.1 Kontext, a flow-based generative image processing model that\
+
+\fs20\fsmilli10062 matches or exceeds the quality of state-of-the-art black-box systems while overcoming the above\
+
+\fs19\fsmilli9863 limitations. FLUX.1 Kontext is a simple flow matching model trained using only a velocity prediction\
+
+\fs19\fsmilli9963 target on a concatenated sequence of context and instruction tokens.\
+In particular, FLUX.1 Kontext offers:\
+\'95 
+\fs20\fsmilli10062 Unified capability: A single model covers both classic local editing and generative, in-\
+
+\fs19\fsmilli9963 context image generation.\
+\'95 
+\fs19\fsmilli9863 Character consistency: FLUX.1 Kontext excels at identity preservation, including multiple,\
+
+\fs19\fsmilli9963 iterative edit turns.\
+\'95 
+\fs19\fsmilli9888 Interactive speed: FLUX.1 Kontext is fast. \cf3 Summary of the main latency differences to the\
+
+\fs19\fsmilli9963 competition here\
+\cf2 \'95 
+\fs19\fsmilli9918 Iterative application: Fast inference and robust consistency allow users to refine an image\
+
+\fs19\fsmilli9963 through multiple successive edits with minimal visual drift (see \cf3 Figure X\cf2 ).\
+
+\fs20\fsmilli10062 This report is structured as follows. Section 3 describes the architecture and training strategy\
+of FLUX.1 Kontext. Comprehensive quantitative and qualitative analyzes, as well as additional\
+applications of FLUX.1 Kontext are presented in Section 4. Finally, 
+\fs19\fsmilli9963 ?? 
+\fs20\fsmilli10062 closes with an outlook for\
+
+\fs19\fsmilli9963 future work.\
+3
+\fs19\fsmilli9863 Table 1: Reconstruction quality comparison across different VAE architectures. All metrics computed\
+
+\fs19\fsmilli9963 on 4,096 image pairs. Values are mean \'b1 standard error (rounded).\
+Model PDist \uc0\u8595  SSIM \u8593  PSNR \u8593 \
+Flux-VAE 0.332 \'b10.003 0.896 \'b10.004 31.1 \'b10.08\
+SD3-TAE
+\fs13\fsmilli6974 3 
+\fs19\fsmilli9963 0.746 \'b10.004 0.774 \'b10.014 27.9 \'b10.06\
+SDXL-VAE [33] 0.890 \'b10.005 0.748 \'b10.006 25.9 \'b10.07\
+SD-VAE
+\fs13\fsmilli6974 4 
+\fs19\fsmilli9963 0.949 \'b10.005 0.720 \'b10.004 25.0 \'b10.07\
+
+\fs23\fsmilli11955 2 FLUX.1\
+
+\fs20\fsmilli10062 FLUX.1 is a rectified flow transformer [
+\fs19\fsmilli9963 10
+\fs20\fsmilli10062 , 
+\fs19\fsmilli9963 26
+\fs20\fsmilli10062 , 
+\fs19\fsmilli9963 27
+\fs20\fsmilli10062 ] trained in the latent space\
+of an image autoencoder [
+\fs19\fsmilli9963 35
+\fs20\fsmilli10062 ]. The following section summarizes the main ar-\
+chitectural design choices that simplify and improve the performance and stabil-\
+ity of the model training over previous diffusion and flow transformer models [].\
+We follow Rombach et al. 
+\fs19\fsmilli9963 [35] 
+\fs20\fsmilli10062 and train a convo-\
+lutional autoencoder with an adversarial objective\
+from scratch. By scaling up the training compute\
+
+\fs19\fsmilli9913 and using 16 latent channels, we improve the recon-\
+
+\fs20\fsmilli10062 struction capabilities compared to related models;\
+see Table 1. Furthermore, FLUX.1 is built from a\
+
+\fs20\fsmilli10032 mix of multimodal [
+\fs19\fsmilli9963 10
+\fs20\fsmilli10032 ] and fused DiT [
+\fs19\fsmilli9963 32
+\fs20\fsmilli10032 ] blocks.\
+
+\fs19\fsmilli9928 Multimodal blocks employ separate weights for im-\
+
+\fs19\fsmilli9898 age and text tokens, and mixing is done by applying\
+
+\fs20\fsmilli10062 the attention operation over the concatenation of\
+tokens. After passing the sequences through the\
+multimodality blocks, we discard the text tokens\
+
+\fs19\fsmilli9992 and apply 38 fused DiT blocks to the image tokens\
+
+\fs19\fsmilli9963 - see Figure 3 for a visualization.\
+
+\fs19\fsmilli9863 To improve GPU utilization, we leverage fused feed-\
+
+\fs20\fsmilli10062 forward blocks inspired by Dehghani et al. 
+\fs19\fsmilli9963 [8]
+\fs20\fsmilli10062 ,\
+which i) reduce the number of modulation param-\
+eters in a feedforward block by a factor of 2 and\
+
+\fs19\fsmilli9997 ii) fuse the attention input- and output linear layers\
+
+\fs19\fsmilli9863 with that of the MLP, leading to larger matrix-vector\
+
+\fs19\fsmilli9958 multiplications and thus more efficient training and\
+
+\fs20\fsmilli10062 inference. We utilize factorised two\'96dimensional\
+
+\fs19\fsmilli9898 Rotary Positional Embeddings (2D RoPE) [
+\fs19\fsmilli9963 43
+\fs19\fsmilli9898 ]. Ev-\
+
+\fs19\fsmilli9903 ery latent token is indexed by its spatial coordinates\
+
+\fs19\fsmilli9963 (h,w) 
+\fs20\fsmilli10062 and an optional axial index 
+\fs19\fsmilli9963 t
+\fs20\fsmilli10062 ; the query/key\
+Figure 3: A fused DiT block equipped with\
+
+\fs19\fsmilli9963 rotary positional embeddings\
+
+\fs19\fsmilli9878 vectors are then rotated by axis-specific frequencies,\
+
+\fs19\fsmilli9963 preserving dot-product magnitudes while enabling resolution-agnostic modeling.\
+
+\fs23\fsmilli11955 3 FLUX.1 Kontext\
+
+\fs19\fsmilli9873 Our goal is to learn a model that can generate images conditioned jointly on a text prompt and one or\
+
+\fs19\fsmilli9963 more reference images. More formally, we aim to approximate the conditional distribution\
+p
+\fs13\fsmilli6974 \uc0\u952 
+\fs19\fsmilli9963 (x|y,c) (1)\
+
+\fs20\fsmilli10062 where 
+\fs19\fsmilli9963 x
+\fs20\fsmilli10062 is the target image, 
+\fs19\fsmilli9963 y 
+\fs20\fsmilli10062 is a context image (or 
+\fs19\fsmilli9963 \uc0\u8709 
+\fs20\fsmilli10062 ), and 
+\fs19\fsmilli9963 c
+\fs20\fsmilli10062 is a natural-language instruction.\
+Unlike classic text-to-image generation, this objective entails learning relations between images\
+themselves\'97mediated by 
+\fs19\fsmilli9963 c
+\fs20\fsmilli10062 \'97so that the same network can i) perform image-driven edits when\
+
+\fs19\fsmilli9963 y\uc0\u824 = \u8709 , and ii) create novel content from scratch when y= \u8709 .\
+
+\fs19\fsmilli9863 To that end, let 
+\fs19\fsmilli9963 x\uc0\u8712 X
+\fs19\fsmilli9863 be an output (target) image, 
+\fs19\fsmilli9963 y\uc0\u8712 X\u8746 \{\u8709 \}
+\fs19\fsmilli9863 an optional context image, and 
+\fs19\fsmilli9963 c\uc0\u8712 C\
+
+\fs19\fsmilli9888 a text prompt. We model the conditional distribution 
+\fs19\fsmilli9963 p
+\fs13\fsmilli6974 \uc0\u952 
+\fs19\fsmilli9963 (x|y,c) 
+\fs19\fsmilli9888 such that the same network handles\
+
+\fs19\fsmilli9963 4
+\fs19\fsmilli9953 Figure 4: \cf3 PLACEHOLDER\cf2 . High-level overview of FLUX.1 Kontext, with input and context image\
+
+\fs19\fsmilli9963 on the left. Details in Section 3. \cf3 make nice. add rope.\
+
+\fs20\fsmilli10062 \cf2 in-context and local edits when 
+\fs19\fsmilli9963 y \uc0\u824 = \u8709  
+\fs20\fsmilli10062 and free text-to-image generation when 
+\fs19\fsmilli9963 y= \uc0\u8709 
+\fs20\fsmilli10062 . Training\
+
+\fs19\fsmilli9863 starts from a FLUX.1 text-to-image checkpoint, and we collect and curate millions of relational pairs\
+
+\fs19\fsmilli9963 (x|y,c) for optimization.\
+
+\fs20\fsmilli10062 Token sequence construction. Images are encoded into latent tokens by the frozen FLUX auto-\
+encoder. All context tokens are appended to the image token sequence and are fed into the visual\
+
+\fs19\fsmilli9963 stream of the model (see Figure 3):\
+s= y
+\fs13\fsmilli6974 1
+\fs19\fsmilli9963 ,...,y
+\fs13\fsmilli6974 N
+\fs9\fsmilli4981 y 
+\fs19\fsmilli9963 , c
+\fs13\fsmilli6974 1
+\fs19\fsmilli9963 ,...,c
+\fs13\fsmilli6974 N
+\fs9\fsmilli4981 c\
+
+\fs19\fsmilli9963 . (2)\
+
+\fs19\fsmilli9997 This simple sequence concatenation i) supports different input/output resolutions and aspect ratios,\
+
+\fs20\fsmilli10062 and ii) readily extends to multiple images 
+\fs19\fsmilli9963 y
+\fs13\fsmilli6974 1
+\fs19\fsmilli9963 ,y
+\fs13\fsmilli6974 2
+\fs19\fsmilli9963 ,...,y
+\fs13\fsmilli6974 N
+\fs20\fsmilli10062 . Channel-wise concatenation of 
+\fs19\fsmilli9963 x
+\fs20\fsmilli10062 and 
+\fs19\fsmilli9963 y\
+was also tested but degrades performance.\
+
+\fs19\fsmilli9863 We encode positional information via 2D RoPE embeddings, where the embeddings for the context 
+\fs19\fsmilli9963 y\
+
+\fs19\fsmilli9903 receive a constant offset for all context tokens. We treat the offset as a \'92virtual time step\'92 that cleanly\
+
+\fs19\fsmilli9863 separates the context and target blocks while leaving their internal spatial structure intact. Concretely,\
+
+\fs19\fsmilli9963 if a token position is denoted by the triplet u = (t,h,w), then for each context token we set\
+u
+\fs13\fsmilli6974 y
+\fs9\fsmilli4981 i 
+\fs19\fsmilli9963 = ( t+ \uc0\u964 , h, w), \u964  >0, (3)\
+
+\fs20\fsmilli10007 so that the entire context block is phase shifted along the 
+\fs19\fsmilli9963 t
+\fs20\fsmilli10007 axis while preserving its internal spatial\
+
+\fs19\fsmilli9963 geometry.\
+Rectified-flow objective. We train with a rectified flow\'96matching loss\
+L
+\fs13\fsmilli6974 \uc0\u952  
+\fs19\fsmilli9963 = E 
+\fs13\fsmilli6974 t\uc0\u8764 p(t),x,y,c 
+\fs19\fsmilli9963 \uc0\u8741 v
+\fs13\fsmilli6974 \uc0\u952 
+\fs19\fsmilli9963 (z
+\fs13\fsmilli6974 t
+\fs19\fsmilli9963 ,t,s)\uc0\u8722 (\u949 \u8722 x)\u8741 
+\fs13\fsmilli6974 2\
+2 
+\fs19\fsmilli9963 , (4)\
+
+\fs19\fsmilli9863 where 
+\fs19\fsmilli9963 z
+\fs13\fsmilli6974 t 
+\fs19\fsmilli9863 is the linearly interpolated latent between 
+\fs19\fsmilli9963 x
+\fs19\fsmilli9863 and noise 
+\fs19\fsmilli9963 \uc0\u949 \u8764 N(0,1)
+\fs19\fsmilli9863 ; 
+\fs19\fsmilli9963 z
+\fs13\fsmilli6974 t 
+\fs19\fsmilli9963 = (1\uc0\u8722 t)x+ t\u949 
+\fs19\fsmilli9863 . We\
+use a shifted logit-normal schedule (see Appendix A.2) for 
+\fs19\fsmilli9963 p(t; \'b5,\uc0\u963 = 1.0)
+\fs19\fsmilli9863 , where we shift the mode\
+
+\fs19\fsmilli9963 \'b5depending on the data resolution during training.\
+
+\fs20\fsmilli10062 When sampling pure text\'96image pairs (
+\fs19\fsmilli9963 y= \uc0\u8709 
+\fs20\fsmilli10062 ) we omit all tokens 
+\fs19\fsmilli9963 y
+\fs20\fsmilli10062 , preserving the text-to-image\
+
+\fs19\fsmilli9963 generation capability of the model. \cf3 verify\
+
+\fs20\fsmilli10062 \cf2 Adversarial Diffusion Distillation Sampling of a flow matching model obtained by optimizing\
+
+\fs19\fsmilli9988 Equation (4) typically involves solving an ordinary or stochastic differential equation [
+\fs19\fsmilli9963 26
+\fs19\fsmilli9988 , 
+\fs19\fsmilli9963 1
+\fs19\fsmilli9988 ], using\
+
+\fs19\fsmilli9963 5
+\fs20\fsmilli10062 Figure 5: \cf3 make this nice ofc\cf2 . FLUX.1 Kontext is preferred to contemporary in-context LLMs and\
+
+\fs19\fsmilli9963 diffusion models, here Gemini2 ] and HiDream-E1 ]\
+
+\fs20\fsmilli10062 50-250 guided [
+\fs19\fsmilli9963 14
+\fs20\fsmilli10062 ] network evaluations. While samples obtained through such a procedure are\
+of good quality for a well-trained model 
+\fs19\fsmilli9963 v
+\fs13\fsmilli6974 \uc0\u920 
+\fs20\fsmilli10062 , this comes with a few potential drawbacks: Firstly,\
+such multi-step sampling is slow, rendering model-serving at scale expensive and hindering low-\
+latency, interactive applications. Moreover, guidance may occasicanally introduce visual artifacts\
+(e.g. high contrast) in the denoising process. We tackle both challenges using latent adversarial\
+
+\fs19\fsmilli9908 diffusion distillation [
+\fs19\fsmilli9963 39
+\fs19\fsmilli9908 , 
+\fs19\fsmilli9963 40
+\fs19\fsmilli9908 ], reducing sampling step-count while increasing sample quality through\
+
+\fs19\fsmilli9963 adversarial training.\
+
+\fs20\fsmilli10062 Implementation details. Starting from a pure text-to-image checkpoint, we fine-tune the model\
+
+\fs19\fsmilli9938 jointly on image-to-image and text-to-image tasks following Equation (4). We use FSDP2 [
+\fs19\fsmilli9963 25
+\fs19\fsmilli9938 ] with\
+
+\fs20\fsmilli10062 mixed precision: all-gather operations are performed in 
+\fs19\fsmilli9963 bfloat16 
+\fs20\fsmilli10062 while gradient reduce-scatter\
+uses 
+\fs19\fsmilli9963 float32 
+\fs20\fsmilli10062 for improved numerical stability. We use selective activation checkpointing [
+\fs19\fsmilli9963 23
+\fs20\fsmilli10062 ] to\
+
+\fs19\fsmilli9913 reduce maximum VRAM usage. To improve throughput, we use Flash Attention 3 [
+\fs19\fsmilli9963 41
+\fs19\fsmilli9913 ] and regional\
+
+\fs19\fsmilli9963 compilation of individual Transformer blocks.\
+
+\fs23\fsmilli11955 4 Evaluations & Applications\
+
+\fs19\fsmilli9963 4.1 KontextBench \'96 Crowd-sourced Real-World Benchmark for In-Context Tasks\
+
+\fs19\fsmilli9923 motivation of why a new bench is needed? - other ppl have benches that are restricted in some ways,\
+
+\fs20\fsmilli10057 - omnigen used emu-edit and dreambench (from dreambooth). however emu edit are all images of\
+
+\fs20\fsmilli10062 lower-resolution and both the image as well as (image+)edit distribution doesn\'92t match real world\
+
+\fs19\fsmilli9863 usecase. moreover its an edit only bench, whereas we are also do in-contenxt generation. dreambench\
+
+\fs20\fsmilli10032 is nice but small but doesn\'92t span broad coverage of inputs or tasks. Magicbrush is another dataset\
+
+\fs20\fsmilli10007 people use, came before emu edit and the input images are same source as Emu edit (not good), its\
+
+\fs19\fsmilli9963 also instruction editing only\
+
+\fs19\fsmilli9968 From emu edit paper . First, the InstructPix2Pix benchmark [2], which is intrinsically biased due to\
+
+\fs20\fsmilli10062 its reliance on generated Stable Diffusion [21] input images, and GPT3 [3] generated instructions.\
+
+\fs19\fsmilli9908 Consequently, it is unclear whether its results will truly mirror the performance on real input images,\
+
+\fs20\fsmilli10062 with genuine user instructions. Unlike InstructPix2Pix, the second benchmark, MagicBrush [29],\
+
+\fs20\fsmilli10002 uses a diverse set of authentic input images from the MS-COCO benchmark [5, 13], and annotator-\
+
+\fs19\fsmilli9888 defined instructions. Nonetheless, this dataset also suffers from inherent bias. During data collection,\
+
+\fs20\fsmilli10062 annotators were directed to use the DALLE-2 image editing platform [17] to generate the edited\
+images. Thus, this benchmark is biased towards editing instructions that the DALLE-2 editor can\
+
+\fs19\fsmilli9963 successfully follow, which may compromise both its diversity and complexity.\
+
+\fs20\fsmilli10062 GEdit-bench introduced in Step1x is really nice (better input image distribution) but again only\
+instruction edit and not representative of the full scope of what omni/bagel style models can do in\
+
+\fs19\fsmilli9963 terms edit complexity.\
+
+\fs20\fsmilli10062 IntelligentBench from ByteDance Bagel (https://arxiv.org/pdf/2505.14683) alleges to bench tasks\
+
+\fs19\fsmilli9992 that require "complex" multimodal reasoning and has some character reference examples. however\
+
+\fs19\fsmilli9963 6
+\fs17\fsmilli8966 (a) Input image\
+(b) \'93make me a matching flower vase, product\
+photography set against a white wall, sitting on a\
+wooden desk, put some nice flowers in it\'94\
+(c) \'93change the vase base color to black\'94\
+
+\fs20\fsmilli10062 Figure 6: Iterative, product-style editing. Starting from the reference bowl (a), our model first\
+
+\fs19\fsmilli9893 generates a matching flower vase in a tabletop studio setting with fresh flowers (b), and subsequently\
+
+\fs19\fsmilli9863 changes the vase\'92s base color to black while preserving the floral pattern, lighting, and composition (c).\
+
+\fs19\fsmilli9958 the benchmark is not publicly available the time of writing, is concurrent work, unsure about all the\
+
+\fs19\fsmilli9963 tasks it covers and is only 300 examples.\
+
+\fs19\fsmilli9878 BOTTOM LINE: ppl can do quite broad set of tasks with Kontext style models, we set out to capture\
+
+\fs20\fsmilli10062 some real-world usecases for this models. hence from our team we crowd sourced several images\
+
+\fs19\fsmilli9913 and prompts for each edit they\'92d like to see. Note the images were images people wanted to edit and\
+
+\fs19\fsmilli9863 includes personal photos, CC attributed art images, public domain images from sources like Unsplash\
+
+\fs19\fsmilli9968 and Pexels, and AI-generated synthetic images. The edits were also user provided spanning local &\
+
+\fs19\fsmilli9983 global instruct editng, character reference, style reference & text editing. We collect a total of 1026\
+
+\fs19\fsmilli9948 unique image / prompt pairs starting from 108 images. We also crowd-source users to annotate tags.\
+
+\fs19\fsmilli9953 For simplicity we enforce users to pick exactly one of the five tasks listed above. The distribution is\
+
+\fs19\fsmilli9963 shown in X (show a pie chart)\
+
+\fs19\fsmilli9873 Category Total Instruction Editing - Local 416 Instruction Editing - Global 262 Text Editing 92 Style\
+
+\fs19\fsmilli9963 Reference 63 Character Reference 193\
+
+\fs20\fsmilli10062 We found the bench to be quite representative of model capabilities and improvements in both\
+
+\fs19\fsmilli9863 qualitative and quantitative studies. We also observe automatic evaluations proposed in other methods\
+
+\fs20\fsmilli10007 noisy or the dataset is either too small / too big for doing human evals reliably. KontextBench with\
+
+\fs19\fsmilli9997 approx 1000 examples offers the right tradeoff of size and continuous human eval. Some examples\
+
+\fs19\fsmilli9963 are shown in Y.\
+
+\fs20\fsmilli10062 for examples, follow links here: \cf5 https://black-forest-labs.slack.com/archives/C087ZFHVDFU/\
+
+\fs19\fsmilli9963 p1748015866756229\
+
+\fs19\fsmilli9968 \cf3 add some examples, how to construct, what it covers that others do not - i.e. describe net new value\
+
+\fs19\fsmilli9963 we add by releasing this.\
+[TODO: Sumith to outline things]\
+\cf2 7
+\fs17\fsmilli8966 (a) Input image (b) \'93tilt her head towards the\
+camera\'94\
+(c) \'93make her laugh\'94\
+
+\fs19\fsmilli9893 Figure 7: Sequential, facial-expression editing. Beginning with the profile reference (a), our model\
+
+\fs20\fsmilli10062 first reorients the subject toward the camera (b) and then changes her expression to a spontaneous\
+laugh (c), while preserving background, clothing and lighting. \cf3 identity looks quite a bit different\
+
+\fs19\fsmilli9963 from b to c no?\
+\cf2 4.2 SOTA Comparison\
+?? \cf4 A: add section on bakeyness, let\'92s coin it\
+\cf2 4.3 Prompting with visual clues\
+red ellipsis ftw\
+4.4 Iterative Workflows\
+
+\fs20\fsmilli10062 Maintaining the accurate appearance of characters and objects across multiple edits is crucial for\
+
+\fs19\fsmilli9997 storytelling, brand-sensitive applications, and the general ability to break down a complex edit into\
+
+\fs20\fsmilli10027 multiple steps. A major limitation of current state-of-the-art approaches is a noticeable visual drift\
+
+\fs20\fsmilli10062 when applying a chain of successive edits. Characters gradually lose their identity, and objects\
+increasingly lose their defining features, drifting further from the source image with each edit. In\
+order to assess the visual drift of different approaches, we focus on human character consistency\
+
+\fs19\fsmilli9988 across local and generative edits as a proxy for general visual drift. We apply a series of successive\
+
+\fs19\fsmilli9863 edits to photos of people and measure the cosine similarity of the AuraFace [
+\fs19\fsmilli9963 9
+\fs19\fsmilli9863 , 
+\fs19\fsmilli9963 20
+\fs19\fsmilli9863 ] embeddings of the\
+
+\fs19\fsmilli9992 input image and the corresponding output image and observe 1) a significantly increased AuraFace\
+
+\fs20\fsmilli10062 similarity after one turn when using FLUX.1 Kontext compared to other models and 2) a slower\
+
+\fs19\fsmilli9963 decline in similarity in the following turns.\
+4.5 More researchy: What else does FLUX.1 Kontext learn?\
+\cf4 A: optional. \cf2 stuff like segmenation, bboxes, image correspondences, ...\
+
+\fs23\fsmilli11955 5 Outlook\
+
+\fs19\fsmilli9978 We introduced FLUX.1 Kontext, a flow-matching model that combines in-context image generation\
+
+\fs20\fsmilli10062 and editing in a single framework. Through simple sequence concatenation and training recipes,\
+
+\fs20\fsmilli10022 FLUX.1 Kontext achieves state-of-the-art performance while addressing key limitations: Character\
+
+\fs19\fsmilli9983 drift during multi-turn edits, slow inference, and output quality. Our contributions include a unified\
+
+\fs19\fsmilli9963 8Model Speed Comparison\
+40\
+40\
+30\
+Time (s)\
+22\
+20 20\
+20\
+15\
+10\
+8\
+5.8 6\
+0\
+
+\fs17\fsmilli8966 FLUX.1 Kontext Pro\
+step-1x-edit\
+gemini-edit\
+gpt-image-low\
+gpt-image-medium\
+hidream-e1\
+runway (gen-4 ref)\
+gpt-image-high\
+
+\fs19\fsmilli9963 Model\
+
+\fs19\fsmilli9928 Figure 8: Median inference latency [seconds] \cf3 update with final values \cf2 for a 
+\fs19\fsmilli9963 1024 \'d71024 
+\fs19\fsmilli9928 image edit\
+
+\fs19\fsmilli9963 (lower is better).\
+
+\fs19\fsmilli9988 architecture that handles multiple processing tasks, superior character consistency across iterations,\
+
+\fs19\fsmilli9958 interactive speed, and KontextBench: A real-world benchmark with 1,026 image-prompt pairs. Our\
+
+\fs19\fsmilli9863 extensive evaluations reveal that FLUX.1 Kontext is comparable to proprietary systems while enabling\
+
+\fs19\fsmilli9963 fast, multi-turn creative workflows.\
+
+\fs19\fsmilli9873 Future work should focus on extending to multiple image inputs via Equation (2), further scaling and\
+
+\fs19\fsmilli9868 reducing inference latency to unlock real-time applications. A natural extension of our approach is to\
+
+\fs19\fsmilli9938 include edits in the video domain. Most importantly, reducing degradation during multi-turn editing\
+
+\fs20\fsmilli10062 would enable infinitely fluid content creation. The release of FLUX.1 Kontext and KontextBench\
+provides a solid foundation and a comprehensive evaluation framework to drive unified image\
+
+\fs19\fsmilli9963 generation and editing.\
+9
+\fs20\fsmilli10062 Figure 9: Local Edits: FLUX.1 Kontext (top) reliably only changes parts of the image, whereas\
+GPT-Image-1 (bottom) edits tend to alter the full canvas. The effect is particularly strong when\
+
+\fs19\fsmilli9963 considering multiple, iterative edits.\
+
+\fs23\fsmilli11955 References\
+
+\fs19\fsmilli9963 [1] 
+\fs20\fsmilli10062 Michael S. Albergo and Eric Vanden-Eijnden. Building normalizing flows with stochastic\
+
+\fs19\fsmilli9963 interpolants, 2022.\
+[2] 
+\fs20\fsmilli10062 James Betker, Gabriel Goh, Li Jing, Tim Brooks, Jianfeng Wang, Linjie Li, Long Ouyang,\
+
+\fs19\fsmilli9913 Juntang Zhuang, Joyce Lee, Yufei Guo, et al. Improving image generation with better captions.\
+
+\fs19\fsmilli9963 Computer Science. https://cdn. openai. com/papers/dall-e-3. pdf, 2(3), 2023.\
+[3] 
+\fs19\fsmilli9933 Andreas Blattmann, Robin Rombach, Kaan Oktay, Jonas M\'fcller, and Bj\'f6rn Ommer. Retrieval-\
+
+\fs19\fsmilli9963 augmented diffusion models. Advances in Neural Information Processing Systems, 35:15309\'96\
+15324, 2022.\
+[4] 
+\fs20\fsmilli10062 Frederic Boesel and Robin Rombach. Improving image editing models with generative data\
+refinement. In Tiny Papers @ ICLR, 2024. URL \cf5 https://api.semanticscholar.org/CorpusID:\
+
+\fs19\fsmilli9963 271461432\cf2 .\
+[5] 
+\fs20\fsmilli10062 Tim Brooks, Aleksander Holynski, and Alexei A Efros. Instructpix2pix: Learning to follow\
+
+\fs20\fsmilli10022 image editing instructions. In Proceedings of the IEEE/CVF Conference on Computer Vision\
+
+\fs19\fsmilli9963 and Pattern Recognition, pages 18392\'9618402, 2023.\
+[6] 
+\fs19\fsmilli9863 Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla Dhariwal,\
+
+\fs19\fsmilli9888 Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, et al. Language models are\
+
+\fs19\fsmilli9963 few-shot learners. Advances in neural information processing systems, 33:1877\'961901, 2020.\
+[7] 
+\fs20\fsmilli10062 Wenhu Chen, Hexiang Hu, Chitwan Saharia, and William W Cohen. Re-imagen: Retrieval-\
+
+\fs19\fsmilli9963 augmented text-to-image generator. arXiv preprint arXiv:2209.14491, 2022.\
+[8] 
+\fs20\fsmilli10062 Mostafa Dehghani, Josip Djolonga, Basil Mustafa, Piotr Padlewski, Jonathan Heek, Justin\
+
+\fs19\fsmilli9938 Gilmer, Andreas Peter Steiner, Mathilde Caron, Robert Geirhos, Ibrahim Alabdulmohsin, et al.\
+
+\fs19\fsmilli9968 Scaling vision transformers to 22 billion parameters. In International Conference on Machine\
+
+\fs19\fsmilli9963 Learning, pages 7480\'967512. PMLR, 2023.\
+[9] 
+\fs20\fsmilli10062 Jiankang Deng, Jia Guo, Niannan Xue, and Stefanos Zafeiriou. Arcface: Additive angular\
+
+\fs19\fsmilli9863 margin loss for deep face recognition. In Proceedings of the IEEE/CVF conference on computer\
+
+\fs19\fsmilli9963 vision and pattern recognition, pages 4690\'964699, 2019.\
+10[10] 
+\fs20\fsmilli10052 Patrick Esser, Sumith Kulal, Andreas Blattmann, Rahim Entezari, Jonas M\'fcller, Harry Saini,\
+
+\fs19\fsmilli9983 Yam Levi, Dominik Lorenz, Axel Sauer, Frederic Boesel, Dustin Podell, Tim Dockhorn, Zion\
+
+\fs19\fsmilli9863 English, Kyle Lacey, Alex Goodwin, Yannik Marek, and Robin Rombach. Scaling rectified flow\
+
+\fs19\fsmilli9928 transformers for high-resolution image synthesis, 2024. URL \cf5 https://arxiv.org/abs/2403.03206\cf2 .\
+
+\fs19\fsmilli9963 [11] 
+\fs20\fsmilli10062 Rinon Gal, Yuval Alaluf, Yuval Atzmon, Or Patashnik, Amit H Bermano, Gal Chechik, and\
+
+\fs19\fsmilli9988 Daniel Cohen-Or. An image is worth one word: Personalizing text-to-image generation using\
+
+\fs19\fsmilli9963 textual inversion. arXiv preprint arXiv:2208.01618, 2022.\
+[12] Rafael C Gonzalez. Digital image processing. Pearson education india, 2009.\
+[13] 
+\fs20\fsmilli10062 HiDream-ai. Hidream-e1: Instruction-based image editing model, 2025. URL \cf5 https://github.\
+
+\fs19\fsmilli9963 com/HiDream-ai/HiDream-E1\cf2 .\
+[14] Jonathan Ho and Tim Salimans. Classifier-free diffusion guidance, 2022.\
+[15] Jonathan Ho, Ajay Jain, and Pieter Abbeel. Denoising diffusion probabilistic models, 2020.\
+[16] 
+\fs19\fsmilli9913 Emiel Hoogeboom, Jonathan Heek, and Tim Salimans. Simple diffusion: End-to-end diffusion\
+
+\fs19\fsmilli9963 for high resolution images, 2023.\
+[17] 
+\fs20\fsmilli10062 Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang,\
+
+\fs20\fsmilli10022 Lu Wang, Weizhu Chen, et al. Lora: Low-rank adaptation of large language models. ICLR, 1\
+
+\fs19\fsmilli9963 (2):3, 2022.\
+[18] 
+\fs19\fsmilli9983 Lianghua Huang, Wei Wang, Zhi-Fan Wu, Yupeng Shi, Huanzhang Dou, Chen Liang, Yutong\
+
+\fs20\fsmilli10062 Feng, Yu Liu, and Jingren Zhou. In-context lora for diffusion transformers. arXiv preprint\
+
+\fs19\fsmilli9963 arXiv:2410.23775, 2024.\
+[19] 
+\fs20\fsmilli10062 Imagen-Team-Google, :, Jason Baldridge, Jakob Bauer, Mukul Bhutani, Nicole Brichtova,\
+
+\fs20\fsmilli10032 Andrew Bunner, Lluis Castrejon, Kelvin Chan, Yichang Chen, Sander Dieleman, Yuqing Du,\
+
+\fs20\fsmilli10062 Zach Eaton-Rosen, Hongliang Fei, Nando de Freitas, Yilin Gao, Evgeny Gladchenko, Ser-\
+
+\fs19\fsmilli9948 gio G\'f3mez Colmenarejo, Mandy Guo, Alex Haig, Will Hawkins, Hexiang Hu, Huilian Huang,\
+
+\fs19\fsmilli9878 Tobenna Peter Igwe, Christos Kaplanis, Siavash Khodadadeh, Yelin Kim, Ksenia Konyushkova,\
+
+\fs19\fsmilli9913 Karol Langner, Eric Lau, Rory Lawton, Shixin Luo, So\uc0\u711  na Mokr\'e1, Henna Nandwani, Yasumasa\
+
+\fs20\fsmilli10062 Onoe, A\'e4ron van den Oord, Zarana Parekh, Jordi Pont-Tuset, Hang Qi, Rui Qian, Deepak\
+
+\fs19\fsmilli9883 Ramachandran, Poorva Rane, Abdullah Rashwan, Ali Razavi, Robert Riachi, Hansa Srinivasan,\
+
+\fs19\fsmilli9863 Srivatsan Srinivasan, Robin Strudel, Benigno Uria, Oliver Wang, Su Wang, Austin Waters, Chris\
+
+\fs20\fsmilli10062 Wolff, Auriel Wright, Zhisheng Xiao, Hao Xiong, Keyang Xu, Marc van Zee, Junlin Zhang,\
+
+\fs20\fsmilli10047 Katie Zhang, Wenlei Zhou, Konrad Zolna, Ola Aboubakar, Canfer Akbulut, Oscar Akerlund,\
+
+\fs20\fsmilli10062 Isabela Albuquerque, Nina Anderson, Marco Andreetto, Lora Aroyo, Ben Bariach, David\
+
+\fs19\fsmilli9923 Barker, Sherry Ben, Dana Berman, Courtney Biles, Irina Blok, Pankil Botadra, Jenny Brennan,\
+
+\fs20\fsmilli10062 Karla Brown, John Buckley, Rudy Bunel, Elie Bursztein, Christina Butterfield, Ben Caine,\
+
+\fs19\fsmilli9992 Viral Carpenter, Norman Casagrande, Ming-Wei Chang, Solomon Chang, Shamik Chaudhuri,\
+
+\fs20\fsmilli10062 Tony Chen, John Choi, Dmitry Churbanau, Nathan Clement, Matan Cohen, Forrester Cole,\
+
+\fs19\fsmilli9938 Mikhail Dektiarev, Vincent Du, Praneet Dutta, Tom Eccles, Ndidi Elue, Ashley Feden, Shlomi\
+
+\fs20\fsmilli10062 Fruchter, Frankie Garcia, Roopal Garg, Weina Ge, Ahmed Ghazy, Bryant Gipson, Andrew\
+Goodman, Dawid G\'f3rny, Sven Gowal, Khyatti Gupta, Yoni Halpern, Yena Han, Susan Hao,\
+Jamie Hayes, Jonathan Heek, Amir Hertz, Ed Hirst, Emiel Hoogeboom, Tingbo Hou, Heidi\
+Howard, Mohamed Ibrahim, Dirichi Ike-Njoku, Joana Iljazi, Vlad Ionescu, William Isaac,\
+
+\fs19\fsmilli9863 Reena Jana, Gemma Jennings, Donovon Jenson, Xuhui Jia, Kerry Jones, Xiaoen Ju, Ivana Kajic,\
+
+\fs19\fsmilli9978 Christos Kaplanis, Burcu Karagol Ayan, Jacob Kelly, Suraj Kothawade, Christina Kouridi, Ira\
+
+\fs20\fsmilli10062 Ktena, Jolanda Kumakaw, Dana Kurniawan, Dmitry Lagun, Lily Lavitas, Jason Lee, Tao Li,\
+
+\fs19\fsmilli9888 Marco Liang, Maggie Li-Calis, Yuchi Liu, Javier Lopez Alberca, Matthieu Kim Lorrain, Peggy\
+
+\fs20\fsmilli10062 Lu, Kristian Lum, Yukun Ma, Chase Malik, John Mellor, Thomas Mensink, Inbar Mosseri,\
+
+\fs19\fsmilli9948 Tom Murray, Aida Nematzadeh, Paul Nicholas, Signe N\'f8rly, Jo\'e3o Gabriel Oliveira, Guillermo\
+
+\fs20\fsmilli10062 Ortiz-Jimenez, Michela Paganini, Tom Le Paine, Roni Paiss, Alicia Parrish, Anne Peckham,\
+
+\fs19\fsmilli9863 Vikas Peswani, Igor Petrovski, Tobias Pfaff, Alex Pirozhenko, Ryan Poplin, Utsav Prabhu, Yuan\
+Qi, Matthew Rahtz, Cyrus Rashtchian, Charvi Rastogi, Amit Raul, Ali Razavi, Sylvestre-Alvise\
+
+\fs20\fsmilli10062 Rebuffi, Susanna Ricco, Felix Riedel, Dirk Robinson, Pankaj Rohatgi, Bill Rosgen, Sarah\
+Rumbley, Moonkyung Ryu, Anthony Salgado, Tim Salimans, Sahil Singla, Florian Schroff,\
+
+\fs19\fsmilli9948 Candice Schumann, Tanmay Shah, Eleni Shaw, Gregory Shaw, Brendan Shillingford, Kaushik\
+
+\fs19\fsmilli9963 11
+\fs20\fsmilli10062 Shivakumar, Dennis Shtatnov, Zach Singer, Evgeny Sluzhaev, Valerii Sokolov, Thibault Sot-\
+tiaux, Florian Stimberg, Brad Stone, David Stutz, Yu-Chuan Su, Eric Tabellion, Shuai Tang,\
+
+\fs19\fsmilli9863 David Tao, Kurt Thomas, Gregory Thornton, Andeep Toor, Cristian Udrescu, Aayush Upadhyay,\
+
+\fs20\fsmilli10047 Cristina Vasconcelos, Alex Vasiloff, Andrey Voynov, Amanda Walker, Luyu Wang, Miaosen\
+
+\fs20\fsmilli10022 Wang, Simon Wang, Stanley Wang, Qifei Wang, Yuxiao Wang, \'c1goston Weisz, Olivia Wiles,\
+
+\fs20\fsmilli10062 Chenxia Wu, Xingyu Federico Xu, Andrew Xue, Jianbo Yang, Luo Yu, Mete Yurtoglu, Ali\
+
+\fs19\fsmilli9903 Zand, Han Zhang, Jiageng Zhang, Catherine Zhao, Adilet Zhaxybay, Miao Zhou, Shengqi Zhu,\
+
+\fs20\fsmilli10062 Zhenkai Zhu, Dawn Bloxwich, Mahyar Bordbar, Luis C. Cobo, Eli Collins, Shengyang Dai,\
+
+\fs20\fsmilli10057 Tulsee Doshi, Anca Dragan, Douglas Eck, Demis Hassabis, Sissie Hsiao, Tom Hume, Koray\
+
+\fs19\fsmilli9983 Kavukcuoglu, Helen King, Jack Krawczyk, Yeqing Li, Kathy Meier-Hellstern, Andras Orban,\
+
+\fs19\fsmilli9863 Yury Pinsky, Amar Subramanya, Oriol Vinyals, Ting Yu, and Yori Zwols. Imagen 3, 2024. URL\
+
+\fs19\fsmilli9963 \cf5 https://arxiv.org/abs/2408.07009\cf2 .\
+[20] 
+\fs20\fsmilli10062 isidentical. Introducing auraface: Open-source face recognition and identity preservation\
+
+\fs19\fsmilli9963 models. \cf5 https://huggingface.co/blog/isidentical/auraface\cf2 , 2024. Accessed: 2025-05-26.\
+[21] 
+\fs20\fsmilli10062 Kat Kampf and Nicole Brichtova. Experiment with gemini 2.0 flash na-\
+tive image generation, 2025. URL \cf5 https://developers.googleblog.com/en/\
+
+\fs19\fsmilli9963 experiment-with-gemini-20-flash-native-image-generation/\cf2 .\
+[22] 
+\fs19\fsmilli9913 Diederik P Kingma and Ruiqi Gao. Understanding diffusion objectives as the elbo with simple\
+
+\fs20\fsmilli10027 data augmentation. In Thirty-seventh Conference on Neural Information Processing Systems,\
+
+\fs19\fsmilli9963 2023.\
+[23] 
+\fs20\fsmilli10062 Vijay Anand Korthikanti, Jared Casper, Sangkug Lym, Lawrence McAfee, Michael Ander-\
+
+\fs20\fsmilli10047 sch, Mohammad Shoeybi, and Bryan Catanzaro. Reducing activation recomputation in large\
+
+\fs19\fsmilli9963 transformer models. Proceedings of Machine Learning and Systems, 5:341\'96353, 2023.\
+[24] 
+\fs20\fsmilli10062 Nupur Kumari, Bingliang Zhang, Richard Zhang, Eli Shechtman, and Jun-Yan Zhu. Multi-\
+
+\fs19\fsmilli9928 concept customization of text-to-image diffusion. In Proceedings of the IEEE/CVF conference\
+
+\fs19\fsmilli9963 on computer vision and pattern recognition, pages 1931\'961941, 2023.\
+[25] 
+\fs20\fsmilli10062 Wanchao Liang, Tianyu Liu, Less Wright, Will Constable, Andrew Gu, Chien-Chin Huang,\
+
+\fs19\fsmilli9958 Iris Zhang, Wei Feng, Howard Huang, Junjie Wang, et al. Torchtitan: One-stop pytorch native\
+
+\fs19\fsmilli9963 solution for production ready llm pre-training. arXiv preprint arXiv:2410.06511, 2024.\
+[26] 
+\fs19\fsmilli9928 Yaron Lipman, Ricky T. Q. Chen, Heli Ben-Hamu, Maximilian Nickel, and Matthew Le. Flow\
+
+\fs20\fsmilli10062 matching for generative modeling. In The Eleventh International Conference on Learning\
+
+\fs19\fsmilli9963 Representations, 2023. URL \cf5 https://openreview.net/forum?id=PqvMRDCJT9t\cf2 .\
+[27] 
+\fs20\fsmilli10052 Xingchao Liu, Chengyue Gong, and Qiang Liu. Flow straight and fast: Learning to generate\
+
+\fs19\fsmilli9963 and transfer data with rectified flow, 2022.\
+[28] 
+\fs20\fsmilli10062 Andreas Lugmayr, Martin Danelljan, Andres Romero, Fisher Yu, Radu Timofte, and Luc\
+
+\fs19\fsmilli9958 Van Gool. Repaint: Inpainting using denoising diffusion probabilistic models. In Proceedings\
+
+\fs19\fsmilli9948 of the IEEE/CVF conference on computer vision and pattern recognition, pages 11461\'9611471,\
+
+\fs19\fsmilli9963 2022.\
+[29] Midjourney. Midjourney, 2025. URL \cf5 https://www.midjourney.com/home\cf2 .\
+[30] 
+\fs20\fsmilli10062 OpenAI. Introducing 4o image generation, 2025. URL \cf5 https://openai.com/index/\
+
+\fs19\fsmilli9963 introducing-4o-image-generation/\cf2 .\
+[31] 
+\fs19\fsmilli9933 Xingang Pan, Ayush Tewari, Thomas Leimk\'fchler, Lingjie Liu, Abhimitra Meka, and Christian\
+
+\fs19\fsmilli9863 Theobalt. Drag your gan: Interactive point-based manipulation on the generative image manifold.\
+
+\fs19\fsmilli9963 In ACM SIGGRAPH 2023 conference proceedings, pages 1\'9611, 2023.\
+[32] 
+\fs20\fsmilli10062 William Peebles and Saining Xie. Scalable diffusion models with transformers. In 2023\
+
+\fs20\fsmilli10017 IEEE/CVF International Conference on Computer Vision (ICCV). IEEE, 2023. doi: 10.1109/\
+
+\fs19\fsmilli9963 iccv51070.2023.00387. URL \cf5 http://dx.doi.org/10.1109/ICCV51070.2023.00387\cf2 .\
+[33] 
+\fs19\fsmilli9863 Dustin Podell, Zion English, Kyle Lacey, Andreas Blattmann, Tim Dockhorn, Jonas M\'fcller, Joe\
+Penna, and Robin Rombach. Sdxl: Improving latent diffusion models for high-resolution image\
+
+\fs19\fsmilli9963 synthesis, 2023.\
+12[34] 
+\fs20\fsmilli10062 Aditya Ramesh, Prafulla Dhariwal, Alex Nichol, Casey Chu, and Mark Chen. Hierarchical\
+
+\fs19\fsmilli9963 text-conditional image generation with clip latents, 2022.\
+[35] 
+\fs19\fsmilli9888 Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bjorn Ommer. High-\
+
+\fs20\fsmilli10062 resolution image synthesis with latent diffusion models. In 2022 IEEE/CVF Conference on\
+
+\fs19\fsmilli9923 Computer Vision and Pattern Recognition (CVPR). IEEE, 2022. doi: 10.1109/cvpr52688.2022.\
+
+\fs19\fsmilli9963 01042. URL \cf5 http://dx.doi.org/10.1109/CVPR52688.2022.01042\cf2 .\
+[36] 
+\fs19\fsmilli9863 Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Yael Pritch, Michael Rubinstein, and Kfir Aberman.\
+
+\fs20\fsmilli10022 Dreambooth: Fine tuning text-to-image diffusion models for subject-driven generation, 2023.\
+
+\fs19\fsmilli9963 URL \cf5 https://arxiv.org/abs/2208.12242\cf2 .\
+[37] Inc. Runway AI. Runway | tools for human imagination, 2025. URL \cf5 https://runwayml.com/\cf2 .\
+[38] 
+\fs19\fsmilli9878 Chitwan Saharia, William Chan, Huiwen Chang, Chris Lee, Jonathan Ho, Tim Salimans, David\
+
+\fs19\fsmilli9863 Fleet, and Mohammad Norouzi. Palette: Image-to-image diffusion models. In ACM SIGGRAPH\
+
+\fs19\fsmilli9963 2022 Conference Proceedings, pages 1\'9610, 2022.\
+[39] 
+\fs19\fsmilli9958 Axel Sauer, Dominik Lorenz, Andreas Blattmann, and Robin Rombach. Adversarial diffusion\
+
+\fs19\fsmilli9963 distillation. arXiv preprint arXiv:2311.17042, 2023.\
+[40] 
+\fs20\fsmilli10062 Axel Sauer, Frederic Boesel, Tim Dockhorn, Andreas Blattmann, Patrick Esser, and Robin\
+Rombach. Fast high-resolution image synthesis with latent adversarial diffusion distillation,\
+
+\fs19\fsmilli9963 2024. URL \cf5 https://arxiv.org/abs/2403.12015\cf2 .\
+[41] 
+\fs20\fsmilli10062 Jay Shah, Ganesh Bikshandi, Ying Zhang, Vijay Thakkar, Pradeep Ramani, and Tri Dao.\
+
+\fs19\fsmilli9973 Flashattention-3: Fast and accurate attention with asynchrony and low-precision. Advances in\
+
+\fs19\fsmilli9963 Neural Information Processing Systems, 37:68658\'9668685, 2024.\
+[42] 
+\fs20\fsmilli10062 Shelly Sheynin, Adam Polyak, Uriel Singer, Yuval Kirstain, Amit Zohar, Oron Ashual, Devi\
+Parikh, and Yaniv Taigman. Emu edit: Precise image editing via recognition and generation\
+
+\fs19\fsmilli9963 tasks. arXiv preprint arXiv:2311.10089, 2023.\
+[43] 
+\fs20\fsmilli10062 Jianlin Su, Murtadha Ahmed, Yu Lu, Shengfeng Pan, Wen Bo, and Yunfeng Liu. Roformer:\
+
+\fs19\fsmilli9963 Enhanced transformer with rotary position embedding. Neurocomputing, 568:127063, 2024.\
+[44] 
+\fs19\fsmilli9863 Roman Suvorov, Elizaveta Logacheva, Anton Mashikhin, Anastasia Remizova, Arsenii Ashukha,\
+
+\fs20\fsmilli10062 Aleksei Silvestrov, Naejin Kong, Harshith Goka, Kiwoong Park, and Victor Lempitsky.\
+Resolution-robust large mask inpainting with fourier convolutions. In Proceedings of the\
+
+\fs19\fsmilli9963 IEEE/CVF winter conference on applications of computer vision, pages 2149\'962159, 2022.\
+[45] Richard Szeliski. Computer vision: algorithms and applications. Springer Nature, 2022.\
+[46] 
+\fs20\fsmilli10062 Shitao Xiao, Yueze Wang, Junjie Zhou, Huaying Yuan, Xingrun Xing, Ruiran Yan, Chaofan\
+
+\fs19\fsmilli9997 Li, Shuting Wang, Tiejun Huang, and Zheng Liu. Omnigen: Unified image generation. arXiv\
+
+\fs19\fsmilli9963 preprint arXiv:2409.11340, 2024.\
+[47] 
+\fs20\fsmilli10062 Binxin Yang, Shuyang Gu, Bo Zhang, Ting Zhang, Xuejin Chen, Xiaoyan Sun, Dong Chen,\
+and Fang Wen. Paint by example: Exemplar-based image editing with diffusion models. In\
+
+\fs20\fsmilli10047 Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, pages\
+
+\fs19\fsmilli9963 18381\'9618391, 2023.\
+[48] 
+\fs20\fsmilli10062 Hu Ye, Jun Zhang, Sibo Liu, Xiao Han, and Wei Yang. Ip-adapter: Text compatible image\
+
+\fs19\fsmilli9963 prompt adapter for text-to-image diffusion models. arXiv preprint arXiv:2308.06721, 2023.\
+[49] 
+\fs19\fsmilli9928 Lvmin Zhang, Anyi Rao, and Maneesh Agrawala. Adding conditional control to text-to-image\
+
+\fs19\fsmilli9863 diffusion models. In Proceedings of the IEEE/CVF international conference on computer vision,\
+
+\fs19\fsmilli9963 pages 3836\'963847, 2023.\
+[50] 
+\fs20\fsmilli10062 Zechuan Zhang, Ji Xie, Yu Lu, Zongxin Yang, and Yi Yang. In-context edit: Enabling\
+
+\fs19\fsmilli9863 instructional image editing with in-context generation in large scale diffusion transformer. arXiv\
+
+\fs19\fsmilli9963 preprint arXiv:2504.20690, 2025.\
+13
+\fs23\fsmilli11955 A Image Generation using Flow Matching\
+
+\fs19\fsmilli9963 A.1 Primer on Rectified Flow Matching\
+
+\fs20\fsmilli10062 For training our models, we construct forward noising processes in the latent space of an image\
+
+\fs19\fsmilli9963 autoencoder as\
+z
+\fs13\fsmilli6974 t 
+\fs19\fsmilli9963 = a
+\fs13\fsmilli6974 t
+\fs19\fsmilli9963 x
+\fs13\fsmilli6974 0 
+\fs19\fsmilli9963 + b
+\fs13\fsmilli6974 t
+\fs19\fsmilli9963 \uc0\u949 , (5)\
+
+\fs20\fsmilli10062 with 
+\fs19\fsmilli9963 x
+\fs13\fsmilli6974 0 
+\fs19\fsmilli9963 \uc0\u8764 p
+\fs13\fsmilli6974 data
+\fs20\fsmilli10062 , 
+\fs19\fsmilli9963 \uc0\u949  \u8764 N(0,1)
+\fs20\fsmilli10062 , and the coefficients 
+\fs19\fsmilli9963 a
+\fs13\fsmilli6974 t 
+\fs20\fsmilli10062 and 
+\fs19\fsmilli9963 b
+\fs13\fsmilli6974 t 
+\fs20\fsmilli10062 define the log signal-to-noise ratio\
+
+\fs19\fsmilli9963 (log-SNR) [22]\
+\uc0\u955 
+\fs13\fsmilli6974 t 
+\fs19\fsmilli9963 = log a
+\fs13\fsmilli6974 2\
+t\
+
+\fs19\fsmilli9963 b
+\fs13\fsmilli6974 2\
+t\
+
+\fs19\fsmilli9963 Further, we use the conditional flow matching loss [26]\
+(6)\
+a
+\fs13\fsmilli6974 \uc0\u8242 \
+t\
+
+\fs19\fsmilli9963 b
+\fs13\fsmilli6974 t\
+
+\fs19\fsmilli9963 z
+\fs13\fsmilli6974 t 
+\fs19\fsmilli9963 +\
+\uc0\u955 
+\fs13\fsmilli6974 \uc0\u8242 \
+t
+\fs19\fsmilli9963 \uc0\u949 ||
+\fs13\fsmilli6974 2\
+2 
+\fs19\fsmilli9963 (7)\
+2\
+L
+\fs13\fsmilli6974 CFM 
+\fs19\fsmilli9963 = E
+\fs13\fsmilli6974 t\uc0\u8764 p(t),\u949 \u8764 N(0,1)
+\fs19\fsmilli9963 ||v
+\fs13\fsmilli6974 \uc0\u920 
+\fs19\fsmilli9963 (z
+\fs13\fsmilli6974 t
+\fs19\fsmilli9963 ,t)\uc0\u8722 \
+a
+\fs13\fsmilli6974 t\
+
+\fs19\fsmilli9963 For rectified flow models [27], a
+\fs13\fsmilli6974 t 
+\fs19\fsmilli9963 = 1\uc0\u8722 tand b
+\fs13\fsmilli6974 t 
+\fs19\fsmilli9963 = 1, and thus\
+L
+\fs13\fsmilli6974 CFM 
+\fs19\fsmilli9963 = E
+\fs13\fsmilli6974 t\uc0\u8764 p(t),\u949 \u8764 N(0,1),x
+\fs9\fsmilli4981 0 
+\fs13\fsmilli6974 \uc0\u8764 p
+\fs9\fsmilli4981 data 
+\fs19\fsmilli9963 ||v
+\fs13\fsmilli6974 \uc0\u920 
+\fs19\fsmilli9963 (z
+\fs13\fsmilli6974 t
+\fs19\fsmilli9963 ,t) + x
+\fs13\fsmilli6974 0
+\fs19\fsmilli9963 \uc0\u8722 \u949 ||
+\fs13\fsmilli6974 2\
+2 
+\fs19\fsmilli9963 (8)\
+
+\fs20\fsmilli10062 and we sample 
+\fs19\fsmilli9963 t
+\fs20\fsmilli10062 from a Logit-Normal Distribution [
+\fs19\fsmilli9963 10
+\fs20\fsmilli10062 ]: 
+\fs19\fsmilli9963 p(t) = 
+\fs13\fsmilli6974 exp (\uc0\u8722 0.5\'b7(logit(t)\u8722 \'b5)
+\fs9\fsmilli4981 2 
+\fs13\fsmilli6974 /\uc0\u963 
+\fs9\fsmilli4981 2 
+\fs13\fsmilli6974 )\
+\uc0\u963 \u8730 2\u960 \'b7(1\u8722 t)\'b7t 
+\fs20\fsmilli10062 , where\
+
+\fs19\fsmilli9963 logit(t) = log 
+\fs13\fsmilli6974 t\
+1\uc0\u8722 t
+\fs20\fsmilli10062 . From the definition of the Logit-Normal Distribution, it follows that a random\
+
+\fs19\fsmilli9963 variable Y = logit(t) \uc0\u8764 N(\'b5,\u963 ).\
+A.2 Expressing shifting of the timestep schedule via the Logit-Normal Distribution\
+
+\fs20\fsmilli10062 Previous work on high-resolution image synthesis introduced an additional shift of the timestep\
+sampling (and, equivalently, the log-SNR schedule) via a parameter 
+\fs19\fsmilli9963 \uc0\u945 
+\fs20\fsmilli10062 [
+\fs19\fsmilli9963 10
+\fs20\fsmilli10062 , 
+\fs19\fsmilli9963 16
+\fs20\fsmilli10062 ]. Esser et al. 
+\fs19\fsmilli9963 [10]\
+
+\fs20\fsmilli10062 empirically demonstrated that 
+\fs19\fsmilli9963 \uc0\u945  = 3.0 
+\fs20\fsmilli10062 worked best when increasing the image resolution from\
+
+\fs19\fsmilli9963 256
+\fs13\fsmilli6974 2 
+\fs20\fsmilli10062 to 
+\fs19\fsmilli9963 1024
+\fs13\fsmilli6974 2
+\fs20\fsmilli10062 . In the following, we show that this shifting can be expressed via the Logit-Normal\
+
+\fs19\fsmilli9963 Distribution.\
+Consider the log-SNR of a rectified flow forward process with \'b5= 0 and \uc0\u963 = 1:\
+\uc0\u955 
+\fs13\fsmilli6974 0,1\
+t 
+\fs19\fsmilli9963 = 2 log 1\uc0\u8722 t\
+t=\uc0\u8722 2logit(t), (9)\
+where logit(t) \uc0\u8764 N(0,1). Expressing the log-SNR for arbitrary \'b5and \u963 gives\
+\uc0\u955 
+\fs13\fsmilli6974 \'b5,\uc0\u963 \
+t 
+\fs19\fsmilli9963 =\uc0\u8722 2(\u963 \'b7logit(t) + \'b5) = \u963 \'b7\u955 
+\fs13\fsmilli6974 0,1\
+t
+\fs19\fsmilli9963 \uc0\u8722 2\'b5. (10)\
+The \uc0\u945 -shifted log-SNR [10, 16] is obtained as\
+\uc0\u955 
+\fs13\fsmilli6974 \uc0\u945 \
+t 
+\fs19\fsmilli9963 = \uc0\u955 
+\fs13\fsmilli6974 0,1\
+t
+\fs19\fsmilli9963 \uc0\u8722 2 log \u945 . (11)\
+
+\fs20\fsmilli10062 Comparing Equation (10) and Equation (11), we identify 
+\fs19\fsmilli9963 \'b5 = log \uc0\u945 
+\fs20\fsmilli10062 for 
+\fs19\fsmilli9963 \uc0\u963  = 1.0
+\fs20\fsmilli10062 , i.e. a shift of\
+
+\fs19\fsmilli9963 \uc0\u945 = 3.0 would correspond to a logit-normal distribution with \'b5= log 3.0 = 1.0986 and \u963 = 1.0.\
+We can further express the shifted log-SNR as a function of shifted timesteps t
+\fs13\fsmilli6974 \uc0\u8242 \
+
+\fs19\fsmilli9963 \uc0\u955 
+\fs13\fsmilli6974 t
+\fs9\fsmilli4981 \uc0\u8242  
+\fs19\fsmilli9963 = 2 log 1\uc0\u8722 t
+\fs13\fsmilli6974 \uc0\u8242 \
+
+\fs19\fsmilli9963 = \uc0\u963 \u955 
+\fs13\fsmilli6974 0,1\
+t
+\fs19\fsmilli9963 \uc0\u8722 2\'b5= 2\u963 log 1\u8722 t\
+t
+\fs13\fsmilli6974 \uc0\u8242 \
+
+\fs19\fsmilli9963 t\uc0\u8722 2\'b5 (12)\
+and solve for t
+\fs13\fsmilli6974 \uc0\u8242 
+\fs19\fsmilli9963 :\
+t
+\fs13\fsmilli6974 \uc0\u8242 \
+
+\fs19\fsmilli9963 =\
+e
+\fs13\fsmilli6974 \'b5\
+
+\fs19\fsmilli9963 e
+\fs13\fsmilli6974 \'b5 
+\fs19\fsmilli9963 + (1/t\uc0\u8722 1)
+\fs13\fsmilli6974 \uc0\u963  
+\fs19\fsmilli9963 (13)\
+14
+\fs19\fsmilli9863 For 
+\fs19\fsmilli9963 \uc0\u963 = 1.0 
+\fs19\fsmilli9863 and 
+\fs19\fsmilli9963 \'b5= log \uc0\u945 
+\fs19\fsmilli9863 this recovers the redistribution function for the timesteps proposed in [
+\fs19\fsmilli9963 10
+\fs19\fsmilli9863 ]\
+
+\fs19\fsmilli9963 t
+\fs13\fsmilli6974 \uc0\u8242 \
+\uc0\u945 t\
+
+\fs19\fsmilli9963 =\
+
+\fs13\fsmilli6974 1+(\uc0\u945 \u8722 1)t
+\fs19\fsmilli9918 , as expected. This generalized shifting formula 10 can be useful both for training and\
+
+\fs19\fsmilli9963 via 13 for inference.\
+A.3 Data Normalization is implicit Logit-Normal Shifting\
+
+\fs19\fsmilli9958 We analyze how data normalization implicitly shifts the schedule towards higher noise scales in our\
+
+\fs19\fsmilli9963 framework.\
+
+\fs20\fsmilli10062 Consider data with zero mean, 
+\fs19\fsmilli9963 \'b5
+\fs13\fsmilli6974 data 
+\fs19\fsmilli9963 = E[x] = 0 
+\fs20\fsmilli10062 for 
+\fs19\fsmilli9963 x \uc0\u8764  p
+\fs13\fsmilli6974 data
+\fs20\fsmilli10062 . Under a re-normalization\
+
+\fs19\fsmilli9963 operation [35]\
+x\
+\'98\
+x=\
+, (14)\
+\uc0\u963 
+\fs13\fsmilli6974 data\
+
+\fs19\fsmilli9963 the forward process 5 transforms as\
+\'98\
+\'98\
+z
+\fs13\fsmilli6974 t 
+\fs19\fsmilli9963 = a
+\fs13\fsmilli6974 t\
+
+\fs19\fsmilli9963 x+ b
+\fs13\fsmilli6974 t
+\fs19\fsmilli9963 \uc0\u949 = a
+\fs13\fsmilli6974 t\
+
+\fs19\fsmilli9963 with\'98\
+a
+\fs13\fsmilli6974 t 
+\fs19\fsmilli9963 := 
+\fs13\fsmilli6974 a
+\fs9\fsmilli4981 t\
+
+\fs13\fsmilli6974 \uc0\u963 
+\fs9\fsmilli4981 data 
+\fs19\fsmilli9963 , and hence\
+\'98\
+\'98\
+a
+\fs13\fsmilli6974 2\
+
+\fs19\fsmilli9963 \uc0\u955 
+\fs13\fsmilli6974 t 
+\fs19\fsmilli9963 = log\
+
+\fs13\fsmilli6974 t\
+
+\fs19\fsmilli9963 x\
++ b
+\fs13\fsmilli6974 t
+\fs19\fsmilli9963 \uc0\u949 = \'98 a
+\fs13\fsmilli6974 t
+\fs19\fsmilli9963 x+ b
+\fs13\fsmilli6974 t
+\fs19\fsmilli9963 \uc0\u949  (15)\
+\uc0\u963 
+\fs13\fsmilli6974 data\
+
+\fs19\fsmilli9963 = log a
+\fs13\fsmilli6974 2\
+t\
+
+\fs19\fsmilli9963 = \uc0\u955 
+\fs13\fsmilli6974 0,1\
+t
+\fs19\fsmilli9963 \uc0\u8722 2 log \u963 
+\fs13\fsmilli6974 data 
+\fs19\fsmilli9963 (16)\
+b
+\fs13\fsmilli6974 2\
+
+\fs19\fsmilli9963 \uc0\u963 
+\fs13\fsmilli6974 2\
+t\
+data
+\fs19\fsmilli9963 b
+\fs13\fsmilli6974 2\
+t\
+
+\fs19\fsmilli9863 Comparing with 10, we find that re-normalization with 
+\fs19\fsmilli9963 \uc0\u963 
+\fs13\fsmilli6974 data
+\fs19\fsmilli9863 is equivalent to a shift 
+\fs19\fsmilli9963 \'b5
+\fs13\fsmilli6974 data 
+\fs19\fsmilli9963 = log \uc0\u963 
+\fs13\fsmilli6974 data\
+
+\fs19\fsmilli9963 of the logit-mean of \uc0\u955 
+\fs13\fsmilli6974 t
+\fs19\fsmilli9963 .\
+
+\fs20\fsmilli10062 This implicit shift under a re-normalization should be considered when doing multi-scale training\
+since the standard deviation of the data distribution can vary across different dimensions []. \cf3 show\
+
+\fs19\fsmilli9963 plot?\
+
+\fs20\fsmilli10062 \cf2 Summarizing our findings from A.2 and A.3 can express both the explicit shift of 
+\fs19\fsmilli9963 \'b5
+\fs20\fsmilli10062 , e.g. due to\
+
+\fs19\fsmilli9963 higher data dimensions, and the implicit shift via re-normalization via\
+\'b5
+\fs13\fsmilli6974 total 
+\fs19\fsmilli9963 = \'b5
+\fs13\fsmilli6974 \uc0\u945  
+\fs19\fsmilli9963 + \'b5
+\fs13\fsmilli6974 data
+\fs19\fsmilli9963 . (17)\
+15}

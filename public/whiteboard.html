@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Whiteboard - Interactive AI Canvas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8f9fa;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .whiteboard-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            cursor: grab;
+        }
+
+        .whiteboard-container.grabbing {
+            cursor: grabbing;
+        }
+
+        .canvas-surface {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 1px 1px, rgba(0,0,0,0.1) 1px, transparent 0);
+            background-size: 20px 20px;
+            background-position: 0 0;
+            transform-origin: 0 0;
+            transition: transform 0.1s ease-out;
+        }
+
+        /* Draggable Element Base */
+        .canvas-element {
+            position: absolute;
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            cursor: move;
+            user-select: none;
+            transition: all 0.2s ease;
+            min-width: 200px;
+            min-height: 120px;
+        }
+
+        .canvas-element:hover {
+            border-color: #4F46E5;
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.15);
+        }
+
+        .canvas-element.selected {
+            border-color: #4F46E5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .canvas-element.dragging {
+            transform: rotate(2deg);
+            z-index: 1000;
+        }
+
+        /* Element Header */
+        .element-header {
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e1e5e9;
+            border-radius: 10px 10px 0 0;
+            font-weight: 600;
+            font-size: 14px;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .element-content {
+            padding: 16px;
+        }
+
+        /* Upload Box */
+        .upload-box {
+            width: 280px;
+            height: 200px;
+        }
+
+        .upload-zone {
+            border: 2px dashed #D1D5DB;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            color: #6B7280;
+            background: #F9FAFB;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .upload-zone:hover {
+            border-color: #4F46E5;
+            background: #F0F0FF;
+        }
+
+        .upload-zone.dragover {
+            border-color: #4F46E5;
+            background: #EEF2FF;
+        }
+
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        /* Image Preview */
+        .image-preview {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        /* Caption Box */
+        .caption-box {
+            width: 320px;
+            min-height: 150px;
+        }
+
+        .caption-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #374151;
+            background: #F9FAFB;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+
+        /* Vibe Node */
+        .vibe-node {
+            width: 160px;
+            height: 120px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .vibe-node:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .vibe-node.selected {
+            animation: vibePulse 2s infinite;
+        }
+
+        @keyframes vibePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Image Result Box */
+        .result-box {
+            width: 240px;
+            min-height: 280px;
+        }
+
+        .result-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .result-prompt {
+            font-size: 12px;
+            color: #6B7280;
+            line-height: 1.4;
+        }
+
+        /* Connection Lines */
+        .connection-line {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .connection-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .connection-path {
+            fill: none;
+            stroke: #9CA3AF;
+            stroke-width: 2;
+            stroke-dasharray: 5,5;
+            animation: dash 20s linear infinite;
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -200; }
+        }
+
+        /* Controls */
+        .canvas-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .control-btn {
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:hover {
+            border-color: #4F46E5;
+            background: #F0F0FF;
+        }
+
+        .zoom-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #6B7280;
+        }
+
+        /* Loading States */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid #e1e5e9;
+            border-top: 2px solid #4F46E5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Hide original canvas section */
+        .canvas-section { display: none; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .canvas-element {
+                min-width: 160px;
+                min-height: 100px;
+            }
+            
+            .upload-box {
+                width: 200px;
+                height: 160px;
+            }
+            
+            .caption-box {
+                width: 240px;
+            }
+            
+            .result-box {
+                width: 180px;
+                min-height: 220px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="whiteboard-container" id="whiteboardContainer">
+        <div class="canvas-surface" id="canvasSurface">
+            <!-- SVG for connection lines -->
+            <svg class="connection-svg" id="connectionSvg">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                            refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#9CA3AF" />
+                    </marker>
+                </defs>
+            </svg>
+
+            <!-- Upload Box (starting element) -->
+            <div class="canvas-element upload-box" id="uploadElement" style="left: 100px; top: 200px;">
+                <div class="element-header">
+                    📤 Upload Image
+                </div>
+                <div class="element-content">
+                    <div class="upload-zone" id="uploadZone">
+                        <div class="upload-icon">📸</div>
+                        <div>Drop image here or click to upload</div>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="canvas-controls">
+        <button class="control-btn" onclick="resetZoom()">Reset View</button>
+        <button class="control-btn" onclick="zoomIn()">Zoom In</button>
+        <button class="control-btn" onclick="zoomOut()">Zoom Out</button>
+    </div>
+
+    <div class="zoom-indicator" id="zoomIndicator">100%</div>
+
+    <script>
+        // Global state
+        let currentZoom = 1;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let dragElement = null;
+        let dragOffset = { x: 0, y: 0 };
+        let isPanning = false;
+        let panStart = { x: 0, y: 0 };
+        let elements = [];
+        let connections = [];
+        let elementIdCounter = 0;
+        let currentImageBase64 = null;
+
+        // DOM elements
+        const container = document.getElementById('whiteboardContainer');
+        const surface = document.getElementById('canvasSurface');
+        const svg = document.getElementById('connectionSvg');
+        const zoomIndicator = document.getElementById('zoomIndicator');
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+
+        // Initialize the whiteboard
+        function initWhiteboard() {
+            setupEventListeners();
+            updateZoomIndicator();
+            
+            // Register upload element
+            registerElement('uploadElement', 'upload');
+        }
+
+        function setupEventListeners() {
+            // Pan and zoom
+            container.addEventListener('mousedown', handleMouseDown);
+            container.addEventListener('mousemove', handleMouseMove);
+            container.addEventListener('mouseup', handleMouseUp);
+            container.addEventListener('wheel', handleWheel, { passive: false });
+
+            // Touch events for mobile
+            container.addEventListener('touchstart', handleTouchStart);
+            container.addEventListener('touchmove', handleTouchMove);
+            container.addEventListener('touchend', handleTouchEnd);
+
+            // Upload functionality
+            uploadZone.addEventListener('click', () => fileInput.click());
+            uploadZone.addEventListener('dragover', handleDragOver);
+            uploadZone.addEventListener('drop', handleDrop);
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Prevent default drag behavior
+            document.addEventListener('dragover', e => e.preventDefault());
+            document.addEventListener('drop', e => e.preventDefault());
+        }
+
+        function registerElement(elementId, type) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const elementData = {
+                id: elementId,
+                type: type,
+                element: element,
+                x: parseInt(element.style.left) || 0,
+                y: parseInt(element.style.top) || 0
+            };
+
+            elements.push(elementData);
+
+            // Add drag handlers specific to elements
+            element.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                startDragging(element, e);
+            });
+        }
+
+        function startDragging(element, e) {
+            isDragging = true;
+            dragElement = element;
+            element.classList.add('dragging');
+
+            const rect = element.getBoundingClientRect();
+            const surfaceRect = surface.getBoundingClientRect();
+            
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
+        }
+
+        function handleMouseDown(e) {
+            if (e.target === container || e.target === surface) {
+                isPanning = true;
+                panStart.x = e.clientX - panX;
+                panStart.y = e.clientY - panY;
+                container.classList.add('grabbing');
+            }
+        }
+
+        function handleMouseMove(e) {
+            if (isDragging && dragElement) {
+                const surfaceRect = surface.getBoundingClientRect();
+                const x = (e.clientX - surfaceRect.left - dragOffset.x) / currentZoom;
+                const y = (e.clientY - surfaceRect.top - dragOffset.y) / currentZoom;
+                
+                dragElement.style.left = x + 'px';
+                dragElement.style.top = y + 'px';
+                
+                updateConnections();
+            } else if (isPanning) {
+                panX = e.clientX - panStart.x;
+                panY = e.clientY - panStart.y;
+                updateTransform();
+            }
+        }
+
+        function handleMouseUp(e) {
+            if (isDragging && dragElement) {
+                dragElement.classList.remove('dragging');
+                dragElement = null;
+                isDragging = false;
+            }
+            
+            if (isPanning) {
+                isPanning = false;
+                container.classList.remove('grabbing');
+            }
+        }
+
+        function handleWheel(e) {
+            e.preventDefault();
+            
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            const newZoom = Math.max(0.1, Math.min(3, currentZoom * delta));
+            
+            if (newZoom !== currentZoom) {
+                const rect = container.getBoundingClientRect();
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const scaleChange = newZoom / currentZoom;
+                panX = centerX - (centerX - panX) * scaleChange;
+                panY = centerY - (centerY - panY) * scaleChange;
+                
+                currentZoom = newZoom;
+                updateTransform();
+                updateZoomIndicator();
+            }
+        }
+
+        function updateTransform() {
+            surface.style.transform = `translate(${panX}px, ${panY}px) scale(${currentZoom})`;
+        }
+
+        function updateZoomIndicator() {
+            zoomIndicator.textContent = Math.round(currentZoom * 100) + '%';
+        }
+
+        function resetZoom() {
+            currentZoom = 1;
+            panX = 0;
+            panY = 0;
+            updateTransform();
+            updateZoomIndicator();
+        }
+
+        function zoomIn() {
+            currentZoom = Math.min(3, currentZoom * 1.2);
+            updateTransform();
+            updateZoomIndicator();
+        }
+
+        function zoomOut() {
+            currentZoom = Math.max(0.1, currentZoom * 0.8);
+            updateTransform();
+            updateZoomIndicator();
+        }
+
+        // File handling
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                processImageFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                processImageFile(file);
+            }
+        }
+
+        async function processImageFile(file) {
+            // Show loading state
+            uploadZone.classList.add('loading');
+            
+            try {
+                // Store the base64 data for later use
+                currentImageBase64 = await fileToBase64(file);
+                
+                // Create image preview in upload box
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'image-preview';
+                    
+                    uploadZone.innerHTML = '';
+                    uploadZone.appendChild(img);
+                    uploadZone.classList.remove('loading');
+                };
+                reader.readAsDataURL(file);
+
+                // Get image analysis from Mistral
+                const analysisResult = await analyzeImageWithMistral(currentImageBase64);
+                
+                // Create caption box
+                createCaptionBox(analysisResult.caption, 500, 200);
+                
+                // Create vibe nodes
+                createVibeNodes(analysisResult.vibes, 800, 150);
+                
+            } catch (error) {
+                console.error('Error processing image:', error);
+                uploadZone.classList.remove('loading');
+                alert('Error processing image. Please try again.');
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function analyzeImageWithMistral(base64Data) {
+            try {
+                const response = await fetch('/api/analyze-vibes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: base64Data })
+                });
+
+                if (!response.ok) throw new Error('Analysis failed');
+
+                const data = await response.json();
+                return {
+                    caption: "AI Analysis: " + (data.rawResponse || "Image analyzed successfully"),
+                    vibes: data.vibes || ['creative', 'unique', 'interesting']
+                };
+            } catch (error) {
+                console.error('Mistral analysis error:', error);
+                return {
+                    caption: "Could not analyze image with AI",
+                    vibes: ['mysterious', 'creative', 'unique']
+                };
+            }
+        }
+
+        function createCaptionBox(caption, x, y) {
+            const captionBox = createElement('caption', `
+                <div class="element-header">
+                    🤖 AI Analysis
+                </div>
+                <div class="element-content">
+                    <div class="caption-text">${caption}</div>
+                </div>
+            `, x, y);
+
+            // Add connection from upload to caption
+            addConnection('uploadElement', captionBox.id);
+        }
+
+        function createVibeNodes(vibes, startX, startY) {
+            vibes.forEach((vibe, index) => {
+                const x = startX;
+                const y = startY + (index * 150);
+                
+                const vibeNode = createElement('vibe', `
+                    <div class="vibe-text">${vibe.toUpperCase()}</div>
+                `, x, y, 'vibe-node');
+
+                // Add connection from caption to vibe
+                const captionElement = elements.find(el => el.type === 'caption');
+                if (captionElement) {
+                    addConnection(captionElement.id, vibeNode.id);
+                }
+
+                // Add click handler for vibe generation
+                vibeNode.element.addEventListener('click', () => generateVibeImages(vibe, vibeNode.id));
+            });
+        }
+
+        function createElement(type, innerHTML, x, y, extraClass = '') {
+            elementIdCounter++;
+            const id = `element-${elementIdCounter}`;
+            
+            const element = document.createElement('div');
+            element.id = id;
+            element.className = `canvas-element ${type}-box ${extraClass}`;
+            element.style.left = x + 'px';
+            element.style.top = y + 'px';
+            element.innerHTML = innerHTML;
+            
+            surface.appendChild(element);
+            registerElement(id, type);
+            
+            return { id, element };
+        }
+
+        async function generateVibeImages(vibe, vibeNodeId) {
+            const vibeElement = document.getElementById(vibeNodeId);
+            vibeElement.classList.add('selected');
+            
+            try {
+                // Check if we have the stored image data
+                if (!currentImageBase64) {
+                    throw new Error('No image available for transformation');
+                }
+                
+                console.log(`Generating ${vibe} prompts...`);
+                
+                // Generate vibe-specific prompts using Mistral
+                const promptResponse = await fetch('/api/generate-vibe-prompts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        image: currentImageBase64,
+                        vibe: vibe 
+                    })
+                });
+                
+                if (!promptResponse.ok) {
+                    throw new Error('Failed to generate vibe prompts');
+                }
+                
+                const promptData = await promptResponse.json();
+                const prompts = promptData.prompts || [];
+                
+                console.log(`Generated ${prompts.length} prompts for ${vibe}:`, prompts);
+                
+                // Create result boxes and generate images
+                const baseX = parseInt(vibeElement.style.left) + 300;
+                const baseY = parseInt(vibeElement.style.top);
+                
+                for (let i = 0; i < Math.min(4, prompts.length); i++) {
+                    const prompt = prompts[i];
+                    
+                    const resultBox = createElement('result', `
+                        <div class="element-header">
+                            🎨 ${vibe.toUpperCase()} #${i + 1}
+                        </div>
+                        <div class="element-content">
+                            <div class="result-image loading" style="display: flex; align-items: center; justify-content: center; color: #666; font-weight: bold;">
+                                Generating...
+                            </div>
+                            <div class="result-prompt">${prompt.substring(0, 100)}...</div>
+                        </div>
+                    `, baseX + (i * 280), baseY + (i * 100));
+
+                    addConnection(vibeNodeId, resultBox.id);
+                    
+                    // Generate image for this prompt
+                    generateSingleVibeImage(prompt, resultBox.id, vibe, i + 1);
+                }
+                
+            } catch (error) {
+                console.error('Error generating vibe images:', error);
+                alert(`Error generating ${vibe} images: ${error.message}`);
+            } finally {
+                vibeElement.classList.remove('selected');
+            }
+        }
+        
+        async function generateSingleVibeImage(prompt, resultBoxId, vibe, index) {
+            try {
+                console.log(`Generating image ${index} for ${vibe}:`, prompt);
+                
+                // Call the edit API endpoint with the vibe-specific prompt
+                const response = await fetch('/api/edit-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        input_image: currentImageBase64,
+                        steps: 50,
+                        guidance: 3.0
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to generate image: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success && result.imageUrl) {
+                    // Update the result box with the generated image
+                    const resultBox = document.getElementById(resultBoxId);
+                    if (resultBox) {
+                        const imageDiv = resultBox.querySelector('.result-image');
+                        imageDiv.innerHTML = '';
+                        imageDiv.classList.remove('loading');
+                        
+                        const img = document.createElement('img');
+                        img.src = result.imageUrl;
+                        img.className = 'result-image';
+                        img.style.width = '100%';
+                        img.style.height = '160px';
+                        img.style.objectFit = 'cover';
+                        img.style.borderRadius = '6px';
+                        
+                        imageDiv.appendChild(img);
+                        
+                        // Add some visual feedback
+                        resultBox.style.borderColor = '#4F46E5';
+                        setTimeout(() => {
+                            resultBox.style.borderColor = '#e1e5e9';
+                        }, 2000);
+                    }
+                } else if (result.moderated) {
+                    // Handle moderated content
+                    const resultBox = document.getElementById(resultBoxId);
+                    if (resultBox) {
+                        const imageDiv = resultBox.querySelector('.result-image');
+                        imageDiv.innerHTML = '⚠️ Content Moderated';
+                        imageDiv.classList.remove('loading');
+                        imageDiv.style.backgroundColor = '#FEF3C7';
+                        imageDiv.style.color = '#92400E';
+                    }
+                } else {
+                    throw new Error('Generation failed');
+                }
+                
+            } catch (error) {
+                console.error(`Error generating image ${index} for ${vibe}:`, error);
+                
+                // Update result box to show error
+                const resultBox = document.getElementById(resultBoxId);
+                if (resultBox) {
+                    const imageDiv = resultBox.querySelector('.result-image');
+                    imageDiv.innerHTML = '❌ Generation Failed';
+                    imageDiv.classList.remove('loading');
+                    imageDiv.style.backgroundColor = '#FEE2E2';
+                    imageDiv.style.color = '#DC2626';
+                }
+            }
+        }
+
+        function addConnection(fromId, toId) {
+            connections.push({ from: fromId, to: toId });
+            updateConnections();
+        }
+
+        function updateConnections() {
+            // Clear existing connections
+            svg.innerHTML = svg.innerHTML.split('</defs>')[0] + '</defs>';
+            
+            connections.forEach(conn => {
+                const fromElement = document.getElementById(conn.from);
+                const toElement = document.getElementById(conn.to);
+                
+                if (fromElement && toElement) {
+                    drawConnection(fromElement, toElement);
+                }
+            });
+        }
+
+        function drawConnection(fromElement, toElement) {
+            const fromRect = fromElement.getBoundingClientRect();
+            const toRect = toElement.getBoundingClientRect();
+            const surfaceRect = surface.getBoundingClientRect();
+            
+            const fromX = (fromRect.right - surfaceRect.left) / currentZoom - panX / currentZoom;
+            const fromY = (fromRect.top + fromRect.height / 2 - surfaceRect.top) / currentZoom - panY / currentZoom;
+            const toX = (toRect.left - surfaceRect.left) / currentZoom - panX / currentZoom;
+            const toY = (toRect.top + toRect.height / 2 - surfaceRect.top) / currentZoom - panY / currentZoom;
+            
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const d = `M ${fromX} ${fromY} Q ${fromX + (toX - fromX) / 2} ${fromY} ${toX} ${toY}`;
+            
+            path.setAttribute('d', d);
+            path.setAttribute('class', 'connection-path');
+            path.setAttribute('marker-end', 'url(#arrowhead)');
+            
+            svg.appendChild(path);
+        }
+
+        // Touch event handlers
+        function handleTouchStart(e) {
+            if (e.touches.length === 1) {
+                const touch = e.touches[0];
+                handleMouseDown({ clientX: touch.clientX, clientY: touch.clientY, target: e.target });
+            }
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                const touch = e.touches[0];
+                handleMouseMove({ clientX: touch.clientX, clientY: touch.clientY });
+            }
+        }
+
+        function handleTouchEnd(e) {
+            handleMouseUp(e);
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initWhiteboard);
+    </script>
+</body>
+</html>
