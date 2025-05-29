@@ -1014,37 +1014,43 @@ app.post('/api/generate-vibe-prompts', async (req, res) => {
           content: [
             {
               type: "text",
-              text: `Analyze this image and create 4 WILD, VIRAL transformation prompts for "${vibe}" that will make people stop scrolling and share immediately.
+              text: `You are a creative prompt engineer. Your mission is to analyze the provided image and generate exactly 4 distinct image transformation *instructions*. These instructions are intended to be used directly as prompts for a sophisticated image editing/reference AI model to create WILD, VIRAL content for the vibe: "${vibe}", designed to make people stop scrolling and share immediately.
 
-ULTRA-CREATIVE PROMPT FORMULAS:
+Each generated instruction *must be*:
 
-1. IMPOSSIBLE COMBINATIONS:
-   - "Transform into [absurd material] sculpture but [impossible context]"
-   - Examples: "Made of flowing lava but sitting in an ice cream parlor", "Constructed from pure light but underground in caves"
+1.  A completely unique and wildly creative transformation idea, drawing inspiration from the "ULTRA-CREATIVE PROMPT FORMULAS" below but not limited to them.
+2.  Formulated to preserve the subject's exact pose, facial features, and body position from the original image in the transformed output.
+3.  Absurd, funny, or surprising, with high meme potential, aiming for "How is this even possible?" moments.
+4.  Concise, yet impactful enough to clearly convey the wild transformation concept.
+5.  An actionable command, starting with a strong action verb (e.g., "Transform", "Reimagine", "Render", "Depict", "Morph", "Convert").
 
-2. VIRAL MEME POTENTIAL:
-   - Pop culture mashups: "As a character in [unexpected movie/game/show] but [plot twist]"
-   - Internet culture: "As the main character in a TikTok trend but [absurd scenario]"
+ULTRA-CREATIVE PROMPT FORMULAS (for your inspiration as you craft the instructions):
 
-3. SCALE & PHYSICS BREAKS:
-   - "Tiny microscopic version living inside [unexpected place]"
-   - "Giant kaiju-sized version but [wholesome activity]"
-   - "Floating weightless but [grounded activity]"
+1.  IMPOSSIBLE COMBINATIONS:
+    *   "Transform into [absurd material] sculpture but [impossible context]"
+    *   Examples: "Made of flowing lava but sitting in an ice cream parlor", "Constructed from pure light but underground in caves"
 
-4. AESTHETIC CHAOS:
-   - "${vibe} meets [completely opposite vibe] in [impossible location]"
-   - Mix 3+ completely different art styles/eras/cultures
+2.  VIRAL MEME POTENTIAL:
+    *   Pop culture mashups: "As a character in [unexpected movie/game/show] but [plot twist]"
+    *   Internet culture: "As the main character in a TikTok trend but [absurd scenario]"
 
-SPECIFIC TO "${vibe}" - Push these boundaries:
-- Make it 10x more extreme than expected
-- Add impossible physics or materials
-- Include viral/meme potential
-- Create "How is this even possible?" moments
-- Ensure it's screenshot-worthy and shareable
+3.  SCALE & PHYSICS BREAKS:
+    *   "Tiny microscopic version living inside [unexpected place]"
+    *   "Giant kaiju-sized version but [wholesome activity]"
+    *   "Floating weightless but [grounded activity]"
 
-MUST maintain perfect character likeness while being absolutely WILD.
+4.  AESTHETIC CHAOS:
+    *   "${vibe} meets [completely opposite vibe] in [impossible location]"
+    *   Mix 3+ completely different art styles/eras/cultures
 
-Respond with exactly 4 prompts, numbered 1-4. Make them so creative they feel like they came from an AI fever dream.`
+SPECIFIC TO "${vibe}" - When crafting each instruction, push these boundaries:
+*   Make it 10x more extreme than expected.
+*   Add impossible physics or materials.
+*   Ensure it's screenshot-worthy and shareable.
+
+Crucially, each generated instruction must ensure the image editing AI maintains perfect character likeness while executing the absolutely WILD transformation.
+
+Your response must consist of exactly 4 numbered lines (1-4). Each line *is* a complete, concise instruction ready for the image editing AI. Do not add any conversational text, explanations, or deviations; only the 4 instructions`
             },
             {
               type: "image_url",
