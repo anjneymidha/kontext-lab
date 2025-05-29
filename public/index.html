@@ -1499,7 +1499,7 @@
                     <div class="result-image-container">
                         <img src="${imageUrl}" class="result-image" style="
                             cursor: zoom-in;
-                        " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', `${(result.prompt || '').replace(/[`'"\\]/g, (char) => '\\' + char)}`)">
+                        " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${(result.prompt || '').replace(/['"\\]/g, '\\\\$&')}')">
                     </div>
                 `;
                 
@@ -2607,7 +2607,7 @@
                                     height: auto;
                                     min-height: 400px;
                                     object-fit: contain;
-                                " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', `${prompt.replace(/[`'"\\]/g, (char) => '\\' + char)}`)">
+                                " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${prompt.replace(/['"\\]/g, '\\\\$&')}')">
                             </div>
                         `;
                         
