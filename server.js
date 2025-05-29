@@ -254,6 +254,7 @@ Each instruction must:
 3.  Be absurd, funny, or surprising in its concept or outcome.
 4.  Be concise.
 5.  Begin with a strong action verb (e.g., "Transform", "Reimagine", "Convert", "Morph", "Render", "Depict").
+6.  Mention the subject in the prompt.
 
 Based on the visual content of the image, craft 4 wildly creative transformation instructions. These should play with the subject, setting, artistic style, or conceptual theme in unexpected ways.
 
@@ -1023,6 +1024,7 @@ Each generated instruction *must be*:
 3.  Absurd, funny, or surprising, with high meme potential, aiming for "How is this even possible?" moments.
 4.  Concise, yet impactful enough to clearly convey the wild transformation concept.
 5.  An actionable command, starting with a strong action verb (e.g., "Transform", "Reimagine", "Render", "Depict", "Morph", "Convert").
+6.  Mention the subject in the prompt.
 
 ULTRA-CREATIVE PROMPT FORMULAS (for your inspiration as you craft the instructions):
 
