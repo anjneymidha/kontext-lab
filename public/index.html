@@ -2692,6 +2692,8 @@
 
         // Image Modal Functions
         function openImageModal(imageSrc, title, prompt) {
+            console.log('🖼️ Opening image modal:', title);
+            
             // Collect all available images for navigation
             collectModalImages();
             
@@ -2792,6 +2794,7 @@
         }
         
         function closeImageModal() {
+            console.log('🔒 Closing image modal');
             const modal = document.getElementById('imageModal');
             
             modal.classList.remove('show');
