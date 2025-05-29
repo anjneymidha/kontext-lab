@@ -1833,8 +1833,11 @@
         }
 
         async function processImageFile(file) {
+            // Get fresh reference to upload zone in case DOM changed
+            const currentUploadZone = document.getElementById('uploadZone') || uploadZone;
+            
             // Show loading state
-            uploadZone.classList.add('loading');
+            currentUploadZone.classList.add('loading');
             
             try {
                 // Clear previous session state when loading new image
@@ -1850,10 +1853,12 @@
                     console.log('🔄 New session created for image change:', currentSessionId);
                 }
                 
-                // Clear existing results from the grid
+                // Clear existing results from the grid (but preserve structure)
                 const rightSection = document.getElementById('rightSection');
                 if (rightSection) {
-                    rightSection.innerHTML = '';
+                    // Only clear result elements, not the entire section
+                    const resultElements = rightSection.querySelectorAll('.canvas-element:not(.upload-box)');
+                    resultElements.forEach(element => element.remove());
                 }
                 
                 // Clear caption container
@@ -1890,7 +1895,11 @@
                         };
                         
                         // Replace upload zone with image preview
-                        const uploadContent = uploadZone.parentElement;
+                        const uploadContent = currentUploadZone.parentElement;
+                        if (!uploadContent) {
+                            console.error('Upload content parent not found for element:', currentUploadZone);
+                            return;
+                        }
                         uploadContent.innerHTML = '';
                         
                         // Create image container
@@ -1922,7 +1931,7 @@
                         uploadContent.appendChild(startButton);
                         uploadContent.appendChild(changeButton);
                         
-                        uploadZone.classList.remove('loading');
+                        currentUploadZone.classList.remove('loading');
                         
                         console.log(`📏 Upload image loaded: ${img.naturalWidth}x${img.naturalHeight}`);
                     };
@@ -1931,7 +1940,7 @@
                 
             } catch (error) {
                 console.error('Error processing image:', error);
-                uploadZone.classList.remove('loading');
+                currentUploadZone.classList.remove('loading');
                 alert('Error processing image. Please try again.');
             }
         }
