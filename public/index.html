@@ -1319,6 +1319,47 @@
         let customKonceptCount = 0;
         let totalKonceptRows = 3; // Start with 3 default koncepts
         
+        // Polling function for async generation
+        async function pollForCompletion(requestId, imageIndex) {
+            const maxAttempts = 60; // 60 attempts × 3 seconds = 3 minutes max
+            let attempts = 0;
+            
+            while (attempts < maxAttempts) {
+                try {
+                    console.log(`🔍 Polling attempt ${attempts + 1} for image ${imageIndex}, requestId: ${requestId}`);
+                    
+                    const statusResponse = await fetch(`/api/check-generation/${requestId}`);
+                    if (!statusResponse.ok) {
+                        throw new Error(`Status check failed: ${statusResponse.status}`);
+                    }
+                    
+                    const statusResult = await statusResponse.json();
+                    console.log(`📊 Status for image ${imageIndex}:`, statusResult.status);
+                    
+                    if (statusResult.status === 'completed') {
+                        console.log(`✅ Image ${imageIndex} generation completed!`);
+                        return statusResult;
+                    } else if (statusResult.status === 'error') {
+                        throw new Error(statusResult.error || 'Generation failed');
+                    }
+                    
+                    // Still processing, wait and try again
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    attempts++;
+                    
+                } catch (error) {
+                    console.error(`❌ Polling error for image ${imageIndex}:`, error);
+                    if (attempts >= 5) { // Give up after 5 failed polling attempts
+                        throw error;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    attempts++;
+                }
+            }
+            
+            throw new Error('Generation timeout - exceeded maximum polling time');
+        }
+        
         // Session management
         let currentSessionId = null;
         let sessionResults = [];
@@ -2606,20 +2647,19 @@
             return resultBoxes;
         }
         
-        async function generateSingleKonceptImage(prompt, resultBoxId, koncept, index, konceptIndex, retryCount = 0) {
+        async function generateSingleKonceptImage(prompt, resultBoxId, koncept, index, konceptIndex) {
             const resultBox = document.getElementById(resultBoxId);
-            const maxRetries = 2;
             
             try {
-                console.log(`🎨 Generating image ${index} for ${koncept} (attempt ${retryCount + 1}/${maxRetries + 1}):`, prompt);
+                console.log(`🎨 Generating image ${index} for ${koncept}:`, prompt);
                 
                 // Add generating animation
                 if (resultBox) {
                     resultBox.classList.add('generating');
                 }
                 
-                // Call the edit API endpoint with the vibe-specific prompt
-                const response = await fetch('/api/edit-image', {
+                // Start generation and get request ID
+                const startResponse = await fetch('/api/start-generation', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -2630,17 +2670,19 @@
                     })
                 });
                 
-                if (!response.ok) {
-                    // Check if it's a timeout (504) and retry
-                    if (response.status === 504 && retryCount < maxRetries) {
-                        console.log(`⚠️ Timeout detected for image ${index}, retrying in 3 seconds... (${retryCount + 1}/${maxRetries})`);
-                        await new Promise(resolve => setTimeout(resolve, 3000));
-                        return generateSingleKonceptImage(prompt, resultBoxId, koncept, index, konceptIndex, retryCount + 1);
-                    }
-                    throw new Error(`Failed to generate image: ${response.status}`);
+                if (!startResponse.ok) {
+                    throw new Error(`Failed to start generation: ${startResponse.status}`);
                 }
                 
-                const result = await response.json();
+                const startResult = await startResponse.json();
+                if (!startResult.success || !startResult.requestId) {
+                    throw new Error('Failed to get request ID');
+                }
+                
+                console.log(`⏳ Generation started for image ${index}, polling for completion...`);
+                
+                // Poll for completion
+                const result = await pollForCompletion(startResult.requestId, index);
                 
                 if (result.success && result.imageUrl) {
                     // Update the result box with the generated image
@@ -2696,8 +2738,8 @@
                 // Update result box to show error
                 if (resultBox) {
                     const content = resultBox.querySelector('.element-content');
-                    const errorMessage = error.message.includes('504') && retryCount >= maxRetries 
-                        ? '❌ TIMEOUT (RETRIES EXHAUSTED)' 
+                    const errorMessage = error.message.includes('timeout') 
+                        ? '❌ TIMEOUT' 
                         : '❌ FAILED';
                     content.innerHTML = `
                         <div class="error-result">

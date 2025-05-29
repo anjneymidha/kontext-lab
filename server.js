@@ -1312,6 +1312,151 @@ app.post('/api/edit-image', async (req, res) => {
   }
 });
 
+// New async endpoint - start generation and return request ID
+app.post('/api/start-generation', async (req, res) => {
+  console.log('🚀 Start generation endpoint hit');
+  
+  try {
+    const { prompt, source_image_url, input_image, steps = 50, guidance = 3.0 } = req.body;
+    
+    if (!prompt || (!source_image_url && !input_image)) {
+      return res.status(400).json({ error: 'Prompt and either source_image_url or input_image are required' });
+    }
+    
+    let base64Image;
+    if (source_image_url) {
+      console.log('🌐 Fetching image from URL server-side:', source_image_url);
+      try {
+        const imageResponse = await fetch(source_image_url);
+        if (!imageResponse.ok) {
+          throw new Error(`Failed to fetch image: ${imageResponse.status}`);
+        }
+        const imageBuffer = await imageResponse.arrayBuffer();
+        base64Image = Buffer.from(imageBuffer).toString('base64');
+      } catch (fetchError) {
+        console.error('❌ Error fetching image from URL:', fetchError);
+        return res.status(400).json({ error: 'Failed to fetch image from URL', details: fetchError.message });
+      }
+    } else {
+      base64Image = input_image;
+    }
+    
+    console.log(`🎨 Starting generation with prompt: "${prompt.substring(0, 100)}..."`);
+    
+    const requestBody = {
+      prompt: prompt,
+      input_image: base64Image,
+      steps: parseInt(steps),
+      guidance: parseFloat(guidance)
+    };
+    
+    console.log('🔥 Calling BFL API to start generation...');
+    const bflResponse = await fetch('https://api.us1.bfl.ai/v1/flux-kontext-max', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'x-key': BFL_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    if (!bflResponse.ok) {
+      const errorData = await bflResponse.text();
+      console.error('BFL API Error:', errorData);
+      throw new Error(`BFL API error: ${bflResponse.status} - ${errorData}`);
+    }
+    
+    const bflResult = await bflResponse.json();
+    console.log('📬 Got BFL response:', bflResult);
+    
+    const requestId = bflResult.id;
+    if (!requestId) {
+      throw new Error('No request ID received from BFL API');
+    }
+    
+    console.log('✅ Generation started, returning request ID:', requestId);
+    res.json({ success: true, requestId: requestId });
+    
+  } catch (error) {
+    console.error('❌ Start generation error:', error);
+    res.status(500).json({ 
+      error: 'Failed to start generation',
+      details: error.message 
+    });
+  }
+});
+
+// Check generation status endpoint
+app.get('/api/check-generation/:requestId', async (req, res) => {
+  console.log('🔍 Check generation status endpoint hit');
+  
+  try {
+    const { requestId } = req.params;
+    
+    if (!requestId) {
+      return res.status(400).json({ error: 'Request ID is required' });
+    }
+    
+    console.log('🔍 Checking status for request:', requestId);
+    
+    const resultResponse = await fetch(`https://api.us1.bfl.ai/v1/get_result?id=${requestId}`, {
+      headers: {
+        'accept': 'application/json',
+        'x-key': BFL_API_KEY
+      }
+    });
+    
+    if (!resultResponse.ok) {
+      const errorData = await resultResponse.text();
+      console.error('❌ BFL result API error:', errorData);
+      return res.status(500).json({ 
+        error: 'Failed to check generation status',
+        details: errorData 
+      });
+    }
+    
+    const resultData = await resultResponse.json();
+    console.log('📊 Generation status:', resultData.status || 'unknown');
+    
+    if (resultData.status === 'Ready') {
+      console.log('✅ Generation completed successfully');
+      const imageData = resultData.result?.sample;
+      
+      if (!imageData) {
+        return res.json({ status: 'error', error: 'No image data in result' });
+      }
+      
+      const imageUrl = `data:image/jpeg;base64,${imageData}`;
+      res.json({ 
+        status: 'completed',
+        success: true,
+        imageUrl: imageUrl 
+      });
+    } else if (resultData.status === 'Error') {
+      console.log('❌ Generation failed with error');
+      res.json({ 
+        status: 'error',
+        error: resultData.error || 'Unknown error'
+      });
+    } else {
+      // Still processing
+      console.log('⏳ Generation still in progress');
+      res.json({ 
+        status: 'processing',
+        message: 'Generation in progress...'
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ Check generation error:', error);
+    res.status(500).json({ 
+      error: 'Failed to check generation status',
+      details: error.message 
+    });
+  }
+});
+
 // Error handling middleware for multer
 app.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {
