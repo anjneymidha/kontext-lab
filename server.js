@@ -1480,6 +1480,185 @@ app.get('/api/check-generation/:requestId', async (req, res) => {
   }
 });
 
+// Individual image sharing endpoint
+app.get('/image/:sessionId/:konceptIndex/:resultIndex', async (req, res) => {
+  console.log('🔗 Individual image share request');
+  
+  try {
+    const { sessionId, konceptIndex, resultIndex } = req.params;
+    
+    if (!sessionId || konceptIndex === undefined || resultIndex === undefined) {
+      return res.status(400).json({ error: 'Missing required parameters' });
+    }
+    
+    console.log(`🔍 Looking for image: session=${sessionId}, koncept=${konceptIndex}, result=${resultIndex}`);
+    
+    // Get session data
+    let sessionData = null;
+    
+    if (pool) {
+      // Try database first
+      try {
+        const result = await pool.query('SELECT data FROM sessions WHERE id = $1', [sessionId]);
+        if (result.rows.length > 0) {
+          sessionData = result.rows[0].data;
+          console.log('📊 Session found in database');
+        }
+      } catch (dbError) {
+        console.error('❌ Database error:', dbError);
+      }
+    }
+    
+    // Try file system if database fails or no pool
+    if (!sessionData) {
+      try {
+        const sessionFile = path.join(collectionsDir, `${sessionId}.json`);
+        if (fs.existsSync(sessionFile)) {
+          const fileContent = fs.readFileSync(sessionFile, 'utf8');
+          sessionData = JSON.parse(fileContent);
+          console.log('📂 Session found in file system');
+        }
+      } catch (fileError) {
+        console.error('❌ File system error:', fileError);
+      }
+    }
+    
+    if (!sessionData) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    
+    // Find the specific image
+    const konceptIdx = parseInt(konceptIndex);
+    const resultIdx = parseInt(resultIndex);
+    
+    if (!sessionData.results || !sessionData.results[konceptIdx] || !sessionData.results[konceptIdx][resultIdx]) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+    
+    const imageData = sessionData.results[konceptIdx][resultIdx];
+    
+    // Create a single image view HTML page
+    const imageHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Studio - Generated Image</title>
+    <meta property="og:title" content="Vibe Studio - AI Generated Image">
+    <meta property="og:description" content="Check out this AI-generated image transformation from Vibe Studio">
+    <meta property="og:image" content="${imageData.imageUrl || imageData.image}">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            background: #000;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            text-align: center;
+        }
+        .image-container {
+            background: #111;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #333;
+        }
+        .generated-image {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+        }
+        .prompt {
+            background: #222;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ff6600;
+        }
+        .actions {
+            margin: 20px 0;
+        }
+        .btn {
+            background: #ff6600;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #e55a00;
+        }
+        .share-url {
+            background: #333;
+            padding: 10px;
+            border-radius: 6px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Vibe Studio</h1>
+        <p>AI-Generated Image Transformation</p>
+        
+        <div class="image-container">
+            <img src="${imageData.imageUrl || imageData.image}" alt="Generated Image" class="generated-image">
+        </div>
+        
+        ${imageData.prompt ? `
+        <div class="prompt">
+            <strong>Prompt:</strong><br>
+            ${imageData.prompt}
+        </div>
+        ` : ''}
+        
+        <div class="actions">
+            <a href="/session/${sessionId}" class="btn">View Full Session</a>
+            <a href="/" class="btn">Create New</a>
+            <button onclick="copyShareLink()" class="btn">Copy Share Link</button>
+        </div>
+        
+        <div class="share-url" id="shareUrl">${req.protocol}://${req.get('host')}/image/${sessionId}/${konceptIndex}/${resultIndex}</div>
+    </div>
+    
+    <script>
+        function copyShareLink() {
+            const shareUrl = document.getElementById('shareUrl').textContent;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert('Share link copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>`;
+    
+    res.send(imageHtml);
+    
+  } catch (error) {
+    console.error('❌ Individual image share error:', error);
+    res.status(500).json({ 
+      error: 'Failed to load shared image',
+      details: error.message 
+    });
+  }
+});
+
 // Error handling middleware for multer
 app.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {

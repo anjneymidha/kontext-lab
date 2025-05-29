@@ -698,12 +698,45 @@
         }
         
         .result-image-container {
+            position: relative;
             width: 100%;
             height: calc(100% - 50px);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+        }
+        
+        .image-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 4px;
+            z-index: 2;
+        }
+        
+        .share-btn {
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .share-btn:hover {
+            background: rgba(255, 102, 0, 0.9);
+            transform: scale(1.05);
+        }
+        
+        .share-btn:active {
+            transform: scale(0.95);
         }
 
         .result-prompt {
@@ -1363,6 +1396,38 @@
         // Session management
         let currentSessionId = null;
         let sessionResults = [];
+        
+        // Individual image sharing function
+        function shareIndividualImage(event, konceptIndex, resultIndex) {
+            event.stopPropagation(); // Prevent image modal from opening
+            
+            if (!currentSessionId) {
+                alert('Session not available for sharing');
+                return;
+            }
+            
+            const shareUrl = `${window.location.origin}/image/${currentSessionId}/${konceptIndex}/${resultIndex}`;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                // Show feedback
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '✅ Copied!';
+                button.style.background = '#4CAF50';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                // Fallback - show URL in prompt
+                prompt('Copy this share URL:', shareUrl);
+            });
+            
+            console.log('🔗 Individual image share URL:', shareUrl);
+        }
         let isSharedSession = false;
 
         // Inertia scrolling state
@@ -1551,6 +1616,11 @@
                         <img src="${imageUrl}" class="result-image" data-prompt-id="${promptId}" style="
                             cursor: zoom-in;
                         " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')">
+                        <div class="image-actions">
+                            <button class="share-btn" onclick="shareIndividualImage(event, ${conceptIndex}, ${resultIndex})" title="Share this image">
+                                🔗 Share
+                            </button>
+                        </div>
                     </div>
                 `;
                 
@@ -2698,6 +2768,11 @@
                                     min-height: 400px;
                                     object-fit: contain;
                                 " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')">
+                                <div class="image-actions">
+                                    <button class="share-btn" onclick="shareIndividualImage(event, ${konceptIndex}, ${index})" title="Share this image">
+                                        🔗 Share
+                                    </button>
+                                </div>
                             </div>
                         `;
                         
