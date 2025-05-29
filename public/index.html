@@ -2158,9 +2158,19 @@
 
                 const data = await response.json();
                 
-                // Add hilarious elements to each vibe
+                // Add hilarious elements to each vibe, but clean them first
                 const enhancedVibes = (data.vibes || ['creative', 'unique', 'interesting']).map(vibe => {
-                    return `${vibe} ${getRandomHilariousElement()}`;
+                    // Clean the vibe by removing numbers, asterisks, and taking first few words
+                    const cleanVibe = vibe
+                        .replace(/^\d+\.\s*\**/g, '') // Remove "1. **" prefix
+                        .replace(/\*\*/g, '') // Remove ** markdown
+                        .replace(/[:]/g, '') // Remove colons
+                        .split(/[,.\s]+/) // Split on punctuation and spaces
+                        .filter(word => word.length > 2) // Keep meaningful words
+                        .slice(0, 2) // Take first 2 words max
+                        .join('-'); // Join with dashes
+                    
+                    return `${cleanVibe} ${getRandomHilariousElement()}`;
                 });
                 
                 return {
