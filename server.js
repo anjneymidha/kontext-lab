@@ -710,21 +710,19 @@ async function getCollection(collectionId) {
 }
 
 // Collection sharing routes
-// Session URL route (same as collection)
+// Session URL route - always serve the app, let frontend handle session loading
 app.get('/session/:id', async (req, res) => {
   try {
-    const collection = await getCollection(req.params.id);
-    
-    // Serve the main app but with collection data embedded
+    // Always serve the main app regardless of whether session exists
+    // The frontend will handle checking if the session exists and act accordingly
     const indexPath = path.join(__dirname, 'public', 'index.html');
     let html = fs.readFileSync(indexPath, 'utf8');
     
-    // The frontend will detect the session URL and load it via API
     res.send(html);
     
   } catch (error) {
-    console.error('Error loading session:', error);
-    res.status(404).json({ error: 'Session not found' });
+    console.error('Error serving session page:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
