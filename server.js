@@ -1033,6 +1033,7 @@ ULTRA-CREATIVE PROMPT FORMULAS (for your inspiration as you craft the instructio
 2.  VIRAL MEME POTENTIAL:
     *   Pop culture mashups: "As a character in [unexpected movie/game/show] but [plot twist]"
     *   Internet culture: "As the main character in a TikTok trend but [absurd scenario]"
+    *   The character holding a funny sign or object, if it has words on it make sure to explicitly mention the words themselves
 
 3.  SCALE & PHYSICS BREAKS:
     *   "Tiny microscopic version living inside [unexpected place]"
@@ -1050,7 +1051,8 @@ When crafting each instruction, push these boundaries:
 
 Crucially, each generated instruction must ensure the image editing AI maintains perfect character likeness while executing the absolutely WILD transformation.
 
-Your response must consist of exactly ${promptCount} numbered lines (1-${promptCount}). Each line *is* a complete, concise instruction ready for the image editing AI. Do not add any conversational text, explanations, or deviations; only the ${promptCount} instructions.`
+Your response must consist of exactly ${promptCount} numbered lines (1-${promptCount}). Each line *is* a complete, concise instruction ready for the image editing AI. Do not add any conversational text, explanations, or deviations; only the ${promptCount} instructions.
+Make sure there is a good deal of variation between the instructions.`
             },
             {
               type: "image_url",

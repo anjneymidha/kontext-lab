@@ -86,7 +86,7 @@
             padding: 8px;
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            grid-template-rows: repeat(3, 1fr);
+            grid-auto-rows: auto;
             gap: 8px;
             align-content: start;
             overflow-y: auto;
@@ -96,14 +96,17 @@
         /* Individual Image Card - Maximum Image Space */
         .image-card {
             background: #FFFFFF;
-            display: flex;
-            flex-direction: column;
-            min-height: 180px;
+            display: block;
             position: relative;
             cursor: pointer;
             transition: transform 0.05s ease;
             border-radius: 4px;
             overflow: hidden;
+            width: 100%;
+            height: unset !important;
+            min-height: unset !important;
+            aspect-ratio: 1 / 1; /* Default, overridden by JS */
+            box-sizing: border-box;
         }
         
         .image-card:hover {
@@ -163,12 +166,11 @@
         }
         
         .image-card-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 2px;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
             position: relative;
         }
         
@@ -606,16 +608,22 @@
         }
 
         .upload-zone {
-            padding: 16px;
+            padding: 0;
             text-align: center;
             color: #1C2A23;
             background: #f8f8f8;
             cursor: pointer;
             transition: all 0.15s ease;
-            min-height: 140px;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            min-width: 180px;
+            max-width: 340px;
+            min-height: unset;
+            height: auto;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            align-items: center;
             box-sizing: border-box;
             opacity: 0.8;
             border: none;
@@ -645,14 +653,13 @@
         /* Image Preview */
         .image-preview {
             width: 100%;
-            max-height: 120px;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
             object-fit: contain;
             border-radius: 6px;
             margin-bottom: 8px;
             flex-shrink: 0;
-            max-width: 100%;
-            height: auto;
-            max-height: 500px;
         }
         
         /* Image Container */
@@ -2062,9 +2069,11 @@
                         startButton.innerHTML = 'Generate';
                         startButton.onclick = (e) => {
                             e.stopPropagation();
-                            console.log('🎯 AutoVibe button clicked, starting autoplay...');
+                            const numImagesInput = document.getElementById('numImagesInput');
+                            const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 8, 48));
+                            console.log('🎯 AutoVibe button clicked, starting autoplay with', numImages, 'images...');
                             startButton.style.display = 'none';
-                            autoplaySequence();
+                            autoplaySequence(numImages);
                         };
                         
                         // Ensure button is enabled and clickable
@@ -2114,7 +2123,7 @@
             }
         }
         
-        async function autoplaySequence() {
+        async function autoplaySequence(NUM_IMAGES = 8) {
             console.log('🎬 Starting autoplay sequence...');
             
             // Step 1: Create entire blank layout immediately
@@ -2133,7 +2142,6 @@
                 fillCaptionBox(analysisResult.caption);
                 
                 // Step 4: Request prompts for all images at once
-                const NUM_IMAGES = 24; // Easily configurable
                 console.log(`📝 Requesting ${NUM_IMAGES} prompts from backend...`);
                 const promptResponse = await fetch('/api/generate-vibe-prompts', {
                     method: 'POST',
@@ -2657,14 +2665,33 @@
             
             if (content) {
                 content.innerHTML = `
-                    <div class="result-image-container">
+                    <div class="result-image-container" style="width: 100%; display: flex; align-items: center; justify-content: center; height: 100%;">
                         <img src="${imageUrl}" class="result-image" 
                              data-prompt-id="${promptId}" 
-                             onclick="openImageModal('${imageUrl}', 'Transformation ${iteration}', '${promptId}')" 
-                             style="cursor: zoom-in;"
+                             onclick="openImageModal('${imageUrl}', 'Transformation ${iteration}', '${promptId}')"
+                             style="cursor: zoom-in; max-width: 100%; max-height: 100%; object-fit: contain;"
                              title="Click to view full size">
                     </div>
                 `;
+                // Dynamically set aspect ratio after image loads
+                const img = content.querySelector('.result-image');
+                const container = content.querySelector('.result-image-container');
+                img.onload = function() {
+                    const aspect = img.naturalWidth / img.naturalHeight;
+                    // Use CSS aspect-ratio if supported
+                    container.style.aspectRatio = aspect;
+                    // Set aspect-ratio on the outer card as well for grid alignment
+                    card.style.aspectRatio = aspect;
+                    card.style.height = '';
+                    card.style.minHeight = '';
+                    // Force reflow to ensure browser applies new aspect
+                    card.offsetHeight;
+                    // Fallback for browsers without aspect-ratio support
+                    if (!('aspectRatio' in document.body.style)) {
+                        container.style.height = `${container.offsetWidth / aspect}px`;
+                        card.style.height = `${card.offsetWidth / aspect}px`;
+                    }
+                };
             }
             
             // Add to modal images array
@@ -3735,6 +3762,66 @@
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initWhiteboard);
+
+        // Add persistent number of images input to left-section after upload box
+        document.addEventListener('DOMContentLoaded', function() {
+            const leftSection = document.querySelector('.left-section');
+            if (leftSection && !document.getElementById('numImagesContainer')) {
+                const numImagesContainer = document.createElement('div');
+                numImagesContainer.id = 'numImagesContainer';
+                numImagesContainer.style.display = 'flex';
+                numImagesContainer.style.flexDirection = 'column';
+                numImagesContainer.style.alignItems = 'center';
+                numImagesContainer.style.justifyContent = 'center';
+                numImagesContainer.style.margin = '0 0 10px 0';
+                numImagesContainer.style.padding = '8px 0 4px 0';
+                numImagesContainer.style.background = 'transparent';
+                numImagesContainer.style.borderRadius = '8px';
+                numImagesContainer.style.boxShadow = 'none';
+
+                const numImagesLabel = document.createElement('label');
+                numImagesLabel.textContent = 'Number of Images';
+                numImagesLabel.setAttribute('for', 'numImagesInput');
+                numImagesLabel.style.fontSize = '13px';
+                numImagesLabel.style.fontWeight = '500';
+                numImagesLabel.style.marginBottom = '4px';
+                numImagesLabel.style.letterSpacing = '0.2px';
+                numImagesLabel.style.color = '#1C2A23';
+                numImagesLabel.style.textAlign = 'center';
+
+                const numImagesInput = document.createElement('input');
+                numImagesInput.type = 'number';
+                numImagesInput.id = 'numImagesInput';
+                numImagesInput.value = 18;
+                numImagesInput.min = 1;
+                numImagesInput.max = 48;
+                numImagesInput.style.width = '60px';
+                numImagesInput.style.fontSize = '15px';
+                numImagesInput.style.textAlign = 'center';
+                numImagesInput.style.padding = '4px 8px';
+                numImagesInput.style.borderRadius = '5px';
+                numImagesInput.style.border = '1px solid #bbb';
+                numImagesInput.style.background = '#fff';
+                numImagesInput.style.boxShadow = '0 1px 2px rgba(0,0,0,0.03)';
+                numImagesInput.style.marginBottom = '0';
+
+                numImagesContainer.appendChild(numImagesLabel);
+                numImagesContainer.appendChild(numImagesInput);
+
+                // Insert under the START HERE header, above the upload zone
+                const uploadBox = document.querySelector('.upload-box');
+                if (uploadBox) {
+                    const header = uploadBox.querySelector('.element-header');
+                    if (header && header.nextSibling) {
+                        uploadBox.insertBefore(numImagesContainer, header.nextSibling);
+                    } else {
+                        uploadBox.appendChild(numImagesContainer);
+                    }
+                } else {
+                    leftSection.appendChild(numImagesContainer);
+                }
+            }
+        });
     </script>
 </body>
 </html>
