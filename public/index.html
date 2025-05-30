@@ -208,81 +208,8 @@
             padding: 20px;
         }
 
-        /* Seed History in Sidebar */
-        .seed-history-container {
-            background: #ffffff;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
-            border: 1px solid #e5e5ea;
-        }
+        /* Seed History CSS removed - now handled by bottom editing chain */
 
-        .seed-history-title {
-            font-size: 11px;
-            font-weight: 600;
-            color: #8e8e93;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: color 0.2s ease;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-
-        .seed-history-title:hover {
-            color: #a8b5a0;
-            background: rgba(168, 181, 160, 0.1);
-        }
-
-        .seed-history-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-        }
-
-        .seed-thumbnail {
-            aspect-ratio: 1;
-            border-radius: 4px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid #e5e5ea;
-            position: relative;
-        }
-
-        .seed-thumbnail:hover {
-            transform: scale(1.05);
-            border-color: #a8b5a0;
-            box-shadow: 0 2px 8px rgba(168, 181, 160, 0.3);
-        }
-
-        .seed-thumbnail img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .seed-thumbnail-number {
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            background: rgba(45, 45, 45, 0.8);
-            color: white;
-            font-size: 8px;
-            font-weight: 600;
-            padding: 1px 4px;
-            border-radius: 2px;
-            min-width: 12px;
-            text-align: center;
-        }
-
-        .seed-thumbnail.current {
-            border-color: #a8b5a0;
-            border-width: 2px;
-            box-shadow: 0 0 0 1px rgba(168, 181, 160, 0.3);
-        }
 
         /* Tufte-inspired Iteration Sequence Modal */
         .comic-strip-modal {
@@ -484,8 +411,11 @@
             height: 100vh;
             background: #ffffff;
             display: grid;
-            grid-template-columns: 320px 1fr;
-            grid-template-rows: 100vh;
+            grid-template-columns: 1fr;
+            grid-template-rows: 80% 20%;
+            grid-template-areas: 
+                "main"
+                "editing-chain";
             gap: 0;
             padding: 0;
         }
@@ -493,21 +423,38 @@
         /* Mobile layout adjustments */
         @media (max-width: 768px) {
             .canvas-surface {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr;
-                gap: 8px;
-                padding: 8px;
+                grid-template-rows: 70% 30%;
             }
             
             .left-section {
+                width: 100vw;
+                left: -100vw;
+                height: 70vh;
                 padding: 16px;
-                max-height: 40vh;
             }
             
-            .right-section {
+            /* Start closed on mobile */
+            .left-section {
+                left: -100vw;
+            }
+            
+            .left-section:not(.closed) {
+                left: 0;
+            }
+            
+            .generations-section {
                 grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
                 gap: 12px;
                 padding: 16px;
+            }
+            
+            .editing-chain-section {
+                padding: 12px;
+            }
+            
+            .chain-image {
+                width: 80px;
+                height: 80px;
             }
             
             .image-card {
@@ -515,21 +462,67 @@
             }
         }
 
-        /* Left Section - Controls and Analysis */
+        /* Left Section - Expanded by default */
         .left-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 320px;
+            height: 80vh;
             background: linear-gradient(180deg, #f8f8f8 0%, #f2f2f2 100%);
             padding: 40px 32px;
             display: flex;
             flex-direction: column;
             gap: 32px;
-            overflow: hidden;
-            height: 100vh;
+            overflow-y: auto;
             border-right: 2px solid #a8b5a0;
+            transition: left 0.3s ease;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .left-section.closed {
+            left: -320px;
         }
 
-        /* Right Section - High Velocity Grid */
-        .right-section {
+        /* Main Section - Full screen images */
+        .right-section-container {
+            grid-area: main;
             background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+        }
+        
+        /* Sidebar toggle button */
+        .sidebar-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar-toggle:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: scale(1.1);
+        }
+
+        /* Generations Grid - Now takes full right area */
+        .generations-section {
+            flex: 1;
             padding: 8px;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -537,6 +530,135 @@
             gap: 4px;
             align-content: start;
             overflow-y: auto;
+        }
+
+        /* Bottom Docked - Fixed 20% Editing Chain */
+        .editing-chain-section {
+            grid-area: editing-chain;
+            height: 100%;
+            background: #f8f8f8;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        /* Simple visual separator (no resize functionality) */
+        .resize-handle {
+            position: absolute;
+            top: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e0e0e0;
+            z-index: 10;
+        }
+
+        .editing-chain-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        
+        .chain-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .editing-chain-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d2d2d;
+            margin: 0;
+            letter-spacing: -0.02em;
+        }
+        
+        .export-sequence-btn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .export-sequence-btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        .export-sequence-btn:active {
+            transform: translateY(0);
+        }
+
+        .editing-chain-header p {
+            font-size: 14px;
+            color: #666;
+            margin: 0;
+            font-weight: 300;
+        }
+
+        .editing-chain-sequence {
+            flex: 1;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            align-items: center;
+            padding: 16px 0;
+        }
+
+        .chain-placeholder {
+            width: 100%;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            font-style: italic;
+        }
+
+        .chain-image {
+            flex-shrink: 0;
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #ddd;
+        }
+
+        .chain-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .chain-image-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%);
+            color: white;
+            font-size: 10px;
+            font-weight: 500;
+            padding: 4px 6px;
+            text-align: center;
+        }
+
+        .chain-arrow {
+            flex-shrink: 0;
+            color: #999;
+            font-size: 16px;
+            font-weight: bold;
         }
         
 
@@ -1678,13 +1800,11 @@
             
             .canvas-surface {
                 position: static;
-                height: auto;
-                min-height: 100vh;
-                grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr;
+                height: 100vh;
+                grid-template-rows: 70% 30%;
             }
             
-            .right-section {
+            .generations-section {
                 grid-template-columns: repeat(2, 1fr);
                 grid-template-rows: repeat(4, 1fr);
             }
@@ -1776,13 +1896,26 @@
                 gap: 8px;
             }
             
-            .left-section, .right-section {
+            .left-section {
                 padding: 12px;
             }
             
-            .right-section {
+            .right-section-container {
+                padding: 12px;
+            }
+            
+            .generations-section {
                 grid-template-columns: 1fr;
                 grid-template-rows: repeat(8, 1fr);
+            }
+            
+            .editing-chain-section {
+                height: 100%;
+            }
+            
+            .export-sequence-btn {
+                padding: 6px 12px;
+                font-size: 12px;
             }
             
             .mobile-results-grid {
@@ -1798,9 +1931,12 @@
 </head>
 <body>
     <div class="whiteboard-container" id="whiteboardContainer">
+        <!-- Sidebar Toggle Button -->
+        <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">✕</button>
+        
         <div class="canvas-surface" id="canvasSurface">
-            <!-- Left Section - 30% -->
-            <div class="left-section">
+            <!-- Left Section - Hidden Sidebar -->
+            <div class="left-section" id="leftSection">
                 <!-- Title Box -->
                 <div class="title-container">
                     <div class="canvas-element title-box">
@@ -1832,15 +1968,6 @@
                     </div>
                 </div>
                 
-                <!-- Seed History Container -->
-                <div class="seed-history-container" id="seedHistoryContainer" style="display: none;">
-                    <div class="seed-history-title" onclick="openComicStripModal()" title="Click to view as comic strip">
-                        Iteration History 🎬
-                    </div>
-                    <div class="seed-history-grid" id="seedHistoryGrid">
-                        <!-- Seed thumbnails will be added dynamically -->
-                    </div>
-                </div>
                 
                 <!-- Caption Box Container -->
                 <div class="caption-container">
@@ -1848,9 +1975,30 @@
                 </div>
             </div>
             
-            <!-- Right Section - 70% for Generations -->
-            <div class="right-section" id="rightSection">
-                <!-- Results will be added dynamically -->
+            <!-- Right Section - Now just generations -->
+            <div class="right-section-container">
+                <div class="generations-section" id="rightSection">
+                    <!-- Results will be added dynamically -->
+                </div>
+            </div>
+            
+            <!-- Bottom Docked - Resizable Editing Chain -->
+            <div class="editing-chain-section" id="editingChainSection">
+                <div class="resize-handle" id="resizeHandle"></div>
+                <div class="editing-chain-header">
+                    <div class="chain-title-row">
+                        <h3>FLUX.1 Kontext Editing Chain</h3>
+                        <button class="export-sequence-btn" onclick="openComicStripModal()" title="Export sequence for sharing">
+                            📤 Export Sequence
+                        </button>
+                    </div>
+                    <p>Learn more at https://bfl.ai/models/flux-kontext</p>
+                </div>
+                <div class="editing-chain-sequence" id="editingChainSequence">
+                    <div class="chain-placeholder">
+                        Upload an image to begin your editing chain
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1951,48 +2099,55 @@
         }
         
         function updateSeedHistoryDisplay() {
-            const container = document.getElementById('seedHistoryContainer');
-            const grid = document.getElementById('seedHistoryGrid');
+            const chainSequence = document.getElementById('editingChainSequence');
             
-            if (!container || !grid) return;
-            
-            // Show container if we have history
-            if (seedHistory.length > 0) {
-                container.style.display = 'block';
-            }
-            
-            // Clear existing thumbnails
-            grid.innerHTML = '';
-            
-            // Add thumbnails for each seed
-            seedHistory.forEach((seed, index) => {
-                const thumbnail = document.createElement('div');
-                thumbnail.className = 'seed-thumbnail';
-                if (index === seedHistory.length - 1) {
-                    thumbnail.classList.add('current');
+            // Update bottom editing chain
+            if (chainSequence) {
+                // Clear existing chain
+                chainSequence.innerHTML = '';
+                
+                if (seedHistory.length === 0) {
+                    chainSequence.innerHTML = '<div class="chain-placeholder">Upload an image to begin your editing chain</div>';
+                } else {
+                    // Add each seed to the chain
+                    seedHistory.forEach((seed, index) => {
+                        // Add arrow between images (except before first)
+                        if (index > 0) {
+                            const arrow = document.createElement('div');
+                            arrow.className = 'chain-arrow';
+                            arrow.innerHTML = '→';
+                            chainSequence.appendChild(arrow);
+                        }
+                        
+                        // Add image
+                        const chainImage = document.createElement('div');
+                        chainImage.className = 'chain-image';
+                        chainImage.innerHTML = `
+                            <img src="${seed.imageUrl}" alt="${seed.title}">
+                            <div class="chain-image-label">${seed.title}</div>
+                        `;
+                        
+                        // Add click handler to view in modal
+                        chainImage.onclick = () => {
+                            const promptId = storePrompt(`${seed.title} (iteration ${index + 1})`);
+                            openImageModal(seed.imageUrl, seed.title, promptId);
+                        };
+                        
+                        chainSequence.appendChild(chainImage);
+                    });
                 }
-                
-                thumbnail.innerHTML = `
-                    <img src="${seed.imageUrl}" alt="${seed.title}">
-                    <div class="seed-thumbnail-number">${index + 1}</div>
-                `;
-                
-                // Add click handler to view in modal
-                thumbnail.onclick = () => {
-                    const promptId = storePrompt(`${seed.title} (iteration ${index + 1})`);
-                    openImageModal(seed.imageUrl, seed.title, promptId);
-                };
-                
-                grid.appendChild(thumbnail);
-            });
+            }
         }
         
         function clearSeedHistory() {
             seedHistory = [];
-            const container = document.getElementById('seedHistoryContainer');
-            if (container) {
-                container.style.display = 'none';
+            
+            // Clear the editing chain
+            const chainSequence = document.getElementById('editingChainSequence');
+            if (chainSequence) {
+                chainSequence.innerHTML = '<div class="chain-placeholder">Upload an image to begin your editing chain</div>';
             }
+            
             console.log('🗑️ Cleared seed history');
         }
         
@@ -2327,13 +2482,62 @@
                 clearTimeout(resizeTimeout);
                 resizeTimeout = setTimeout(() => {
                     // Only auto-reposition if we have content on screen
-                    const rightSection = document.querySelector('.right-section');
+                    const rightSection = document.querySelector('.generations-section');
                     if (rightSection && rightSection.children.length > 0) {
                         autoPositionCamera();
                     }
                 }, 300); // Debounce resize events
             });
+            
         }
+        
+        // Initialize sidebar state based on screen size
+        function initializeSidebarState() {
+            const leftSection = document.getElementById('leftSection');
+            const toggleButton = document.getElementById('sidebarToggle');
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                // Start closed on mobile
+                leftSection.classList.add('closed');
+                toggleButton.innerHTML = '☰';
+            } else {
+                // Start open on desktop
+                leftSection.classList.remove('closed');
+                toggleButton.innerHTML = '✕';
+            }
+        }
+        
+        // Call on load and resize
+        window.addEventListener('load', initializeSidebarState);
+        window.addEventListener('resize', initializeSidebarState);
+        
+        // Sidebar toggle functionality
+        function toggleSidebar() {
+            const leftSection = document.getElementById('leftSection');
+            const toggleButton = document.getElementById('sidebarToggle');
+            
+            leftSection.classList.toggle('closed');
+            
+            // Update button icon
+            if (leftSection.classList.contains('closed')) {
+                toggleButton.innerHTML = '☰';
+            } else {
+                toggleButton.innerHTML = '✕';
+            }
+        }
+        
+        // Close sidebar when clicking outside
+        document.addEventListener('click', (e) => {
+            const leftSection = document.getElementById('leftSection');
+            const toggleButton = document.getElementById('sidebarToggle');
+            
+            if (!leftSection.classList.contains('closed') && 
+                !leftSection.contains(e.target) && 
+                !toggleButton.contains(e.target)) {
+                toggleSidebar();
+            }
+        });
 
         // Removed zoom/pan functionality for simpler scrolling interface
 
@@ -2776,7 +2980,7 @@
             } catch (error) {
                 console.error('❌ Error in autoplay sequence:', error);
                 // Show error message
-                const rightSection = document.querySelector('.right-section');
+                const rightSection = document.querySelector('.generations-section');
                 if (rightSection) {
                     rightSection.innerHTML = `
                         <div class="error-card">
@@ -2798,7 +3002,7 @@
         function createImmediateSkeletonTiles(numImages) {
             console.log(`🏗️ Creating ${numImages} immediate skeleton tiles...`);
             
-            const rightSection = document.querySelector('.right-section');
+            const rightSection = document.querySelector('.generations-section');
             if (!rightSection) return;
             
             // Clear existing content
@@ -2818,7 +3022,7 @@
         function createBlankLayout() {
             console.log('🎨 Creating responsive image card layout...');
             
-            const rightSection = document.querySelector('.right-section');
+            const rightSection = document.querySelector('.generations-section');
             if (!rightSection) return;
             
             // Clear skeleton tiles and prepare for actual image cards
@@ -3245,7 +3449,7 @@
             const cardId = `image-card-${iteration}`;
             let card = document.getElementById(cardId);
             
-            const rightSection = document.querySelector('.right-section');
+            const rightSection = document.querySelector('.generations-section');
             if (!rightSection) return;
             
             // Check if we can convert a skeleton tile instead
@@ -4208,7 +4412,7 @@
             console.log('🚀 Spawning variations from clicked image:', title);
             
             // Clear current grid
-            const rightSection = document.querySelector('.right-section');
+            const rightSection = document.querySelector('.generations-section');
             if (rightSection) {
                 rightSection.innerHTML = '';
             }
@@ -4269,7 +4473,7 @@
             console.log('🚀 Spawning 18 text-only variations...');
             
             // Clear current grid
-            const rightSection = document.querySelector('.right-section');
+            const rightSection = document.querySelector('.generations-section');
             if (rightSection) {
                 rightSection.innerHTML = '';
             }
@@ -4577,7 +4781,7 @@
                 case 'c':
                     e.preventDefault();
                     // Clear all images
-                    const rightSection = document.querySelector('.right-section');
+                    const rightSection = document.querySelector('.generations-section');
                     if (rightSection) rightSection.innerHTML = '';
                     break;
                 case ' ':
