@@ -579,6 +579,26 @@
         
         .editing-chain-section.collapsed {
             padding: 8px 16px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .editing-chain-section.collapsed .editing-chain-header {
+            margin-bottom: 0;
+        }
+        
+        .editing-chain-section.collapsed h3 {
+            font-size: 16px;
+            color: #B8C5C0;
+            transition: color 0.2s ease;
+        }
+        
+        .editing-chain-section.collapsed .editing-chain-header:hover h3 {
+            color: #FFFFFF;
         }
         
         /* Interactive resize handle */
@@ -2497,11 +2517,11 @@
                 display: flex;
                 gap: 8px;
                 align-items: center;
-                justify-content: center;
+                justify-content: flex-start;
                 flex-wrap: nowrap;
                 margin: 0 auto;
-                max-width: 1200px;
-                overflow-x: auto;
+                width: max-content;
+                min-width: 100%;
                 padding: 16px 0;
             `;
             
@@ -3078,9 +3098,13 @@
             editingSection.classList.toggle('collapsed');
             
             if (editingSection.classList.contains('collapsed')) {
-                canvasSurface.style.gridTemplateRows = '1fr auto';
+                // When collapsed, make main section full height and hide bottom grid area
+                canvasSurface.style.gridTemplateRows = '1fr';
+                canvasSurface.style.paddingBottom = '60px'; // Space for fixed collapsed pane
             } else {
+                // When expanded, restore original grid layout
                 canvasSurface.style.gridTemplateRows = '70% 30%';
+                canvasSurface.style.paddingBottom = '0';
             }
         }
 
