@@ -351,9 +351,11 @@
 
         .comic-panel-image {
             width: 100%;
-            height: 300px;
-            object-fit: cover;
+            height: auto;
+            max-height: 400px;
+            object-fit: contain;
             display: block;
+            background: #f5f5f5;
         }
 
         .comic-panel-title {
@@ -436,7 +438,7 @@
             }
             
             .comic-panel-image {
-                height: 250px;
+                max-height: 300px;
             }
             
             .comic-strip-header h2 {
@@ -507,7 +509,8 @@
             
             .chain-image {
                 width: 80px;
-                height: 80px;
+                height: auto;
+                max-height: 120px;
             }
             
             .image-card {
@@ -726,17 +729,20 @@
         .chain-image {
             flex-shrink: 0;
             width: 120px;
-            height: 120px;
+            height: auto;
+            max-height: 200px;
             border-radius: 8px;
-            overflow: hidden;
+            overflow: visible;
             position: relative;
             border: 2px solid #ddd;
+            background: #f5f5f5;
         }
 
         .chain-image img {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            height: auto;
+            object-fit: contain;
+            display: block;
         }
 
         .chain-image-label {
@@ -2354,11 +2360,13 @@
                 chainImage.style.cssText = `
                     flex-shrink: 0;
                     width: 120px;
-                    height: 120px;
+                    height: auto;
+                    max-height: 200px;
                     border-radius: 8px;
-                    overflow: hidden;
+                    overflow: visible;
                     position: relative;
                     border: 2px solid #ddd;
+                    background: #f5f5f5;
                 `;
                 
                 // Style the image inside
@@ -2366,8 +2374,9 @@
                 if (img) {
                     img.style.cssText = `
                         width: 100%;
-                        height: 100%;
-                        object-fit: cover;
+                        height: auto;
+                        object-fit: contain;
+                        display: block;
                     `;
                 }
                 
@@ -4079,11 +4088,11 @@
                 content.innerHTML = `
                     <img src="${imageUrl}" class="result-image" 
                          data-prompt-id="${promptId}" 
-                         onclick="openImageModal('${imageUrl}', 'Transformation ${iteration}', '${promptId}')"
+                         onclick="openImageModal('${imageUrl}', 'Edit ${iteration}', '${promptId}')"
                          style="cursor: zoom-in; position: relative; width: 100%; height: 100%; object-fit: contain;"
                          title="Click to view full size">
                     <div class="use-as-input-icon" 
-                         onclick="event.stopPropagation(); useAsInput('${imageUrl}', 'Transformation ${iteration}', '${promptId}')"
+                         onclick="event.stopPropagation(); useAsInput('${imageUrl}', 'Edit ${iteration}', '${promptId}')"
                          title="Use this image to start a new generation">
                         ↻
                     </div>
@@ -4109,7 +4118,7 @@
             // Add to modal images array
             modalImages.push({
                 url: imageUrl,
-                title: `Transformation ${iteration}`,
+                title: `Edit ${iteration}`,
                 promptId: promptId
             });
         }
