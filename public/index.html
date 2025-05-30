@@ -442,6 +442,11 @@
                 left: 0;
             }
             
+            /* Toggle button positioning on mobile */
+            .sidebar-toggle {
+                left: 20px; /* Always left on mobile */
+            }
+            
             .generations-section {
                 grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
                 gap: 12px;
@@ -470,7 +475,7 @@
             width: 320px;
             height: 80vh;
             background: linear-gradient(180deg, #f8f8f8 0%, #f2f2f2 100%);
-            padding: 40px 32px;
+            padding: 60px 32px 40px 32px; /* Extra top padding to avoid toggle button */
             display: flex;
             flex-direction: column;
             gap: 32px;
@@ -499,7 +504,7 @@
         .sidebar-toggle {
             position: fixed;
             top: 20px;
-            left: 20px;
+            left: 340px; /* Start outside sidebar when open */
             width: 44px;
             height: 44px;
             background: rgba(0, 0, 0, 0.7);
@@ -512,12 +517,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
         }
         
         .sidebar-toggle:hover {
             background: rgba(0, 0, 0, 0.9);
             transform: scale(1.1);
+        }
+        
+        /* Position toggle button when sidebar is closed */
+        .sidebar-toggle.sidebar-closed {
+            left: 20px;
         }
 
         /* Generations Grid - Now takes full right area */
@@ -803,9 +813,11 @@
             color: #1c1c1e;
             padding: 0 0 8px 0;
             font-weight: 400;
-            text-align: left;
+            text-align: left !important;
             opacity: 0.7;
             margin-bottom: 8px;
+            display: block;
+            width: 100%;
         }
         
         
@@ -815,9 +827,11 @@
             color: #1c1c1e;
             padding: 16px 0 0 0;
             font-weight: 400;
-            text-align: left;
+            text-align: left !important;
             opacity: 0.6;
             margin-top: auto;
+            display: block;
+            width: 100%;
         }
         
         .attribution a {
@@ -1017,10 +1031,16 @@
             letter-spacing: -0.5px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-start;
             border: none;
             margin-bottom: 12px;
             font-family: inherit;
+            text-align: left;
+        }
+        
+        /* For title headers with buttons, use space-between */
+        .title-box .element-header {
+            justify-content: space-between;
         }
         
         /* Mobile element headers */
@@ -1034,6 +1054,7 @@
 
         .element-content {
             padding: 20px;
+            text-align: left;
         }
         
         .upload-box .element-content {
@@ -2205,21 +2226,135 @@
         }
         
         function downloadComicStrip() {
-            console.log('📸 Downloading comic strip');
+            console.log('📸 Downloading comic strip with branding');
             
             const sequence = document.getElementById('comicStripSequence');
             
-            // Use html2canvas to capture the sequence
+            // Create a temporary container with padding and branding
+            const exportContainer = document.createElement('div');
+            exportContainer.style.cssText = `
+                background: #f8f8f8;
+                padding: 40px 60px;
+                font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                position: fixed;
+                top: -10000px;
+                left: -10000px;
+                z-index: -1;
+                border-radius: 0;
+                box-shadow: none;
+            `;
+            
+            // Add title and branding to match web header
+            const brandingHeader = document.createElement('div');
+            brandingHeader.style.cssText = `
+                text-align: center;
+                margin-bottom: 16px;
+            `;
+            brandingHeader.innerHTML = `
+                <h3 style="
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: #2d2d2d;
+                    margin: 0 0 4px 0;
+                    letter-spacing: -0.02em;
+                ">FLUX.1 Kontext Editing Chain</h3>
+                <p style="
+                    font-size: 14px;
+                    color: #666;
+                    margin: 0;
+                    font-weight: 300;
+                ">Learn more at https://bfl.ai/models/flux-kontext</p>
+            `;
+            
+            // Clone the sequence content
+            const sequenceClone = sequence.cloneNode(true);
+            sequenceClone.style.cssText = `
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                justify-content: center;
+                flex-wrap: nowrap;
+                margin: 0 auto;
+                max-width: 1200px;
+                overflow-x: auto;
+                padding: 16px 0;
+            `;
+            
+            // Style the cloned chain images to match web exactly
+            const chainImages = sequenceClone.querySelectorAll('.chain-image');
+            chainImages.forEach(chainImage => {
+                chainImage.style.cssText = `
+                    flex-shrink: 0;
+                    width: 120px;
+                    height: 120px;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    position: relative;
+                    border: 2px solid #ddd;
+                `;
+                
+                // Style the image inside
+                const img = chainImage.querySelector('img');
+                if (img) {
+                    img.style.cssText = `
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                    `;
+                }
+                
+                // Style the label
+                const label = chainImage.querySelector('.chain-image-label');
+                if (label) {
+                    label.style.cssText = `
+                        position: absolute;
+                        bottom: 0;
+                        left: 0;
+                        right: 0;
+                        background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%);
+                        color: white;
+                        font-size: 10px;
+                        font-weight: 500;
+                        padding: 4px 6px;
+                        text-align: center;
+                    `;
+                }
+            });
+            
+            // Style the arrows to match web exactly
+            const arrows = sequenceClone.querySelectorAll('.chain-arrow');
+            arrows.forEach(arrow => {
+                arrow.style.cssText = `
+                    flex-shrink: 0;
+                    color: #999;
+                    font-size: 16px;
+                    font-weight: bold;
+                `;
+            });
+            
+            // Assemble the export container
+            exportContainer.appendChild(brandingHeader);
+            exportContainer.appendChild(sequenceClone);
+            
+            // Add to document temporarily
+            document.body.appendChild(exportContainer);
+            
+            // Use html2canvas to capture the branded sequence
             if (typeof html2canvas !== 'undefined') {
-                html2canvas(sequence, {
+                html2canvas(exportContainer, {
                     backgroundColor: '#ffffff',
                     scale: 2, // Higher resolution
                     useCORS: true,
-                    allowTaint: true
+                    allowTaint: true,
+                    width: exportContainer.scrollWidth,
+                    height: exportContainer.scrollHeight
                 }).then(canvas => {
+                    // Clean up temporary container
+                    document.body.removeChild(exportContainer);
+                    
                     // Create download link
                     const link = document.createElement('a');
-                    link.download = `komposer-sequence-${Date.now()}.png`;
+                    link.download = `flux-kontext-sequence-${Date.now()}.png`;
                     link.href = canvas.toDataURL();
                     
                     // Trigger download
@@ -2227,14 +2362,18 @@
                     link.click();
                     document.body.removeChild(link);
                     
-                    console.log('✅ Comic strip downloaded successfully');
+                    console.log('✅ Branded comic strip downloaded successfully');
                 }).catch(error => {
                     console.error('❌ Error capturing comic strip:', error);
-                    // Fallback: copy sequence as image to clipboard or show sharing options
+                    // Clean up on error
+                    if (document.body.contains(exportContainer)) {
+                        document.body.removeChild(exportContainer);
+                    }
                     alert('Download failed. Try taking a screenshot of the sequence instead.');
                 });
             } else {
-                // Fallback without html2canvas
+                // Clean up and show fallback
+                document.body.removeChild(exportContainer);
                 alert('To download, please take a screenshot of this sequence. We recommend using your browser\'s screenshot feature or a screenshot tool.');
             }
         }
@@ -2500,10 +2639,12 @@
             if (isMobile) {
                 // Start closed on mobile
                 leftSection.classList.add('closed');
+                toggleButton.classList.add('sidebar-closed');
                 toggleButton.innerHTML = '☰';
             } else {
                 // Start open on desktop
                 leftSection.classList.remove('closed');
+                toggleButton.classList.remove('sidebar-closed');
                 toggleButton.innerHTML = '✕';
             }
         }
@@ -2518,6 +2659,7 @@
             const toggleButton = document.getElementById('sidebarToggle');
             
             leftSection.classList.toggle('closed');
+            toggleButton.classList.toggle('sidebar-closed');
             
             // Update button icon
             if (leftSection.classList.contains('closed')) {
