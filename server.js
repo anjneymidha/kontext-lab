@@ -996,26 +996,24 @@ app.post('/api/generate-vibe-prompts', async (req, res) => {
   console.log('🎯 Vibe-specific prompt generation endpoint hit');
   
   try {
-    const { image, vibe } = req.body;
-    console.log('📋 Request body received:', { hasImage: !!image, vibe, imageLength: image?.length });
-    
-    if (!image || !vibe) {
-      console.error('❌ Missing required data');
-      return res.status(400).json({ error: 'Image data and vibe are required' });
+    const { image, count } = req.body;
+    const promptCount = Math.max(1, Math.min(parseInt(count) || 24, 48)); // Allow 1-48 prompts, default 24
+    console.log('📋 Request body received:', { hasImage: !!image, imageLength: image?.length, count: promptCount });
+    if (!image) {
+      console.error('❌ Missing image data');
+      return res.status(400).json({ error: 'Image data is required' });
     }
-    
-    console.log(`🔮 Generating prompts to maximize "${vibe}" vibe...`);
-    
+    console.log(`🔮 Generating ${promptCount} generic wild prompts...`);
     const requestData = {
       model: "pixtral-large-2411",
-      max_tokens: 1000,
+      max_tokens: 2000,
       messages: [
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `You are a creative prompt engineer. Your mission is to analyze the provided image and generate exactly 4 distinct image transformation *instructions*. These instructions are intended to be used directly as prompts for a sophisticated image editing/reference AI model to create WILD, VIRAL content for the vibe: "${vibe}", designed to make people stop scrolling and share immediately.
+              text: `You are a creative prompt engineer. Your mission is to analyze the provided image and generate exactly ${promptCount} distinct image transformation *instructions*. These instructions are intended to be used directly as prompts for a sophisticated image editing/reference AI model to create WILD, VIRAL content designed to make people stop scrolling and share immediately.
 
 Each generated instruction *must be*:
 
@@ -1042,17 +1040,17 @@ ULTRA-CREATIVE PROMPT FORMULAS (for your inspiration as you craft the instructio
     *   "Floating weightless but [grounded activity]"
 
 4.  AESTHETIC CHAOS:
-    *   "${vibe} meets [completely opposite vibe] in [impossible location]"
+    *   Combine two or more completely opposite vibes in an impossible location
     *   Mix 3+ completely different art styles/eras/cultures
 
-SPECIFIC TO "${vibe}" - When crafting each instruction, push these boundaries:
+When crafting each instruction, push these boundaries:
 *   Make it 10x more extreme than expected.
 *   Add impossible physics or materials.
 *   Ensure it's screenshot-worthy and shareable.
 
 Crucially, each generated instruction must ensure the image editing AI maintains perfect character likeness while executing the absolutely WILD transformation.
 
-Your response must consist of exactly 4 numbered lines (1-4). Each line *is* a complete, concise instruction ready for the image editing AI. Do not add any conversational text, explanations, or deviations; only the 4 instructions`
+Your response must consist of exactly ${promptCount} numbered lines (1-${promptCount}). Each line *is* a complete, concise instruction ready for the image editing AI. Do not add any conversational text, explanations, or deviations; only the ${promptCount} instructions.`
             },
             {
               type: "image_url",
@@ -1073,7 +1071,7 @@ Your response must consist of exactly 4 numbered lines (1-4). Each line *is* a c
     });
 
     const promptText = response.data.choices[0].message.content.trim();
-    console.log(`🎯 Mistral ${vibe} prompts response:`, promptText);
+    console.log('🎯 Mistral generic prompts response:', promptText);
     
     // Extract numbered prompts from the response
     const prompts = promptText
@@ -1081,29 +1079,23 @@ Your response must consist of exactly 4 numbered lines (1-4). Each line *is* a c
       .filter(line => line.match(/^\d+\./))
       .map(line => line.replace(/^\d+\.\s*/, '').trim())
       .filter(prompt => prompt.length > 0)
-      .slice(0, 4); // Limit to 4 prompts
+      .slice(0, promptCount); // Limit to promptCount
     
-    if (prompts.length < 4) {
+    if (prompts.length < promptCount) {
       console.warn(`Only got ${prompts.length} prompts from Mistral, padding with variations`);
       // Add fallback prompts if needed
-      const fallbackPrompts = [
-        `Transform the subject to have a more ${vibe} appearance with enhanced styling and visual elements.`,
-        `Change the environment around the subject to create a ${vibe} atmosphere with appropriate lighting and background.`,
-        `Add ${vibe} accessories and clothing while maintaining the subject's core features and expression.`,
-        `Enhance the overall composition to maximize the ${vibe} feeling through colors, textures, and styling.`
-      ];
-      
-      while (prompts.length < 4) {
+      const fallbackPrompts = Array.from({length: promptCount}, (_, i) =>
+        `Transform the subject in a wild, creative way #${i+1}.`
+      );
+      while (prompts.length < promptCount) {
         prompts.push(fallbackPrompts[prompts.length]);
       }
     }
     
-    console.log(`✅ Generated ${prompts.length} ${vibe} prompts:`, prompts);
-    
+    console.log(`✅ Generated ${prompts.length} generic prompts:`, prompts);
     return res.json({
       success: true,
       prompts: prompts,
-      vibe: vibe,
       rawResponse: promptText
     });
     

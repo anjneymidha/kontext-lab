@@ -2132,38 +2132,40 @@
                 // Step 3: Immediately show caption while generating images
                 fillCaptionBox(analysisResult.caption);
                 
-                // Step 4: Start generating all 8 images in parallel
-                console.log('🎨 Starting parallel image generation...');
-                
-                // Clear loading cards and start generating images
-                const rightSection = document.querySelector('.right-section');
-                if (rightSection) {
-                    rightSection.innerHTML = '';
+                // Step 4: Request prompts for all images at once
+                const NUM_IMAGES = 24; // Easily configurable
+                console.log(`📝 Requesting ${NUM_IMAGES} prompts from backend...`);
+                const promptResponse = await fetch('/api/generate-vibe-prompts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        image: currentImageBase64,
+                        count: NUM_IMAGES
+                    })
+                });
+                let prompts = [];
+                if (promptResponse.ok) {
+                    const promptData = await promptResponse.json();
+                    prompts = promptData.prompts || [];
                 }
+                if (prompts.length < NUM_IMAGES) {
+                    // Fallback: fill with generic prompts if not enough
+                    while (prompts.length < NUM_IMAGES) {
+                        prompts.push(`Transform the image in a wild, creative way #${prompts.length + 1}.`);
+                    }
+                }
+                console.log(`✅ Received ${prompts.length} prompts, starting image generation...`);
                 
-                // Generate 18 images in parallel with different prompts for maximum velocity
+                // Step 5: Generate all images in parallel using the prompts
                 const promises = [];
-                for (let i = 1; i <= 18; i++) {
-                    const vibeIndex = (i - 1) % analysisResult.vibes.length;
-                    const vibe = analysisResult.vibes[vibeIndex] || 'creative';
-                    
-                    console.log(`🎭 Starting generation ${i} with vibe: ${vibe}`);
-                    
-                    // Create loading card immediately
-                    updateCardLoading(i, `Generating ${vibe} transformation...`);
-                    
-                    // Start generation
-                    const promise = generateSingleCardImage(vibe, i);
+                for (let i = 0; i < NUM_IMAGES; i++) {
+                    updateCardLoading(i + 1, `Generating transformation...`);
+                    const promise = generateSingleCardImageWithPrompt(i + 1, prompts[i]);
                     promises.push(promise);
-                    
-                    // Minimal delay for maximum velocity
                     await animatedDelay(25);
                 }
-                
-                console.log('✨ All generations started in parallel!');
-                
+                console.log('✨ All image generations started in parallel!');
                 // Don't wait for all to complete - let them finish individually
-                
             } catch (error) {
                 console.error('❌ Error in autoplay sequence:', error);
                 // Show error message
@@ -2566,31 +2568,9 @@
         }
         
         // New function to generate a single image for the card layout
-        async function generateSingleCardImage(vibe, iteration) {
+        async function generateSingleCardImageWithPrompt(iteration, prompt) {
             try {
-                console.log(`🎨 Generating card image ${iteration} with vibe: ${vibe}`);
-                
-                // Generate vibe-specific prompts using Mistral
-                const promptResponse = await fetch('/api/generate-vibe-prompts', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        image: currentImageBase64,
-                        vibe: vibe 
-                    })
-                });
-                
-                let prompt;
-                if (promptResponse.ok) {
-                    const promptData = await promptResponse.json();
-                    const prompts = promptData.prompts || [];
-                    prompt = prompts[0] || `Transform the image to emphasize ${vibe} qualities`;
-                } else {
-                    prompt = `Transform the image to emphasize ${vibe} qualities`;
-                }
-                
-                console.log(`📝 Using prompt for card ${iteration}: ${prompt.substring(0, 100)}...`);
-                
+                console.log(`🎨 Generating card image ${iteration} with prompt: ${prompt.substring(0, 100)}...`);
                 // Start generation and get request ID
                 const startResponse = await fetch('/api/start-generation', {
                     method: 'POST',
@@ -2602,40 +2582,31 @@
                         guidance: 3.0
                     })
                 });
-                
                 if (!startResponse.ok) {
                     throw new Error(`Failed to start generation: ${startResponse.status}`);
                 }
-                
                 const startResult = await startResponse.json();
                 if (!startResult.success || !startResult.requestId) {
                     throw new Error('Failed to get request ID');
                 }
-                
                 console.log(`⏳ Generation started for card ${iteration}, polling for completion...`);
-                
                 // Poll for completion
                 const result = await pollForCompletion(startResult.requestId, iteration);
-                
                 if (result.success && result.imageUrl) {
                     // Update the card with the completed image
                     updateCardComplete(iteration, result.imageUrl, prompt);
-                    
                     console.log(`✅ Card ${iteration} completed successfully`);
-                    
                     // Save result to session
                     saveResultToSession(0, iteration - 1, {
                         prompt: prompt,
                         imageUrl: result.imageUrl,
                         status: 'completed'
                     });
-                    
                 } else if (result.moderated) {
                     updateCardError(iteration, 'Content moderated');
                 } else {
                     throw new Error('Generation failed');
                 }
-                
             } catch (error) {
                 console.error(`❌ Error generating card ${iteration}:`, error);
                 updateCardError(iteration, error.message.includes('timeout') ? 'Generation timeout' : 'Generation failed');
