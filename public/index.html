@@ -47,6 +47,35 @@
             0%, 100% { opacity: 0.6; transform: scale(1); }
             50% { opacity: 1; transform: scale(1.02); }
         }
+        
+        .regenerate-button {
+            background: #5A7A70;
+            color: #FFFFFF;
+            border: 1px solid #B8C5C0;
+            padding: 8px 16px;
+            border-radius: 2px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-family: inherit;
+            margin-left: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .regenerate-button:hover {
+            background: #B8C5C0;
+            color: #1C2A23;
+        }
+        
+        .regenerate-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -579,12 +608,6 @@
         
         .editing-chain-section.collapsed {
             padding: 8px 16px;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
         }
         
         .editing-chain-section.collapsed .editing-chain-header {
@@ -665,13 +688,20 @@
         
         .collapse-indicator {
             color: #B8C5C0;
-            font-size: 12px;
-            transition: transform 0.3s ease;
-            margin-left: 8px;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            margin-left: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        
+        .collapse-indicator:hover {
+            color: #FFFFFF;
+            transform: scale(1.2);
         }
         
         .editing-chain-section.collapsed .collapse-indicator {
-            transform: rotate(-90deg);
+            transform: rotate(180deg);
         }
         
         .chain-title-row {
@@ -2233,7 +2263,7 @@
                 <div class="resize-handle" id="resizeHandle"></div>
                 <div class="editing-chain-header" onclick="toggleEditingPane()">
                     <div class="chain-title-row">
-                        <h3>KOMPOSER<span class="collapse-indicator">▼</span></h3>
+                        <h3>KOMPOSER<span class="collapse-indicator">▲</span></h3>
                         <div class="header-controls">
                             <button class="upload-btn" onclick="document.getElementById('fileInputInline').click()">
                                 UPLOAD
@@ -2257,7 +2287,7 @@
                     </div>
                     <div class="num-images-container">
                         <label class="num-images-label"># IMAGES</label>
-                        <input type="number" id="numImagesInputInline" class="num-images-input" min="1" max="48" value="8">
+                        <input type="number" id="numImagesInputInline" class="num-images-input" min="1" max="48" value="10">
                     </div>
                     <div class="editing-chain-sequence" id="editingChainSequence">
                         <div class="chain-placeholder">
@@ -3098,13 +3128,11 @@
             editingSection.classList.toggle('collapsed');
             
             if (editingSection.classList.contains('collapsed')) {
-                // When collapsed, make main section full height and hide bottom grid area
-                canvasSurface.style.gridTemplateRows = '1fr';
-                canvasSurface.style.paddingBottom = '60px'; // Space for fixed collapsed pane
+                // When collapsed, change to 90% / 10% split
+                canvasSurface.style.gridTemplateRows = '90% 10%';
             } else {
-                // When expanded, restore original grid layout
+                // When expanded, restore original 70% / 30% split
                 canvasSurface.style.gridTemplateRows = '70% 30%';
-                canvasSurface.style.paddingBottom = '0';
             }
         }
 
@@ -3671,7 +3699,7 @@
                                 generateBtn.onclick = (e) => {
                                     e.stopPropagation();
                                     const numImagesInput = document.getElementById('numImagesInputInline');
-                                    const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 8, 48));
+                                    const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 10, 48));
                                     console.log('🎯 Inline GENERATE clicked, starting autoplay with', numImages, 'images...');
                                     
                                     generateBtn.innerHTML = 'GENERATING...';
@@ -3702,7 +3730,7 @@
                             startButton.onclick = (e) => {
                                 e.stopPropagation();
                                 const numImagesInput = document.getElementById('numImagesInputInline');
-                                const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 8, 48));
+                                const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 10, 48));
                                 console.log('🎯 KOMPOSER button clicked, starting autoplay with', numImages, 'images...');
                                 
                                 // Add immediate loading feedback
@@ -3813,15 +3841,98 @@
                 // Step 5: Generate all images in parallel using the prompts
                 const promises = [];
                 let completedCount = 0;
-                // Find the start button so we can show it again later
+                // Find both types of generate buttons so we can update them later
                 const startButton = document.querySelector('.start-button');
+                const inlineGenerateBtn = document.querySelector('.generate-btn-inline');
                 for (let i = 0; i < NUM_IMAGES; i++) {
                     updateCardLoading(i + 1, `Generating transformation...`);
                     const promise = generateSingleCardImageWithPrompt(i + 1, prompts[i])
                         .finally(() => {
                             completedCount++;
-                            if (completedCount === NUM_IMAGES && startButton) {
-                                startButton.style.display = '';
+                            if (completedCount === NUM_IMAGES) {
+                                // Update original start button if it exists
+                                if (startButton) {
+                                    startButton.style.display = '';
+                                    startButton.innerHTML = 'Change Image';
+                                    startButton.classList.remove('generating');
+                                    startButton.disabled = false;
+                                    startButton.onclick = (e) => {
+                                        e.stopPropagation();
+                                        const fileInput = document.getElementById('fileInput') || document.getElementById('fileInputInline');
+                                        if (fileInput) fileInput.click();
+                                    };
+                                    
+                                    // Add regenerate button next to change image button
+                                    const existingRegenBtn = startButton.parentNode.querySelector('.regenerate-button');
+                                    if (!existingRegenBtn) {
+                                        const regenerateButton = document.createElement('button');
+                                        regenerateButton.className = 'regenerate-button';
+                                        regenerateButton.innerHTML = '🔄 Regenerate';
+                                        regenerateButton.onclick = (e) => {
+                                            e.stopPropagation();
+                                            const numImagesInput = document.getElementById('numImagesInputInline');
+                                            const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 10, 48));
+                                            console.log('🔄 Regenerate clicked, starting new generation with', numImages, 'images...');
+                                            
+                                            regenerateButton.innerHTML = '🔄 Regenerating...';
+                                            regenerateButton.disabled = true;
+                                            startButton.style.display = 'none';
+                                            
+                                            setTimeout(() => {
+                                                autoplaySequence(numImages);
+                                            }, 300);
+                                        };
+                                        startButton.parentNode.appendChild(regenerateButton);
+                                    }
+                                }
+                                // Update inline generate button if it exists
+                                if (inlineGenerateBtn) {
+                                    inlineGenerateBtn.innerHTML = 'CHANGE IMAGE';
+                                    inlineGenerateBtn.disabled = false;
+                                    inlineGenerateBtn.onclick = (e) => {
+                                        e.stopPropagation();
+                                        const fileInput = document.getElementById('fileInputInline');
+                                        if (fileInput) fileInput.click();
+                                    };
+                                    
+                                    // Add regenerate button next to change image button in inline version
+                                    const existingInlineRegenBtn = inlineGenerateBtn.parentNode.querySelector('.regenerate-btn-inline');
+                                    if (!existingInlineRegenBtn) {
+                                        const regenerateBtnInline = document.createElement('button');
+                                        regenerateBtnInline.className = 'regenerate-btn-inline';
+                                        regenerateBtnInline.innerHTML = '🔄';
+                                        regenerateBtnInline.style.cssText = `
+                                            background: #5A7A70;
+                                            color: #FFFFFF;
+                                            border: 1px solid #B8C5C0;
+                                            padding: 8px 12px;
+                                            border-radius: 2px;
+                                            font-size: 11px;
+                                            font-weight: 600;
+                                            cursor: pointer;
+                                            text-transform: uppercase;
+                                            letter-spacing: 0.1em;
+                                            font-family: inherit;
+                                            margin-left: 8px;
+                                        `;
+                                        regenerateBtnInline.onclick = (e) => {
+                                            e.stopPropagation();
+                                            const numImagesInput = document.getElementById('numImagesInputInline');
+                                            const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 10, 48));
+                                            console.log('🔄 Inline regenerate clicked, starting new generation with', numImages, 'images...');
+                                            
+                                            regenerateBtnInline.innerHTML = '⏳';
+                                            regenerateBtnInline.disabled = true;
+                                            inlineGenerateBtn.innerHTML = 'GENERATING...';
+                                            inlineGenerateBtn.disabled = true;
+                                            
+                                            setTimeout(() => {
+                                                autoplaySequence(numImages);
+                                            }, 300);
+                                        };
+                                        inlineGenerateBtn.parentNode.appendChild(regenerateBtnInline);
+                                    }
+                                }
                             }
                         });
                     promises.push(promise);
