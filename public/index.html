@@ -94,49 +94,53 @@
         }
 
         /* REMIX button overlay - positioned relative to image bounds */
-        .result-image-container {
+        .element-content {
             position: relative !important;
         }
         
         .use-as-input-icon {
             position: absolute !important;
-            top: 8px !important;
-            right: 8px !important;
-            width: 80px !important;
-            height: 32px !important;
-            background: rgba(0, 0, 0, 0.9) !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            height: 10% !important;
+            min-height: 32px !important;
+            max-height: 50px !important;
+            background: rgba(0, 0, 0, 0.85) !important;
             color: white !important;
             cursor: pointer !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            font-size: 13px !important;
+            font-size: 14px !important;
             font-weight: 600 !important;
             letter-spacing: 0.5px !important;
             transition: all 0.2s ease !important;
             opacity: 1 !important;
-            z-index: 9999 !important;
-            border-radius: 16px !important;
-            backdrop-filter: blur(4px) !important;
+            z-index: 50 !important;
+            border-radius: 0 !important;
+            backdrop-filter: blur(8px) !important;
             pointer-events: auto !important;
             visibility: visible !important;
-            transform: translateZ(0) !important;
             clip: none !important;
             overflow: visible !important;
-            border: 2px solid rgba(255, 255, 255, 0.3) !important;
-            /* Ensure button stays within image bounds */
-            margin-top: 0 !important;
-            margin-right: 0 !important;
+            border: none !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+            margin: 0 !important;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15) !important;
+            transform: none !important;
         }
 
         .use-as-input-icon:hover {
-            background: rgba(168, 181, 160, 0.9);
-            transform: scale(1.05);
+            background: rgba(168, 181, 160, 0.9) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.25) !important;
         }
 
         .use-as-input-icon:active {
-            transform: scale(0.95);
-            background: rgba(168, 181, 160, 1);
+            transform: translateY(0) !important;
+            background: rgba(168, 181, 160, 1) !important;
         }
 
         .use-as-input-icon::before {
@@ -151,18 +155,14 @@
         @-moz-document url-prefix() {
             .use-as-input-icon {
                 position: absolute !important;
-                top: 4px !important;
-                right: 4px !important;
-                z-index: 10000 !important;
-                transform: translateZ(0) !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                z-index: 15000 !important;
                 will-change: transform !important;
                 isolation: isolate !important;
             }
             
-            .result-image-container {
-                isolation: isolate !important;
-                transform: translateZ(0) !important;
-            }
         }
         
         /* Force button visibility animation */
@@ -1138,6 +1138,7 @@
         .element-content {
             padding: 20px;
             text-align: left;
+            position: relative !important;
         }
         
         .upload-box .element-content {
@@ -1262,19 +1263,6 @@
             margin-bottom: 0;
         }
         
-        .result-image-container {
-            position: relative !important;
-            width: 100% !important;
-            height: 100% !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            min-height: 400px !important;
-            overflow: visible !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            z-index: 1 !important;
-        }
         
         /* Start Button */
         .start-button {
@@ -1397,6 +1385,7 @@
             width: 100%;
             height: 100%;
             min-height: 300px;
+            position: relative !important;
         }
 
         .result-image {
@@ -2650,15 +2639,17 @@
                 const promptId = storePrompt(result.prompt);
                 
                 content.innerHTML = `
-                    <div class="result-image-container">
-                        <img src="${imageUrl}" class="result-image" data-prompt-id="${promptId}" style="
-                            cursor: zoom-in;
-                        " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')">
-                        <div class="use-as-input-icon" 
-                             onclick="event.stopPropagation(); useAsInput('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')"
-                             title="Use this image to start a new generation">
-                            ↻
-                        </div>
+                    <img src="${imageUrl}" class="result-image" data-prompt-id="${promptId}" style="
+                        cursor: zoom-in;
+                        position: relative;
+                        width: 100%;
+                        height: 100%;
+                        object-fit: contain;
+                    " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')">
+                    <div class="use-as-input-icon" 
+                         onclick="event.stopPropagation(); useAsInput('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')"
+                         title="Use this image to start a new generation">
+                        ↻
                     </div>
                 `;
                 
@@ -2740,26 +2731,26 @@
                     computed: window.getComputedStyle(button).display
                 });
                 
-                // Force style recalculation with aggressive overrides
+                // Force style recalculation with aggressive overrides for bar design
                 button.style.setProperty('display', 'flex', 'important');
                 button.style.setProperty('visibility', 'visible', 'important');
                 button.style.setProperty('opacity', '1', 'important');
-                button.style.setProperty('z-index', '9999', 'important');
+                button.style.setProperty('z-index', '50', 'important');
                 button.style.setProperty('position', 'absolute', 'important');
                 button.style.setProperty('pointer-events', 'auto', 'important');
+                button.style.setProperty('bottom', '0', 'important');
+                button.style.setProperty('left', '0', 'important');
+                button.style.setProperty('right', '0', 'important');
+                button.style.setProperty('width', '100%', 'important');
+                button.style.setProperty('height', '10%', 'important');
+                button.style.setProperty('min-height', '32px', 'important');
+                button.style.setProperty('max-height', '50px', 'important');
                 
-                // Find the associated image and position button correctly
-                const container = button.closest('.result-image-container');
-                const img = container ? container.querySelector('.result-image, img') : null;
+                // Find the associated image in the simplified structure
+                const elementContent = button.closest('.element-content');
+                const img = elementContent ? elementContent.querySelector('.result-image, img') : null;
                 
-                if (img && img.complete && img.naturalWidth > 0) {
-                    // Image is loaded, position button relative to image bounds
-                    positionRemixButton(img, button);
-                } else {
-                    // Fallback to basic positioning
-                    button.style.setProperty('top', '8px', 'important');
-                    button.style.setProperty('right', '8px', 'important');
-                }
+                // REMIX button uses CSS-only positioning now - no JavaScript needed
                 
                 // Remove any hiding attributes
                 button.removeAttribute('hidden');
@@ -3006,47 +2997,7 @@
             });
         }
         
-        // Position REMIX button relative to actual rendered image bounds
-        function positionRemixButton(img, button) {
-            if (!img || !button) return;
-            
-            // Get the container and image dimensions
-            const container = img.parentElement;
-            const containerRect = container.getBoundingClientRect();
-            const imgRect = img.getBoundingClientRect();
-            
-            // Calculate the actual rendered image size (considering object-fit: contain)
-            const imgNaturalRatio = img.naturalWidth / img.naturalHeight;
-            const containerRatio = containerRect.width / containerRect.height;
-            
-            let renderedWidth, renderedHeight;
-            let offsetX = 0, offsetY = 0;
-            
-            if (imgNaturalRatio > containerRatio) {
-                // Image is wider - height will be constrained
-                renderedWidth = containerRect.width;
-                renderedHeight = containerRect.width / imgNaturalRatio;
-                offsetY = (containerRect.height - renderedHeight) / 2;
-            } else {
-                // Image is taller - width will be constrained  
-                renderedHeight = containerRect.height;
-                renderedWidth = containerRect.height * imgNaturalRatio;
-                offsetX = (containerRect.width - renderedWidth) / 2;
-            }
-            
-            // Position button at top-right of actual image bounds
-            button.style.position = 'absolute';
-            button.style.top = `${offsetY + 8}px`;
-            button.style.right = `${offsetX + 8}px`;
-            button.style.left = 'auto';
-            button.style.bottom = 'auto';
-            
-            console.log('🎯 Positioned REMIX button:', {
-                container: `${containerRect.width}x${containerRect.height}`,
-                rendered: `${renderedWidth}x${renderedHeight}`,
-                position: `top: ${offsetY + 8}px, right: ${offsetX + 8}px`
-            });
-        }
+        // REMIX buttons now use simple CSS positioning - no complex JavaScript needed
         
         // Initialize resize functionality when page loads
         window.addEventListener('load', initializeResize);
@@ -3082,29 +3033,82 @@
         window.fixRemixButtons = function() {
             console.log('🔧 Manual REMIX button fix triggered...');
             
-            // First try the aggressive visibility function
+            // First try repositioning all buttons
+            const buttons = document.querySelectorAll('.use-as-input-icon');
+            console.log(`Found ${buttons.length} REMIX buttons to fix`);
+            
+            buttons.forEach((button, i) => {
+                const elementContent = button.closest('.element-content');
+                const img = elementContent ? elementContent.querySelector('.result-image, img') : null;
+                
+                // REMIX button uses CSS-only positioning now
+            });
+            
+            // Then try the aggressive visibility function
             if (window.ensureRemixButtonsVisible) {
                 ensureRemixButtonsVisible();
             }
             
             // Wait a moment then check if it worked
             setTimeout(() => {
-                const buttons = document.querySelectorAll('.use-as-input-icon');
                 const visibleButtons = Array.from(buttons).filter(btn => {
                     const rect = btn.getBoundingClientRect();
                     return rect.width > 0 && rect.height > 0;
                 });
                 
-                console.log(`After visibility fix: ${visibleButtons.length}/${buttons.length} buttons visible`);
+                console.log(`After fix: ${visibleButtons.length}/${buttons.length} buttons visible`);
                 
                 if (buttons.length > 0 && visibleButtons.length === 0) {
-                    console.log('💥 Visibility fix failed - trying nuclear option...');
+                    console.log('💥 All fixes failed - trying nuclear option...');
                     if (window.nukeAndRecreateRemixButtons) {
                         nukeAndRecreateRemixButtons();
                     }
                 }
             }, 500);
         };
+        
+        // Force all REMIX buttons to be visible with correct bar styling
+        window.forceRemixBarsVisible = function() {
+            console.log('🔧 FORCING ALL REMIX BARS VISIBLE');
+            const buttons = document.querySelectorAll('.use-as-input-icon');
+            
+            buttons.forEach((button, i) => {
+                console.log(`🔧 Forcing button ${i + 1} visible...`);
+                
+                // Remove any conflicting inline styles first
+                button.style.cssText = '';
+                
+                // Apply bar styling with highest specificity
+                button.style.setProperty('position', 'absolute', 'important');
+                button.style.setProperty('bottom', '0', 'important');
+                button.style.setProperty('left', '0', 'important');
+                button.style.setProperty('right', '0', 'important');
+                button.style.setProperty('width', '100%', 'important');
+                button.style.setProperty('height', '10%', 'important');
+                button.style.setProperty('min-height', '32px', 'important');
+                button.style.setProperty('max-height', '50px', 'important');
+                button.style.setProperty('display', 'flex', 'important');
+                button.style.setProperty('visibility', 'visible', 'important');
+                button.style.setProperty('opacity', '1', 'important');
+                button.style.setProperty('z-index', '50', 'important');
+                button.style.setProperty('background', 'rgba(0, 0, 0, 0.85)', 'important');
+                button.style.setProperty('color', 'white', 'important');
+                button.style.setProperty('border', 'none', 'important');
+                button.style.setProperty('border-top', '1px solid rgba(255, 255, 255, 0.2)', 'important');
+                button.style.setProperty('border-radius', '0', 'important');
+                
+                // Remove any hidden attributes
+                button.removeAttribute('hidden');
+                button.classList.remove('hidden');
+            });
+            
+            console.log(`✅ Forced ${buttons.length} REMIX bars visible`);
+        };
+        
+        // Call on page load
+        window.addEventListener('load', () => {
+            setTimeout(window.forceRemixBarsVisible, 1000);
+        });
 
         // Removed zoom/pan functionality for simpler scrolling interface
 
@@ -3333,11 +3337,6 @@
                     captionContainer.innerHTML = '';
                 }
                 
-                // Remove share button since this is a new session
-                const shareButton = document.getElementById('shareButton');
-                if (shareButton) {
-                    shareButton.remove();
-                }
                 
                 // Store the base64 data for later use
                 currentImageBase64 = await fileToBase64(file);
@@ -4070,47 +4069,32 @@
             
             if (content) {
                 content.innerHTML = `
-                    <div class="result-image-container" style="width: 100%; display: flex; align-items: center; justify-content: center; height: 100%; position: relative;">
-                        <img src="${imageUrl}" class="result-image" 
-                             data-prompt-id="${promptId}" 
-                             onclick="openImageModal('${imageUrl}', 'Transformation ${iteration}', '${promptId}')"
-                             style="cursor: zoom-in; max-width: 100%; max-height: 100%; object-fit: contain;"
-                             title="Click to view full size">
-                        <div class="use-as-input-icon" 
-                             onclick="event.stopPropagation(); useAsInput('${imageUrl}', 'Transformation ${iteration}', '${promptId}')"
-                             title="Use this image to start a new generation">
-                            ↻
-                        </div>
+                    <img src="${imageUrl}" class="result-image" 
+                         data-prompt-id="${promptId}" 
+                         onclick="openImageModal('${imageUrl}', 'Transformation ${iteration}', '${promptId}')"
+                         style="cursor: zoom-in; position: relative; width: 100%; height: 100%; object-fit: contain;"
+                         title="Click to view full size">
+                    <div class="use-as-input-icon" 
+                         onclick="event.stopPropagation(); useAsInput('${imageUrl}', 'Transformation ${iteration}', '${promptId}')"
+                         title="Use this image to start a new generation">
+                        ↻
                     </div>
                 `;
-                // Dynamically set aspect ratio and position REMIX button after image loads
+                // Dynamically set aspect ratio after image loads
                 const img = content.querySelector('.result-image');
-                const container = content.querySelector('.result-image-container');
                 const remixButton = content.querySelector('.use-as-input-icon');
                 
                 img.onload = function() {
                     const aspect = img.naturalWidth / img.naturalHeight;
-                    // Use CSS aspect-ratio if supported
-                    container.style.aspectRatio = aspect;
-                    // Set aspect-ratio on the outer card as well for grid alignment
+                    // Set aspect-ratio on the outer card for grid alignment
                     card.style.aspectRatio = aspect;
                     card.style.height = '';
                     card.style.minHeight = '';
                     // Force reflow to ensure browser applies new aspect
                     card.offsetHeight;
                     
-                    // Position REMIX button relative to actual image bounds
-                    if (remixButton && img) {
-                        positionRemixButton(img, remixButton);
-                    }
-                    
                     // Ensure REMIX button is visible after image loads
                     setTimeout(ensureRemixButtonsVisible, 100);
-                    // Fallback for browsers without aspect-ratio support
-                    if (!('aspectRatio' in document.body.style)) {
-                        container.style.height = `${container.offsetWidth / aspect}px`;
-                        card.style.height = `${card.offsetWidth / aspect}px`;
-                    }
                 };
             }
             
@@ -4249,19 +4233,17 @@
                         const content = resultBox.querySelector('.element-content');
                         const promptId = storePrompt(prompt);
                         content.innerHTML = `
-                            <div class="result-image-container">
-                                <img src="${result.imageUrl}" class="result-image" data-prompt-id="${promptId}" style="
-                                    cursor: zoom-in;
-                                    width: 100%;
-                                    height: auto;
-                                    min-height: 400px;
-                                    object-fit: contain;
-                                " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')">
-                                <div class="use-as-input-icon" 
-                                     onclick="event.stopPropagation(); useAsInput('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')"
-                                     title="Use this image to start a new generation">
-                                    ↻
-                                </div>
+                            <img src="${result.imageUrl}" class="result-image" data-prompt-id="${promptId}" style="
+                                cursor: zoom-in;
+                                position: relative;
+                                width: 100%;
+                                height: 100%;
+                                object-fit: contain;
+                            " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')">
+                            <div class="use-as-input-icon" 
+                                 onclick="event.stopPropagation(); useAsInput('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')"
+                                 title="Use this image to start a new generation">
+                                ↻
                             </div>
                         `;
                         
@@ -4747,8 +4729,6 @@
                     
                     // URL is already updated at session creation, no need to update again
                     
-                    // Show share button once session is saved
-                    showShareButton(data.shareUrl);
                 } else {
                     console.error('❌ Failed to save session');
                 }
@@ -4758,49 +4738,7 @@
             }
         }
         
-        function showShareButton(shareUrl) {
-            // Check if share button already exists
-            if (document.getElementById('shareButton')) return;
-            
-            // Try multiple possible containers for the share button
-            const controlsContainer = document.querySelector('.canvas-controls') || 
-                                    document.querySelector('.upload-container') ||
-                                    document.querySelector('body');
-            
-            if (!controlsContainer) {
-                console.log('No suitable container found for share button');
-                return;
-            }
-            
-            const shareButton = document.createElement('button');
-            shareButton.id = 'shareButton';
-            shareButton.className = 'control-btn';
-            shareButton.innerHTML = 'SHARE';
-            shareButton.onclick = () => shareSession(shareUrl);
-            
-            controlsContainer.appendChild(shareButton);
-        }
         
-        function shareSession(shareUrl) {
-            // Copy to clipboard
-            navigator.clipboard.writeText(shareUrl).then(() => {
-                // Show temporary success message
-                const shareButton = document.getElementById('shareButton');
-                const originalText = shareButton.innerHTML;
-                shareButton.innerHTML = '✅ Copied!';
-                shareButton.style.background = '#00ff00';
-                shareButton.style.color = '#000';
-                
-                setTimeout(() => {
-                    shareButton.innerHTML = originalText;
-                    shareButton.style.background = '';
-                    shareButton.style.color = '';
-                }, 2000);
-            }).catch(() => {
-                // Fallback: show URL in prompt
-                prompt('Share this URL:', shareUrl);
-            });
-        }
         
         // Koncept editing and regeneration functions
         function editKoncept(konceptIndex) {
@@ -4938,11 +4876,6 @@
                 // Reset zoom and position
                 autoPositionCamera();
                 
-                // Remove share button if it exists
-                const shareButton = document.getElementById('shareButton');
-                if (shareButton) {
-                    shareButton.remove();
-                }
                 
                 console.log('🆕 New session started:', currentSessionId);
             }
@@ -5201,11 +5134,6 @@
                     captionContainer.innerHTML = '';
                 }
                 
-                // Remove share button
-                const shareButton = document.getElementById('shareButton');
-                if (shareButton) {
-                    shareButton.remove();
-                }
                 
                 // Use server endpoint to handle image storage and conversion
                 console.log('📤 Requesting server to store and convert generated image...');
