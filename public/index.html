@@ -2265,9 +2265,6 @@
                     <div class="chain-title-row">
                         <h3>KOMPOSER<span class="collapse-indicator">▲</span></h3>
                         <div class="header-controls">
-                            <button class="upload-btn" onclick="document.getElementById('fileInputInline').click()">
-                                UPLOAD
-                            </button>
                             <button class="export-sequence-btn" onclick="openComicStripModal()" title="Export sequence">
                                 EXPORT
                             </button>
@@ -2285,9 +2282,9 @@
                             <input type="file" id="fileInputInline" accept="image/*" style="display: none;">
                         </div>
                     </div>
-                    <div class="num-images-container">
+                    <div class="num-images-container" style="display: none;">
                         <label class="num-images-label"># IMAGES</label>
-                        <input type="number" id="numImagesInputInline" class="num-images-input" min="1" max="48" value="10">
+                        <input type="number" id="numImagesInputInline" class="num-images-input" min="1" max="48" value="12">
                     </div>
                     <div class="editing-chain-sequence" id="editingChainSequence">
                         <div class="chain-placeholder">
@@ -2517,6 +2514,8 @@
                 z-index: -1;
                 border-radius: 0;
                 box-shadow: none;
+                width: max-content;
+                white-space: nowrap;
             `;
             
             // Add title and branding to match web header
@@ -2549,10 +2548,9 @@
                 align-items: center;
                 justify-content: flex-start;
                 flex-wrap: nowrap;
-                margin: 0 auto;
                 width: max-content;
-                min-width: 100%;
                 padding: 16px 0;
+                overflow: visible;
             `;
             
             // Style the cloned chain images to match web exactly
@@ -2614,19 +2612,30 @@
             exportContainer.appendChild(brandingHeader);
             exportContainer.appendChild(sequenceClone);
             
+            // Remove from DOM first since we'll add it back temporarily for measurement
+            
             // Add to document temporarily
             document.body.appendChild(exportContainer);
             
-            // Use html2canvas to capture the branded sequence
-            if (typeof html2canvas !== 'undefined') {
-                html2canvas(exportContainer, {
-                    backgroundColor: '#ffffff',
-                    scale: 2, // Higher resolution
-                    useCORS: true,
-                    allowTaint: true,
-                    width: exportContainer.scrollWidth,
-                    height: exportContainer.scrollHeight
-                }).then(canvas => {
+            // Wait for layout and get accurate dimensions
+            setTimeout(() => {
+                const actualWidth = Math.max(exportContainer.scrollWidth, exportContainer.offsetWidth);
+                const actualHeight = Math.max(exportContainer.scrollHeight, exportContainer.offsetHeight);
+                
+                console.log(`📏 Export dimensions: ${actualWidth}x${actualHeight}`);
+                
+                // Use html2canvas to capture the branded sequence
+                if (typeof html2canvas !== 'undefined') {
+                    html2canvas(exportContainer, {
+                        backgroundColor: '#ffffff',
+                        scale: 2, // Higher resolution
+                        useCORS: true,
+                        allowTaint: true,
+                        width: actualWidth,
+                        height: actualHeight,
+                        scrollX: 0,
+                        scrollY: 0
+                    }).then(canvas => {
                     // Clean up temporary container
                     document.body.removeChild(exportContainer);
                     
@@ -2640,20 +2649,21 @@
                     link.click();
                     document.body.removeChild(link);
                     
-                    console.log('✅ Branded comic strip downloaded successfully');
-                }).catch(error => {
-                    console.error('❌ Error capturing comic strip:', error);
-                    // Clean up on error
-                    if (document.body.contains(exportContainer)) {
-                        document.body.removeChild(exportContainer);
-                    }
-                    alert('Download failed. Try taking a screenshot of the sequence instead.');
-                });
-            } else {
-                // Clean up and show fallback
-                document.body.removeChild(exportContainer);
-                alert('To download, please take a screenshot of this sequence. We recommend using your browser\'s screenshot feature or a screenshot tool.');
-            }
+                        console.log('✅ Branded comic strip downloaded successfully');
+                    }).catch(error => {
+                        console.error('❌ Error capturing comic strip:', error);
+                        // Clean up on error
+                        if (document.body.contains(exportContainer)) {
+                            document.body.removeChild(exportContainer);
+                        }
+                        alert('Download failed. Try taking a screenshot of the sequence instead.');
+                    });
+                } else {
+                    // Clean up and show fallback
+                    document.body.removeChild(exportContainer);
+                    alert('To download, please take a screenshot of this sequence. We recommend using your browser\'s screenshot feature or a screenshot tool.');
+                }
+            }, 100);
         }
         
         function handleComicStripEscape(e) {
@@ -3699,7 +3709,7 @@
                                 generateBtn.onclick = (e) => {
                                     e.stopPropagation();
                                     const numImagesInput = document.getElementById('numImagesInputInline');
-                                    const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 10, 48));
+                                    const numImages = 12;
                                     console.log('🎯 Inline GENERATE clicked, starting autoplay with', numImages, 'images...');
                                     
                                     generateBtn.innerHTML = 'GENERATING...';
@@ -3730,7 +3740,7 @@
                             startButton.onclick = (e) => {
                                 e.stopPropagation();
                                 const numImagesInput = document.getElementById('numImagesInputInline');
-                                const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 10, 48));
+                                const numImages = 12;
                                 console.log('🎯 KOMPOSER button clicked, starting autoplay with', numImages, 'images...');
                                 
                                 // Add immediate loading feedback
@@ -3871,7 +3881,7 @@
                                         regenerateButton.onclick = (e) => {
                                             e.stopPropagation();
                                             const numImagesInput = document.getElementById('numImagesInputInline');
-                                            const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 10, 48));
+                                            const numImages = 12;
                                             console.log('🔄 Regenerate clicked, starting new generation with', numImages, 'images...');
                                             
                                             regenerateButton.innerHTML = '🔄 Regenerating...';
@@ -3918,7 +3928,7 @@
                                         regenerateBtnInline.onclick = (e) => {
                                             e.stopPropagation();
                                             const numImagesInput = document.getElementById('numImagesInputInline');
-                                            const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 10, 48));
+                                            const numImages = 12;
                                             console.log('🔄 Inline regenerate clicked, starting new generation with', numImages, 'images...');
                                             
                                             regenerateBtnInline.innerHTML = '⏳';
@@ -5314,7 +5324,7 @@
             console.log('🧹 Workspace cleared');
         }
         
-        // Spawn 18 variations from clicked image for maximum exploration
+        // Spawn 12 variations from clicked image for maximum exploration
         async function spawnVariationsFromImage(imageUrl, title, promptId) {
             console.log('🚀 Spawning variations from clicked image:', title);
             
@@ -5331,9 +5341,9 @@
                 'futuristic', 'vintage', 'abstract', 'realistic', 'artistic', 'experimental'
             ];
             
-            // Generate 18 variations instantly
+            // Generate 12 variations instantly
             const promises = [];
-            for (let i = 1; i <= 18; i++) {
+            for (let i = 1; i <= 12; i++) {
                 const vibe = variationVibes[(i - 1) % variationVibes.length];
                 
                 // Create loading card immediately
@@ -5348,7 +5358,7 @@
                 await animatedDelay(10);
             }
             
-            console.log('✨ All 18 variations spawning in parallel!');
+            console.log('✨ All 12 variations spawning in parallel!');
         }
         
         // Generate image from source image (for variations)
@@ -5375,9 +5385,9 @@
         }
         
         
-        // Spawn 18 text-only variations (no img2img, avoids CORS)
+        // Spawn 12 text-only variations (no img2img, avoids CORS)
         async function spawnTextOnlyVariations() {
-            console.log('🚀 Spawning 18 text-only variations...');
+            console.log('🚀 Spawning 12 text-only variations...');
             
             // Clear current grid
             const rightSection = document.querySelector('.generations-section');
@@ -5401,9 +5411,9 @@
                 'black and white photography', 'fantasy illustration'
             ];
             
-            // Generate 18 variations instantly
+            // Generate 12 variations instantly
             const promises = [];
-            for (let i = 1; i <= 18; i++) {
+            for (let i = 1; i <= 12; i++) {
                 const baseVibe = analysisResult.vibes[(i - 1) % analysisResult.vibes.length];
                 const style = variationStyles[(i - 1) % variationStyles.length];
                 
@@ -5419,7 +5429,7 @@
                 await animatedDelay(10);
             }
             
-            console.log('✨ All 18 text-only variations spawning in parallel!');
+            console.log('✨ All 12 text-only variations spawning in parallel!');
         }
 
         // Convert image URL to base64 using proxy method
@@ -5630,7 +5640,7 @@
                 setTimeout(() => {
                     // Get number of images to generate
                     const numImagesInput = document.getElementById('numImagesInput');
-                    const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 18, 48));
+                    const numImages = 12;
                     console.log('🎯 Auto-generating', numImages, 'images from looped input...');
                     
                     // Hide the generate button and start
@@ -5680,7 +5690,7 @@
                 case 'v':
                     e.preventDefault();
                     // Spawn variations using original image
-                    console.log('🎨 Spawning 18 text-only variations...');
+                    console.log('🎨 Spawning 12 text-only variations...');
                     spawnTextOnlyVariations();
                     break;
                 case 'c':
@@ -5730,7 +5740,7 @@
                 const numImagesInput = document.createElement('input');
                 numImagesInput.type = 'number';
                 numImagesInput.id = 'numImagesInput';
-                numImagesInput.value = 18;
+                numImagesInput.value = 12;
                 numImagesInput.min = 1;
                 numImagesInput.max = 48;
                 numImagesInput.style.width = '60px';
