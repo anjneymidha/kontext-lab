@@ -76,6 +76,105 @@
             opacity: 0.6;
             cursor: not-allowed;
         }
+        
+        /* Empty State Styles */
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 400px;
+            padding: 40px;
+            grid-column: 1 / -1;
+        }
+        
+        .empty-state-content {
+            text-align: center;
+            max-width: 480px;
+        }
+        
+        .empty-state-icon {
+            margin-bottom: 24px;
+            opacity: 0.7;
+        }
+        
+        .empty-state-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1C2A23;
+            margin: 0 0 16px 0;
+            letter-spacing: -0.02em;
+        }
+        
+        .empty-state-description {
+            font-size: 16px;
+            color: #5A7A70;
+            line-height: 1.6;
+            margin: 0 0 32px 0;
+        }
+        
+        .empty-state-steps {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+            margin-bottom: 32px;
+            justify-content: center;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 12px 20px;
+            background: #FFFFFF;
+            border: 1px solid #B8C5C0;
+            border-radius: 8px;
+            flex: 1;
+        }
+        
+        .step-number {
+            width: 28px;
+            height: 28px;
+            background: #5A7A70;
+            color: #FFFFFF;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .step-text {
+            font-size: 14px;
+            color: #1C2A23;
+            font-weight: 500;
+        }
+        
+        .cta-button {
+            background: #5A7A70;
+            color: #FFFFFF;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .cta-button:hover {
+            background: #4A6A60;
+            transform: translateY(-1px);
+        }
+        
+        .cta-button:active {
+            transform: translateY(0);
+        }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -122,7 +221,7 @@
             font-weight: bold;
         }
 
-        /* REMIX button overlay - positioned relative to image bounds */
+        /* BRANCH button overlay - positioned relative to image bounds */
         .element-content {
             position: relative !important;
         }
@@ -2254,7 +2353,41 @@
             <!-- Right Section - Now just generations -->
             <div class="right-section-container">
                 <div class="generations-section" id="rightSection">
-                    <!-- Results will be added dynamically -->
+                    <!-- Empty state -->
+                    <div class="empty-state" id="emptyState">
+                        <div class="empty-state-content">
+                            <div class="empty-state-icon">
+                                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#B8C5C0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                                    <circle cx="12" cy="13" r="3"></circle>
+                                </svg>
+                            </div>
+                            <h2 class="empty-state-title">Create Your Edit Tree</h2>
+                            <p class="empty-state-description">
+                                Upload an image to start creating your sequence of iterative edits. 
+                                AI will generate multiple creative edits, and you can branch from any result to explore new directions.
+                            </p>
+                            <div class="empty-state-steps">
+                                <div class="step">
+                                    <span class="step-number">1</span>
+                                    <span class="step-text">Upload an image below</span>
+                                </div>
+                                <div class="step">
+                                    <span class="step-number">2</span>
+                                    <span class="step-text">AI generates 12 creative variations</span>
+                                </div>
+                                <div class="step">
+                                    <span class="step-number">3</span>
+                                    <span class="step-text">Click "BRANCH FROM HERE" on any result</span>
+                                </div>
+                            </div>
+                            <div class="empty-state-cta">
+                                <button class="cta-button" onclick="document.getElementById('fileInputInline').click()">
+                                    GET STARTED
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
