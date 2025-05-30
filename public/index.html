@@ -2135,11 +2135,11 @@
             console.log('Current image base64 length:', currentImageBase64?.length || 'undefined');
             
             try {
-                const analysisResult = await analyzeImageWithMistral(currentImageBase64);
-                console.log('🎯 Analysis result:', analysisResult);
+                //const analysisResult = await analyzeImageWithMistral(currentImageBase64);
+                //console.log('🎯 Analysis result:', analysisResult);
                 
                 // Step 3: Immediately show caption while generating images
-                fillCaptionBox(analysisResult.caption);
+                //fillCaptionBox(analysisResult.caption);
                 
                 // Step 4: Request prompts for all images at once
                 console.log(`📝 Requesting ${NUM_IMAGES} prompts from backend...`);
