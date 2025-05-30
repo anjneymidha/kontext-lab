@@ -1484,6 +1484,204 @@ app.get('/api/check-generation/:requestId', async (req, res) => {
   }
 });
 
+// Store generated image endpoint for loop functionality
+app.post('/api/store-generated-image', async (req, res) => {
+  console.log('💾 Store generated image endpoint hit');
+  
+  try {
+    const { imageUrl, title, sessionId } = req.body;
+    console.log('📋 Request data:', { 
+      hasImageUrl: !!imageUrl, 
+      title: title?.substring(0, 50),
+      sessionId 
+    });
+    
+    if (!imageUrl || !sessionId) {
+      return res.status(400).json({ error: 'imageUrl and sessionId are required' });
+    }
+    
+    console.log('🌐 Downloading image from external URL:', imageUrl);
+    
+    // Download the image from the external CDN
+    const imageResponse = await axios.get(imageUrl, {
+      responseType: 'arraybuffer',
+      timeout: 30000,
+      headers: {
+        'User-Agent': 'Instavibe-Server/1.0'
+      }
+    });
+    
+    if (imageResponse.status !== 200) {
+      throw new Error(`Failed to download image: HTTP ${imageResponse.status}`);
+    }
+    
+    console.log('✅ Successfully downloaded image, size:', imageResponse.data.byteLength, 'bytes');
+    
+    // Convert to base64 for storage and client use
+    const imageBuffer = Buffer.from(imageResponse.data);
+    const base64Data = imageBuffer.toString('base64');
+    
+    console.log('📦 Converted to base64, length:', base64Data.length);
+    
+    // Generate a unique filename for this stored image
+    const timestamp = Date.now();
+    const randomId = crypto.randomBytes(8).toString('hex');
+    const filename = `${sessionId}-${timestamp}-${randomId}.jpg`;
+    
+    // Store in database for production or file system for local
+    let localUrl;
+    
+    if (process.env.VERCEL && pool) {
+      // Store in PostgreSQL for production
+      console.log('💾 Storing image in PostgreSQL...');
+      
+      // Ensure database is initialized
+      if (!dbInitialized) {
+        console.log('🔄 Database not initialized, initializing now...');
+        dbInitialized = await initDatabase();
+        if (!dbInitialized) {
+          throw new Error('Database initialization failed');
+        }
+      }
+      
+      // Create stored_images table if it doesn't exist
+      try {
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS stored_images (
+            id VARCHAR(255) PRIMARY KEY,
+            session_id VARCHAR(255) NOT NULL,
+            title TEXT,
+            image_data TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            file_size INTEGER
+          )
+        `);
+        console.log('✅ Stored images table ready');
+      } catch (tableError) {
+        console.warn('⚠️ Table creation warning:', tableError.message);
+      }
+      
+      // Insert the image
+      await pool.query(
+        'INSERT INTO stored_images (id, session_id, title, image_data, file_size) VALUES ($1, $2, $3, $4, $5)',
+        [filename, sessionId, title, base64Data, imageBuffer.length]
+      );
+      
+      localUrl = `/api/stored-image/${filename}`;
+      console.log('✅ Image stored in PostgreSQL with URL:', localUrl);
+      
+    } else {
+      // Store in file system for local development
+      console.log('💾 Storing image in file system...');
+      
+      const storedImagesDir = path.join(__dirname, 'stored-images');
+      if (!fs.existsSync(storedImagesDir)) {
+        fs.mkdirSync(storedImagesDir, { recursive: true });
+      }
+      
+      const filePath = path.join(storedImagesDir, filename);
+      fs.writeFileSync(filePath, imageBuffer);
+      
+      localUrl = `/api/stored-image/${filename}`;
+      console.log('✅ Image stored in file system with URL:', localUrl);
+    }
+    
+    console.log('🎯 Store operation completed successfully');
+    
+    res.json({
+      success: true,
+      base64: base64Data,
+      localUrl: localUrl,
+      filename: filename,
+      originalUrl: imageUrl
+    });
+    
+  } catch (error) {
+    console.error('❌ Store generated image error:', error);
+    
+    let errorMessage = 'Failed to store generated image';
+    let statusCode = 500;
+    
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+      errorMessage = 'Failed to download image from external URL';
+      statusCode = 400;
+    } else if (error.response && error.response.status) {
+      errorMessage = `External server error: ${error.response.status}`;
+      statusCode = 400;
+    }
+    
+    res.status(statusCode).json({ 
+      error: errorMessage,
+      details: error.message 
+    });
+  }
+});
+
+// Serve stored images endpoint
+app.get('/api/stored-image/:filename', async (req, res) => {
+  console.log('🖼️ Serve stored image endpoint hit');
+  
+  try {
+    const { filename } = req.params;
+    
+    if (!filename || !filename.match(/^[a-zA-Z0-9\-_]+\.jpg$/)) {
+      return res.status(400).json({ error: 'Invalid filename' });
+    }
+    
+    console.log('🔍 Looking for stored image:', filename);
+    
+    let imageData = null;
+    
+    if (process.env.VERCEL && pool) {
+      // Retrieve from PostgreSQL for production
+      console.log('🔍 Retrieving from PostgreSQL...');
+      
+      const result = await pool.query(
+        'SELECT image_data, file_size FROM stored_images WHERE id = $1',
+        [filename]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Image not found' });
+      }
+      
+      imageData = Buffer.from(result.rows[0].image_data, 'base64');
+      console.log('✅ Retrieved from PostgreSQL, size:', imageData.length);
+      
+    } else {
+      // Retrieve from file system for local development
+      console.log('🔍 Retrieving from file system...');
+      
+      const storedImagesDir = path.join(__dirname, 'stored-images');
+      const filePath = path.join(storedImagesDir, filename);
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'Image not found' });
+      }
+      
+      imageData = fs.readFileSync(filePath);
+      console.log('✅ Retrieved from file system, size:', imageData.length);
+    }
+    
+    // Serve the image with proper headers
+    res.set({
+      'Content-Type': 'image/jpeg',
+      'Content-Length': imageData.length,
+      'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
+      'ETag': `"${crypto.createHash('md5').update(imageData).digest('hex')}"`
+    });
+    
+    res.send(imageData);
+    
+  } catch (error) {
+    console.error('❌ Serve stored image error:', error);
+    res.status(500).json({ 
+      error: 'Failed to retrieve stored image',
+      details: error.message 
+    });
+  }
+});
+
 // Individual image sharing endpoint
 app.get('/image/:sessionId/:konceptIndex/:resultIndex', async (req, res) => {
   console.log('🔗 Individual image share request');

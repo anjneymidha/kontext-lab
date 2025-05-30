@@ -201,6 +201,73 @@
             padding: 20px;
         }
 
+        /* Seed History in Sidebar */
+        .seed-history-container {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e5ea;
+        }
+
+        .seed-history-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #8e8e93;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .seed-history-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .seed-thumbnail {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #e5e5ea;
+            position: relative;
+        }
+
+        .seed-thumbnail:hover {
+            transform: scale(1.05);
+            border-color: #a8b5a0;
+            box-shadow: 0 2px 8px rgba(168, 181, 160, 0.3);
+        }
+
+        .seed-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .seed-thumbnail-number {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            background: rgba(45, 45, 45, 0.8);
+            color: white;
+            font-size: 8px;
+            font-weight: 600;
+            padding: 1px 4px;
+            border-radius: 2px;
+            min-width: 12px;
+            text-align: center;
+        }
+
+        .seed-thumbnail.current {
+            border-color: #a8b5a0;
+            border-width: 2px;
+            box-shadow: 0 0 0 1px rgba(168, 181, 160, 0.3);
+        }
+
         .whiteboard-container {
             position: relative;
             width: 100vw;
@@ -1558,6 +1625,14 @@
                     </div>
                 </div>
                 
+                <!-- Seed History Container -->
+                <div class="seed-history-container" id="seedHistoryContainer" style="display: none;">
+                    <div class="seed-history-title">Iteration History</div>
+                    <div class="seed-history-grid" id="seedHistoryGrid">
+                        <!-- Seed thumbnails will be added dynamically -->
+                    </div>
+                </div>
+                
                 <!-- Caption Box Container -->
                 <div class="caption-container">
                     <!-- Caption will be added dynamically -->
@@ -1650,6 +1725,67 @@
         // Session management
         let currentSessionId = null;
         let sessionResults = [];
+        let seedHistory = []; // Track iteration history
+        
+        // Seed history management functions
+        function addToSeedHistory(imageUrl, title, isOriginal = false) {
+            const seedData = {
+                imageUrl: imageUrl,
+                title: title,
+                timestamp: Date.now(),
+                isOriginal: isOriginal
+            };
+            
+            seedHistory.push(seedData);
+            updateSeedHistoryDisplay();
+            console.log('📜 Added to seed history:', title);
+        }
+        
+        function updateSeedHistoryDisplay() {
+            const container = document.getElementById('seedHistoryContainer');
+            const grid = document.getElementById('seedHistoryGrid');
+            
+            if (!container || !grid) return;
+            
+            // Show container if we have history
+            if (seedHistory.length > 0) {
+                container.style.display = 'block';
+            }
+            
+            // Clear existing thumbnails
+            grid.innerHTML = '';
+            
+            // Add thumbnails for each seed
+            seedHistory.forEach((seed, index) => {
+                const thumbnail = document.createElement('div');
+                thumbnail.className = 'seed-thumbnail';
+                if (index === seedHistory.length - 1) {
+                    thumbnail.classList.add('current');
+                }
+                
+                thumbnail.innerHTML = `
+                    <img src="${seed.imageUrl}" alt="${seed.title}">
+                    <div class="seed-thumbnail-number">${index + 1}</div>
+                `;
+                
+                // Add click handler to view in modal
+                thumbnail.onclick = () => {
+                    const promptId = storePrompt(`${seed.title} (iteration ${index + 1})`);
+                    openImageModal(seed.imageUrl, seed.title, promptId);
+                };
+                
+                grid.appendChild(thumbnail);
+            });
+        }
+        
+        function clearSeedHistory() {
+            seedHistory = [];
+            const container = document.getElementById('seedHistoryContainer');
+            if (container) {
+                container.style.display = 'none';
+            }
+            console.log('🗑️ Cleared seed history');
+        }
         
         // Individual image sharing function
         function shareIndividualImage(event, konceptIndex, resultIndex) {
@@ -2261,6 +2397,12 @@
                         } else {
                             const uploadBox = uploadContainer.closest('.upload-box');
                             if (uploadBox) uploadBox.classList.remove('loading');
+                        }
+                        
+                        // Add original image to seed history
+                        if (isFirstUpload) {
+                            clearSeedHistory(); // Clear any existing history for new uploads
+                            addToSeedHistory(img.src, 'Original Upload', true);
                         }
                         
                         console.log(`📏 Upload image loaded: ${img.naturalWidth}x${img.naturalHeight}`);
@@ -3712,6 +3854,7 @@
                 sessionResults = [];
                 isSharedSession = false;
                 currentImageBase64 = null;
+                clearSeedHistory();
                 
                 // Clear the interface
                 clearWorkspace();
@@ -3875,52 +4018,73 @@
 
         // Convert image URL to base64 using proxy method
         async function urlToBase64(url) {
+            console.log('🔄 Converting URL to base64:', url);
+            
             return new Promise((resolve, reject) => {
-                // Create a hidden image element
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                
-                img.onload = function() {
-                    try {
-                        // Create canvas
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
+                // First try fetch method (works better with CORS)
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        console.log('📦 Got blob, size:', blob.size);
+                        const reader = new FileReader();
+                        reader.onload = function() {
+                            const base64 = this.result.split(',')[1];
+                            console.log('✅ Converted to base64, length:', base64.length);
+                            resolve(base64);
+                        };
+                        reader.onerror = () => {
+                            console.error('❌ FileReader error');
+                            reject(new Error('FileReader failed'));
+                        };
+                        reader.readAsDataURL(blob);
+                    })
+                    .catch(fetchError => {
+                        console.log('⚠️ Fetch failed, trying canvas method:', fetchError.message);
                         
-                        // Set canvas size to image size
-                        canvas.width = this.naturalWidth;
-                        canvas.height = this.naturalHeight;
+                        // Fallback to canvas method
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
                         
-                        // Draw image to canvas
-                        ctx.drawImage(this, 0, 0);
-                        
-                        // Convert to base64
-                        const dataURL = canvas.toDataURL('image/jpeg', 0.8);
-                        const base64 = dataURL.split(',')[1];
-                        
-                        resolve(base64);
-                    } catch (error) {
-                        reject(error);
-                    }
-                };
-                
-                img.onerror = function() {
-                    // If direct load fails, try using a data URL approach
-                    fetch(url)
-                        .then(response => response.blob())
-                        .then(blob => {
-                            const reader = new FileReader();
-                            reader.onload = function() {
-                                const base64 = this.result.split(',')[1];
+                        img.onload = function() {
+                            try {
+                                console.log('🎨 Using canvas method, image size:', this.naturalWidth, 'x', this.naturalHeight);
+                                
+                                // Create canvas
+                                const canvas = document.createElement('canvas');
+                                const ctx = canvas.getContext('2d');
+                                
+                                // Set canvas size to image size
+                                canvas.width = this.naturalWidth;
+                                canvas.height = this.naturalHeight;
+                                
+                                // Draw image to canvas
+                                ctx.drawImage(this, 0, 0);
+                                
+                                // Convert to base64
+                                const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+                                const base64 = dataURL.split(',')[1];
+                                
+                                console.log('✅ Canvas conversion successful, length:', base64.length);
                                 resolve(base64);
-                            };
-                            reader.onerror = reject;
-                            reader.readAsDataURL(blob);
-                        })
-                        .catch(reject);
-                };
-                
-                // Try to load the image
-                img.src = url;
+                            } catch (canvasError) {
+                                console.error('❌ Canvas conversion failed:', canvasError);
+                                reject(canvasError);
+                            }
+                        };
+                        
+                        img.onerror = (imgError) => {
+                            console.error('❌ Image load failed:', imgError);
+                            reject(new Error('Image load failed'));
+                        };
+                        
+                        // Try to load the image
+                        img.src = url;
+                    });
             });
         }
 
@@ -3967,16 +4131,44 @@
                     shareButton.remove();
                 }
                 
-                // Convert the image URL to base64
-                console.log('📤 Converting generated image to base64...');
+                // Use server endpoint to handle image storage and conversion
+                console.log('📤 Requesting server to store and convert generated image...');
                 try {
-                    currentImageBase64 = await urlToBase64(imageUrl);
-                    console.log('✅ Image converted to base64 successfully');
+                    const response = await fetch('/api/store-generated-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            imageUrl: imageUrl,
+                            title: title,
+                            sessionId: currentSessionId
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Server error: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    currentImageBase64 = result.base64;
+                    const localImageUrl = result.localUrl; // Use this for display instead of external URL
+                    
+                    console.log('✅ Image stored and converted successfully, length:', currentImageBase64.length);
+                    
+                    // Update imageUrl to use local stored version
+                    imageUrl = localImageUrl;
+                    
                 } catch (conversionError) {
-                    console.log('⚠️ Direct conversion failed, using fallback method...');
-                    // Fallback: use the image URL directly and let the generation handle it
-                    // For now, we'll create a placeholder base64 and update the interface
-                    console.log('Using image URL as fallback');
+                    console.error('❌ Server conversion failed:', conversionError);
+                    
+                    // Fallback: try client-side conversion (will likely fail due to CORS but worth trying)
+                    try {
+                        console.log('🔄 Attempting client-side fallback conversion...');
+                        currentImageBase64 = await urlToBase64(imageUrl);
+                        console.log('✅ Fallback conversion successful');
+                    } catch (fallbackError) {
+                        console.error('❌ Fallback conversion also failed:', fallbackError);
+                        throw new Error('Unable to convert image - server storage required');
+                    }
                 }
                 
                 // Update upload container with new image immediately
@@ -4032,18 +4224,9 @@
                 
                 // Automatically start generation after a brief delay
                 console.log('🚀 Auto-starting generation with looped input...');
-                setTimeout(async () => {
-                    // If we don't have base64 yet, try to get it now
-                    if (!currentImageBase64) {
-                        try {
-                            console.log('🔄 Attempting to convert image before auto-generation...');
-                            currentImageBase64 = await urlToBase64(imageUrl);
-                            console.log('✅ Image converted successfully before auto-generation');
-                        } catch (error) {
-                            console.error('❌ Failed to convert image, auto-generation may fail:', error);
-                        }
-                    }
-                    
+                console.log('📊 Using base64 data length:', currentImageBase64?.length || 'undefined');
+                
+                setTimeout(() => {
                     // Get number of images to generate
                     const numImagesInput = document.getElementById('numImagesInput');
                     const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 18, 48));
@@ -4060,6 +4243,9 @@
                 }, 800); // Brief delay to show the image loaded
                 
                 console.log('✅ Successfully switched to generated image as input');
+                
+                // Add this iteration to seed history
+                addToSeedHistory(imageUrl, title);
                 
             } catch (error) {
                 console.error('❌ Error using image as input:', error);
