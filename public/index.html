@@ -3001,6 +3001,61 @@
         
         // Initialize resize functionality when page loads
         window.addEventListener('load', initializeResize);
+        
+        // Force REMIX button check after layout changes
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                console.log('🔍 Post-load REMIX button check...');
+                const buttons = document.querySelectorAll('.use-as-input-icon');
+                const visibleButtons = Array.from(buttons).filter(btn => {
+                    const rect = btn.getBoundingClientRect();
+                    const computed = window.getComputedStyle(btn);
+                    return rect.width > 0 && rect.height > 0 && computed.display !== 'none' && computed.visibility !== 'hidden';
+                });
+                
+                console.log(`Found ${buttons.length} total buttons, ${visibleButtons.length} visible`);
+                
+                if (buttons.length > 0 && visibleButtons.length === 0) {
+                    console.log('🚨 No REMIX buttons visible - running diagnostics and fixes...');
+                    if (window.debugRemixButtons) {
+                        window.debugRemixButtons();
+                    }
+                    setTimeout(() => {
+                        if (window.nukeAndRecreateRemixButtons) {
+                            window.nukeAndRecreateRemixButtons();
+                        }
+                    }, 1000);
+                }
+            }, 2000);
+        });
+        
+        // Manual REMIX button fix function - can be called from console
+        window.fixRemixButtons = function() {
+            console.log('🔧 Manual REMIX button fix triggered...');
+            
+            // First try the aggressive visibility function
+            if (window.ensureRemixButtonsVisible) {
+                ensureRemixButtonsVisible();
+            }
+            
+            // Wait a moment then check if it worked
+            setTimeout(() => {
+                const buttons = document.querySelectorAll('.use-as-input-icon');
+                const visibleButtons = Array.from(buttons).filter(btn => {
+                    const rect = btn.getBoundingClientRect();
+                    return rect.width > 0 && rect.height > 0;
+                });
+                
+                console.log(`After visibility fix: ${visibleButtons.length}/${buttons.length} buttons visible`);
+                
+                if (buttons.length > 0 && visibleButtons.length === 0) {
+                    console.log('💥 Visibility fix failed - trying nuclear option...');
+                    if (window.nukeAndRecreateRemixButtons) {
+                        nukeAndRecreateRemixButtons();
+                    }
+                }
+            }, 500);
+        };
 
         // Removed zoom/pan functionality for simpler scrolling interface
 
