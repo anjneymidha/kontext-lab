@@ -2683,25 +2683,57 @@
         // Force REMIX button visibility (Firefox fix)
         function ensureRemixButtonsVisible() {
             const remixButtons = document.querySelectorAll('.use-as-input-icon');
-            remixButtons.forEach(button => {
-                // Force style recalculation
-                button.style.display = 'flex';
-                button.style.visibility = 'visible';
-                button.style.opacity = '1';
-                button.style.zIndex = '9999';
-                button.style.position = 'absolute';
-                button.style.top = '4px';
-                button.style.right = '4px';
+            console.log(`🔧 Ensuring ${remixButtons.length} REMIX buttons are visible...`);
+            
+            remixButtons.forEach((button, index) => {
+                console.log(`🔧 Processing button ${index + 1}:`, {
+                    display: button.style.display,
+                    visibility: button.style.visibility,
+                    opacity: button.style.opacity,
+                    computed: window.getComputedStyle(button).display
+                });
+                
+                // Force style recalculation with aggressive overrides
+                button.style.setProperty('display', 'flex', 'important');
+                button.style.setProperty('visibility', 'visible', 'important');
+                button.style.setProperty('opacity', '1', 'important');
+                button.style.setProperty('z-index', '9999', 'important');
+                button.style.setProperty('position', 'absolute', 'important');
+                button.style.setProperty('top', '4px', 'important');
+                button.style.setProperty('right', '4px', 'important');
+                button.style.setProperty('pointer-events', 'auto', 'important');
+                
+                // Remove any hiding attributes
+                button.removeAttribute('hidden');
+                button.classList.remove('hidden');
                 
                 // Force reflow to ensure browser applies styles
                 button.offsetHeight;
                 
                 // Firefox-specific handling
                 if (navigator.userAgent.includes('Firefox')) {
-                    button.style.transform = 'translateZ(0)';
-                    button.style.isolation = 'isolate';
-                    button.style.willChange = 'transform';
+                    button.style.setProperty('transform', 'translateZ(0)', 'important');
+                    button.style.setProperty('isolation', 'isolate', 'important');
+                    button.style.setProperty('will-change', 'transform', 'important');
+                    button.style.setProperty('-moz-user-select', 'none', 'important');
+                    
+                    // Firefox-specific force visible
+                    button.style.setProperty('-moz-appearance', 'none', 'important');
+                    button.style.setProperty('contain', 'none', 'important');
                 }
+                
+                // Extra aggressive: try to lock the display property
+                try {
+                    Object.defineProperty(button.style, 'display', {
+                        value: 'flex',
+                        writable: false,
+                        configurable: true
+                    });
+                } catch (e) {
+                    console.log('Could not lock display property:', e);
+                }
+                
+                console.log(`✅ Button ${index + 1} processed, final display:`, button.style.display);
             });
         }
         
@@ -2710,7 +2742,112 @@
             setTimeout(ensureRemixButtonsVisible, 500);
             setTimeout(ensureRemixButtonsVisible, 2000);
             setInterval(ensureRemixButtonsVisible, 5000);
+            
+            // Start mutation observer to catch when buttons get hidden
+            startRemixButtonObserver();
         });
+        
+        // Aggressive mutation observer to detect and fix hidden REMIX buttons
+        function startRemixButtonObserver() {
+            console.log('🔍 Starting REMIX button mutation observer for Firefox...');
+            
+            const observer = new MutationObserver((mutations) => {
+                let buttonsNeedFix = false;
+                
+                mutations.forEach((mutation) => {
+                    // Check if any nodes were added (new images with buttons)
+                    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.nodeType === 1) { // Element node
+                                const hasButton = node.querySelector && node.querySelector('.use-as-input-icon');
+                                const isButton = node.classList && node.classList.contains('use-as-input-icon');
+                                if (hasButton || isButton) {
+                                    buttonsNeedFix = true;
+                                }
+                            }
+                        });
+                    }
+                    
+                    // Check if any attributes changed on REMIX buttons
+                    if (mutation.type === 'attributes' && mutation.target.classList.contains('use-as-input-icon')) {
+                        const button = mutation.target;
+                        const computedStyle = window.getComputedStyle(button);
+                        
+                        // Check if button got hidden
+                        if (computedStyle.display === 'none' || 
+                            computedStyle.visibility === 'hidden' || 
+                            computedStyle.opacity === '0' ||
+                            button.style.display === 'none' ||
+                            button.style.visibility === 'hidden' ||
+                            button.style.opacity === '0') {
+                            
+                            console.log('🚨 REMIX button was hidden, restoring immediately!');
+                            buttonsNeedFix = true;
+                        }
+                    }
+                });
+                
+                if (buttonsNeedFix) {
+                    // Use RAF to ensure we run after current render cycle
+                    requestAnimationFrame(() => {
+                        setTimeout(ensureRemixButtonsVisible, 0);
+                    });
+                }
+            });
+            
+            // Observe the entire document for changes
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['style', 'class', 'hidden']
+            });
+            
+            console.log('✅ REMIX button observer started');
+        }
+        
+        // Debug function for REMIX button issues (can be called from console)
+        window.debugRemixButtons = function() {
+            console.log('🔍 DEBUGGING REMIX BUTTONS');
+            const buttons = document.querySelectorAll('.use-as-input-icon');
+            console.log(`Found ${buttons.length} REMIX buttons`);
+            
+            buttons.forEach((button, i) => {
+                const computed = window.getComputedStyle(button);
+                const rect = button.getBoundingClientRect();
+                
+                console.log(`Button ${i + 1}:`, {
+                    element: button,
+                    inlineStyles: {
+                        display: button.style.display,
+                        visibility: button.style.visibility,
+                        opacity: button.style.opacity,
+                        position: button.style.position,
+                        zIndex: button.style.zIndex
+                    },
+                    computedStyles: {
+                        display: computed.display,
+                        visibility: computed.visibility,
+                        opacity: computed.opacity,
+                        position: computed.position,
+                        zIndex: computed.zIndex
+                    },
+                    dimensions: {
+                        width: rect.width,
+                        height: rect.height,
+                        top: rect.top,
+                        left: rect.left
+                    },
+                    isVisible: rect.width > 0 && rect.height > 0,
+                    classes: Array.from(button.classList),
+                    parent: button.parentElement.className
+                });
+            });
+            
+            // Force fix all buttons
+            ensureRemixButtonsVisible();
+            console.log('🔧 Applied fixes, check buttons again!');
+        };
         
         // Sidebar toggle functionality
         function toggleSidebar() {
