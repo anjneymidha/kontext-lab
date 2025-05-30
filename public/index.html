@@ -591,27 +591,67 @@
             border-top: 2px solid #e0e0e0;
         }
         
-        /* Simple visual separator (no resize functionality) */
+        /* Interactive resize handle */
         .resize-handle {
             position: absolute;
-            top: -1px;
+            top: -3px;
             left: 0;
             right: 0;
-            height: 2px;
-            background: #e0e0e0;
-            z-index: 10;
+            height: 6px;
+            background: transparent;
+            cursor: ns-resize;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .resize-handle:hover {
+            background: rgba(168, 181, 160, 0.3);
+        }
+        
+        .resize-handle::after {
+            content: '⋯';
+            width: 40px;
+            height: 6px;
+            background: transparent;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #ccc;
+            line-height: 1;
+            letter-spacing: 2px;
+        }
+        
+        .resize-handle:hover::after {
+            color: #a8b5a0;
+            background: rgba(168, 181, 160, 0.1);
+            width: 60px;
+        }
+        
+        .resize-handle.dragging {
+            background: rgba(168, 181, 160, 0.3);
+        }
+        
+        .resize-handle.dragging::after {
+            color: #a8b5a0;
+            background: rgba(168, 181, 160, 0.2);
+            width: 80px;
         }
 
         .editing-chain-header {
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
         }
         
         .chain-title-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
         .editing-chain-header h3 {
@@ -2876,6 +2916,91 @@
                 toggleSidebar();
             }
         });
+
+        // Bottom Pane Resize Functionality
+        let isResizing = false;
+        let startY = 0;
+        let startHeight = 0;
+        let currentMainHeight = 80; // Start at 80% (20% for editing chain)
+        
+        function initializeResize() {
+            const resizeHandle = document.getElementById('resizeHandle');
+            const canvasSurface = document.querySelector('.canvas-surface');
+            
+            if (!resizeHandle || !canvasSurface) return;
+            
+            resizeHandle.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                startY = e.clientY;
+                startHeight = currentMainHeight;
+                resizeHandle.classList.add('dragging');
+                document.body.style.cursor = 'ns-resize';
+                document.body.style.userSelect = 'none';
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizing) return;
+                
+                const deltaY = e.clientY - startY;
+                const containerHeight = window.innerHeight;
+                const deltaPercent = (deltaY / containerHeight) * 100;
+                
+                // Calculate new heights (constrain between 10% and 90%)
+                let newMainHeight = Math.max(10, Math.min(90, startHeight + deltaPercent));
+                let newEditingHeight = 100 - newMainHeight;
+                
+                // Update the grid template
+                canvasSurface.style.gridTemplateRows = `${newMainHeight}% ${newEditingHeight}%`;
+                currentMainHeight = newMainHeight;
+                
+                e.preventDefault();
+            });
+            
+            document.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    resizeHandle.classList.remove('dragging');
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+                }
+            });
+            
+            // Handle touch events for mobile
+            resizeHandle.addEventListener('touchstart', (e) => {
+                isResizing = true;
+                startY = e.touches[0].clientY;
+                startHeight = currentMainHeight;
+                resizeHandle.classList.add('dragging');
+                e.preventDefault();
+            });
+            
+            document.addEventListener('touchmove', (e) => {
+                if (!isResizing) return;
+                
+                const deltaY = e.touches[0].clientY - startY;
+                const containerHeight = window.innerHeight;
+                const deltaPercent = (deltaY / containerHeight) * 100;
+                
+                let newMainHeight = Math.max(10, Math.min(90, startHeight + deltaPercent));
+                let newEditingHeight = 100 - newMainHeight;
+                
+                canvasSurface.style.gridTemplateRows = `${newMainHeight}% ${newEditingHeight}%`;
+                currentMainHeight = newMainHeight;
+                
+                e.preventDefault();
+            });
+            
+            document.addEventListener('touchend', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    resizeHandle.classList.remove('dragging');
+                }
+            });
+        }
+        
+        // Initialize resize functionality when page loads
+        window.addEventListener('load', initializeResize);
 
         // Removed zoom/pan functionality for simpler scrolling interface
 
