@@ -312,6 +312,15 @@
             line-height: 1.4;
         }
 
+        .comic-strip-header p a {
+            color: #007AFF;
+            text-decoration: none;
+        }
+
+        .comic-strip-header p a:hover {
+            text-decoration: underline;
+        }
+
         .comic-strip-sequence {
             display: flex;
             gap: 8px;
@@ -327,7 +336,7 @@
 
         .comic-panel {
             flex-shrink: 0;
-            width: 240px;
+            width: 320px;
             background: white;
             border-radius: 0;
             overflow: hidden;
@@ -352,7 +361,7 @@
         .comic-panel-image {
             width: 100%;
             height: auto;
-            max-height: 400px;
+            max-height: 600px;
             object-fit: contain;
             display: block;
             background: #f5f5f5;
@@ -434,11 +443,11 @@
             }
             
             .comic-panel {
-                width: 200px;
+                width: 280px;
             }
             
             .comic-panel-image {
-                max-height: 300px;
+                max-height: 400px;
             }
             
             .comic-strip-header h2 {
@@ -708,6 +717,15 @@
             font-weight: 300;
         }
 
+        .editing-chain-header p a {
+            color: #007AFF;
+            text-decoration: none;
+        }
+
+        .editing-chain-header p a:hover {
+            text-decoration: underline;
+        }
+
         .editing-chain-sequence {
             flex: 1;
             display: flex;
@@ -892,44 +910,43 @@
         }
 
         .title-text {
-            font-size: 24px;
-            line-height: 1.2;
+            font-size: 28px;
+            line-height: 1.1;
             color: #1c1c1e;
-            padding: 0 0 8px 0;
-            font-weight: 700;
+            padding: 0;
+            font-weight: 800;
             text-align: left;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
         }
 
         .subtitle-text {
-            font-size: 14px;
-            line-height: 1.4;
-            color: #1c1c1e;
-            padding: 0 0 8px 0;
+            font-size: 16px;
+            line-height: 1.3;
+            color: #666;
+            padding: 0;
             font-weight: 400;
-            text-align: left !important;
-            opacity: 0.7;
-            margin-bottom: 8px;
+            text-align: left;
+            margin-bottom: 12px;
             display: block;
             width: 100%;
         }
         
         
         .attribution {
-            font-size: 12px;
+            font-size: 13px;
             line-height: 1.4;
-            color: #1c1c1e;
-            padding: 16px 0 0 0;
+            color: #888;
+            padding: 8px 0 0 0;
             font-weight: 400;
-            text-align: left !important;
-            opacity: 0.6;
+            text-align: left;
             margin-top: auto;
             display: block;
             width: 100%;
         }
         
         .attribution a {
-            color: #1c1c1e;
+            color: #007AFF;
             text-decoration: none;
             font-weight: 500;
         }
@@ -941,23 +958,23 @@
         /* Mobile title and subtitle */
         @media (max-width: 768px) {
             .title-text {
-                font-size: 16px;
+                font-size: 20px;
                 padding: 12px;
-                letter-spacing: 1px;
+                letter-spacing: -0.01em;
             }
             
             .subtitle-text {
-                font-size: 9px;
-                padding: 0 12px 6px 12px;
+                font-size: 12px;
+                padding: 0 12px 8px 12px;
             }
             
             .value-prop {
-                font-size: 8px;
+                font-size: 10px;
                 padding: 0 12px 6px 12px;
             }
             
             .attribution {
-                font-size: 7px;
+                font-size: 10px;
                 padding: 0 12px 12px 12px;
             }
         }
@@ -1134,7 +1151,8 @@
         
         /* For title headers with buttons, use space-between */
         .title-box .element-header {
-            justify-content: space-between;
+            justify-content: flex-start;
+            gap: 12px;
         }
         
         /* Mobile element headers */
@@ -2056,7 +2074,7 @@
                                     <circle cx="12" cy="13" r="3"></circle>
                                 </svg>
                                 <div style="font-size: 18px; font-weight: 600; color: #8e8e93; margin-bottom: 6px;">Upload Image</div>
-                                <div style="font-size: 14px; color: #666; line-height: 1.4;">Drop or click to start generating</div>
+                                <div style="font-size: 14px; color: #666; line-height: 1.4;">Drop, click, or paste to start generating</div>
                                 <input type="file" id="fileInput" accept="image/*" style="display: none;">
                             </div>
                         </div>
@@ -2087,7 +2105,7 @@
                             📤 Export Sequence
                         </button>
                     </div>
-                    <p>Learn more at https://bfl.ai/models/flux-kontext</p>
+                    <p>Learn more at <a href="https://bfl.ai/models/flux-kontext" target="_blank" rel="noopener noreferrer">https://bfl.ai/models/flux-kontext</a></p>
                 </div>
                 <div class="editing-chain-sequence" id="editingChainSequence">
                     <div class="chain-placeholder">
@@ -2337,7 +2355,7 @@
                     color: #666;
                     margin: 0;
                     font-weight: 300;
-                ">Learn more at https://bfl.ai/models/flux-kontext</p>
+                ">Learn more at <a href="https://bfl.ai/models/flux-kontext" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">https://bfl.ai/models/flux-kontext</a></p>
             `;
             
             // Clone the sequence content
@@ -2689,6 +2707,9 @@
             uploadZone.addEventListener('dragover', handleDragOver);
             uploadZone.addEventListener('drop', handleDrop);
             fileInput.addEventListener('change', handleFileSelect);
+
+            // Clipboard paste functionality
+            document.addEventListener('paste', handlePaste);
 
             // Prevent default drag behavior
             document.addEventListener('dragover', e => e.preventDefault());
@@ -3292,6 +3313,32 @@
             const file = e.target.files[0];
             if (file && file.type.startsWith('image/')) {
                 processImageFile(file);
+            }
+        }
+
+        function handlePaste(e) {
+            // Only handle paste if we're not in an input field
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            const clipboardData = e.clipboardData || window.clipboardData;
+            const items = clipboardData.items;
+
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                
+                // Check if the item is an image
+                if (item.type.indexOf('image') !== -1) {
+                    e.preventDefault(); // Prevent default paste behavior
+                    
+                    const file = item.getAsFile();
+                    if (file) {
+                        console.log('📋 Image pasted from clipboard:', file.name || 'clipboard-image', file.type);
+                        processImageFile(file);
+                    }
+                    break;
+                }
             }
         }
 
@@ -5388,7 +5435,7 @@
             
             <div class="comic-strip-header">
                 <h2>FLUX.1 Kontext Editing Chain</h2>
-                <p>Learn more at https://bfl.ai/models/flux-kontext</p>
+                <p>Learn more at <a href="https://bfl.ai/models/flux-kontext" target="_blank" rel="noopener noreferrer">https://bfl.ai/models/flux-kontext</a></p>
             </div>
             
             <div class="comic-strip-sequence" id="comicStripSequence">
