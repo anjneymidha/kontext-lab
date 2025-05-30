@@ -1183,7 +1183,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            overflow: visible;
         }
         
         .image-actions {
@@ -2278,6 +2278,11 @@
                         <img src="${imageUrl}" class="result-image" data-prompt-id="${promptId}" style="
                             cursor: zoom-in;
                         " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')">
+                        <div class="use-as-input-icon" 
+                             onclick="event.stopPropagation(); useAsInput('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')"
+                             title="Use this image to start a new generation">
+                            ↻
+                        </div>
                     </div>
                 `;
                 
@@ -3463,6 +3468,11 @@
                                     min-height: 400px;
                                     object-fit: contain;
                                 " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')">
+                                <div class="use-as-input-icon" 
+                                     onclick="event.stopPropagation(); useAsInput('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')"
+                                     title="Use this image to start a new generation">
+                                    ↻
+                                </div>
                             </div>
                         `;
                         
