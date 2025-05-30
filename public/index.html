@@ -2166,9 +2166,18 @@
                 
                 // Step 5: Generate all images in parallel using the prompts
                 const promises = [];
+                let completedCount = 0;
+                // Find the start button so we can show it again later
+                const startButton = document.querySelector('.start-button');
                 for (let i = 0; i < NUM_IMAGES; i++) {
                     updateCardLoading(i + 1, `Generating transformation...`);
-                    const promise = generateSingleCardImageWithPrompt(i + 1, prompts[i]);
+                    const promise = generateSingleCardImageWithPrompt(i + 1, prompts[i])
+                        .finally(() => {
+                            completedCount++;
+                            if (completedCount === NUM_IMAGES && startButton) {
+                                startButton.style.display = '';
+                            }
+                        });
                     promises.push(promise);
                     await animatedDelay(25);
                 }
@@ -2186,6 +2195,9 @@
                         </div>
                     `;
                 }
+                // Also show the start button again on error
+                const startButton = document.querySelector('.start-button');
+                if (startButton) startButton.style.display = '';
             }
         }
         
