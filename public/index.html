@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RE-KONTEXT - Let AI do the prompting for you | BFL Kontext</title>
+    <title>KOMPOSER - Let AI do the prompting for you | BFL Kontext</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
@@ -1805,7 +1805,7 @@
                 <div class="title-container">
                     <div class="canvas-element title-box">
                         <div class="element-header">
-                            RE-KONTEXT
+                            KOMPOSER
                             <button class="home-btn-inline" onclick="resetApp()" title="Reset App"></button>
                         </div>
                         <div class="element-content">
@@ -2064,7 +2064,7 @@
                 }).then(canvas => {
                     // Create download link
                     const link = document.createElement('a');
-                    link.download = `re-kontext-sequence-${Date.now()}.png`;
+                    link.download = `komposer-sequence-${Date.now()}.png`;
                     link.href = canvas.toDataURL();
                     
                     // Trigger download
@@ -2644,7 +2644,7 @@
                             e.stopPropagation();
                             const numImagesInput = document.getElementById('numImagesInput');
                             const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 8, 48));
-                            console.log('🎯 RE-KONTEXT button clicked, starting autoplay with', numImages, 'images...');
+                            console.log('🎯 KOMPOSER button clicked, starting autoplay with', numImages, 'images...');
                             
                             // Add immediate loading feedback
                             startButton.classList.add('generating');
@@ -2661,7 +2661,7 @@
                         // Ensure button is enabled and clickable
                         startButton.disabled = false;
                         startButton.style.pointerEvents = 'auto';
-                        console.log('✅ RE-KONTEXT button created and ready to click');
+                        console.log('✅ KOMPOSER button created and ready to click');
                         
                         // Create change image button
                         const changeButton = document.createElement('button');
