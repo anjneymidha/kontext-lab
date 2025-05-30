@@ -5231,6 +5231,9 @@
             // Ignore if typing in input fields
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
             
+            // Don't interfere with system shortcuts (Cmd+C, Cmd+V, etc.)
+            if (e.metaKey || e.ctrlKey) return;
+            
             switch(e.key.toLowerCase()) {
                 case 'r':
                     e.preventDefault();
