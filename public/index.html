@@ -95,27 +95,31 @@
 
         /* REMIX button overlay - always visible on top */
         .use-as-input-icon {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            width: 80px;
-            height: 32px;
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            cursor: pointer;
+            position: absolute !important;
+            top: 4px !important;
+            right: 4px !important;
+            width: 80px !important;
+            height: 32px !important;
+            background: rgba(0, 0, 0, 0.9) !important;
+            color: white !important;
+            cursor: pointer !important;
             display: flex !important;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            transition: all 0.2s ease;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.5px !important;
+            transition: all 0.2s ease !important;
             opacity: 1 !important;
-            z-index: 999;
-            border-radius: 16px;
-            backdrop-filter: blur(4px);
-            pointer-events: auto;
+            z-index: 9999 !important;
+            border-radius: 16px !important;
+            backdrop-filter: blur(4px) !important;
+            pointer-events: auto !important;
             visibility: visible !important;
+            transform: none !important;
+            clip: none !important;
+            overflow: visible !important;
+            border: 2px solid rgba(255, 255, 255, 0.3) !important;
         }
 
         .use-as-input-icon:hover {
@@ -134,6 +138,38 @@
             font-size: 14px;
             font-weight: 500;
             opacity: 0.9;
+        }
+        
+        /* Firefox-specific fixes for REMIX button visibility */
+        @-moz-document url-prefix() {
+            .use-as-input-icon {
+                position: absolute !important;
+                top: 4px !important;
+                right: 4px !important;
+                z-index: 10000 !important;
+                transform: translateZ(0) !important;
+                will-change: transform !important;
+                isolation: isolate !important;
+            }
+            
+            .result-image-container {
+                isolation: isolate !important;
+                transform: translateZ(0) !important;
+            }
+        }
+        
+        /* Force button visibility animation */
+        @keyframes forceVisible {
+            0%, 100% { 
+                opacity: 1 !important; 
+                visibility: visible !important; 
+                display: flex !important;
+                z-index: 9999 !important;
+            }
+        }
+        
+        .use-as-input-icon {
+            animation: forceVisible 0.1s ease-in-out 1s both !important;
         }
 
         /* Skeleton loading states */
@@ -1180,16 +1216,17 @@
         }
         
         .result-image-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 400px;
-            overflow: visible;
-            padding: 0;
-            margin: 0;
+            position: relative !important;
+            width: 100% !important;
+            height: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            min-height: 400px !important;
+            overflow: visible !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            z-index: 1 !important;
         }
         
         /* Start Button */
@@ -1325,17 +1362,7 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
         }
         
-        .result-image-container {
-            position: relative;
-            width: 100%;
-            height: calc(100% - 50px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: visible;
-            padding: 0;
-            margin: 0;
-        }
+        /* Duplicate definition removed - handled above with !important */
         
         .image-actions {
             position: absolute;
@@ -2653,6 +2680,38 @@
         window.addEventListener('load', initializeSidebarState);
         window.addEventListener('resize', initializeSidebarState);
         
+        // Force REMIX button visibility (Firefox fix)
+        function ensureRemixButtonsVisible() {
+            const remixButtons = document.querySelectorAll('.use-as-input-icon');
+            remixButtons.forEach(button => {
+                // Force style recalculation
+                button.style.display = 'flex';
+                button.style.visibility = 'visible';
+                button.style.opacity = '1';
+                button.style.zIndex = '9999';
+                button.style.position = 'absolute';
+                button.style.top = '4px';
+                button.style.right = '4px';
+                
+                // Force reflow to ensure browser applies styles
+                button.offsetHeight;
+                
+                // Firefox-specific handling
+                if (navigator.userAgent.includes('Firefox')) {
+                    button.style.transform = 'translateZ(0)';
+                    button.style.isolation = 'isolate';
+                    button.style.willChange = 'transform';
+                }
+            });
+        }
+        
+        // Run visibility check after images load and periodically
+        window.addEventListener('load', () => {
+            setTimeout(ensureRemixButtonsVisible, 500);
+            setTimeout(ensureRemixButtonsVisible, 2000);
+            setInterval(ensureRemixButtonsVisible, 5000);
+        });
+        
         // Sidebar toggle functionality
         function toggleSidebar() {
             const leftSection = document.getElementById('leftSection');
@@ -3671,6 +3730,9 @@
                     card.style.minHeight = '';
                     // Force reflow to ensure browser applies new aspect
                     card.offsetHeight;
+                    
+                    // Ensure REMIX button is visible after image loads
+                    setTimeout(ensureRemixButtonsVisible, 100);
                     // Fallback for browsers without aspect-ratio support
                     if (!('aspectRatio' in document.body.style)) {
                         container.style.height = `${container.offsetWidth / aspect}px`;
