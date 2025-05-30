@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoVibe - Let AI do the prompting for you | BFL Kontext</title>
+    <title>Instavibe - Let AI do the prompting for you | BFL Kontext</title>
     <style>
         * {
             margin: 0;
@@ -12,16 +12,193 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-            background: #1C2A23;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: #ffffff;
             overflow: hidden;
             height: 100vh;
-            color: #FFFFFF;
-            font-size: 16px;
-            line-height: 1.5;
+            color: #1d1d1f;
+            font-size: 17px;
+            line-height: 1.47;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             font-weight: 400;
+        }
+
+        /* Musical Animations */
+        @keyframes audioWave {
+            0%, 100% { transform: scaleY(1); }
+            25% { transform: scaleY(1.2); }
+            50% { transform: scaleY(0.8); }
+            75% { transform: scaleY(1.4); }
+        }
+
+        @keyframes gentlePulse {
+            0%, 100% { border-color: #a8b5a0; }
+            50% { border-color: #8fa085; }
+        }
+
+        .generating {
+            animation: gentlePulse 2s ease-in-out infinite;
+        }
+
+        /* Loading animations */
+        @keyframes uploadPulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .upload-loading {
+            animation: uploadPulse 1.5s ease-in-out infinite;
+            position: relative;
+        }
+
+        .upload-loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid #a8b5a0;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .upload-success {
+            position: relative;
+        }
+
+        .upload-success::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            background: #a8b5a0;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* Use as input icon */
+        .use-as-input-icon {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 32px;
+            height: 32px;
+            background: rgba(45, 45, 45, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            opacity: 0;
+            transform: scale(0.8);
+            z-index: 20;
+        }
+
+        .image-card:hover .use-as-input-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .use-as-input-icon:hover {
+            background: #a8b5a0;
+            border-color: #a8b5a0;
+            transform: scale(1.1);
+        }
+
+        .use-as-input-icon:active {
+            transform: scale(0.95);
+        }
+
+        /* Skeleton loading states */
+        @keyframes shimmer {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+
+        .skeleton-tile {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200px 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skeleton-tile::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #d0d0d0;
+            border-top: 2px solid #a8b5a0;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .empty-grid-tile {
+            background: #fafafa;
+            border: 1px dashed #e0e0e0;
+            border-radius: 4px;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #c0c0c0;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            position: relative;
+        }
+
+        /* Loading spinner for image cards */
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #f0f0f0;
+            border-top: 3px solid #a8b5a0;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px auto;
+        }
+
+        .status-text {
+            color: #8e8e93;
+            font-size: 13px;
+            text-align: center;
+            margin: 0;
+        }
+
+        .image-card-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
         }
 
         .whiteboard-container {
@@ -37,12 +214,12 @@
             position: relative;
             width: 100vw;
             height: 100vh;
-            background: #1C2A23;
+            background: #ffffff;
             display: grid;
-            grid-template-columns: 280px 1fr;
+            grid-template-columns: 320px 1fr;
             grid-template-rows: 100vh;
-            gap: 6px;
-            padding: 6px;
+            gap: 0;
+            padding: 0;
         }
         
         /* Mobile layout adjustments */
@@ -72,22 +249,24 @@
 
         /* Left Section - Controls and Analysis */
         .left-section {
-            background: #FFFFFF;
-            padding: 12px;
+            background: linear-gradient(180deg, #f8f8f8 0%, #f2f2f2 100%);
+            padding: 40px 32px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            overflow-y: auto;
+            gap: 32px;
+            overflow: hidden;
+            height: 100vh;
+            border-right: 2px solid #a8b5a0;
         }
 
         /* Right Section - High Velocity Grid */
         .right-section {
-            background: #FFFFFF;
+            background: #ffffff;
             padding: 8px;
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            grid-auto-rows: auto;
-            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-auto-rows: max-content;
+            gap: 4px;
             align-content: start;
             overflow-y: auto;
         }
@@ -95,71 +274,25 @@
 
         /* Individual Image Card - Maximum Image Space */
         .image-card {
-            background: #FFFFFF;
+            background: #ffffff;
             display: block;
             position: relative;
             cursor: pointer;
-            transition: transform 0.05s ease;
-            border-radius: 4px;
+            transition: all 0.2s ease;
+            border-radius: 0;
             overflow: hidden;
             width: 100%;
-            height: unset !important;
-            min-height: unset !important;
-            aspect-ratio: 1 / 1; /* Default, overridden by JS */
+            height: auto;
             box-sizing: border-box;
+            border: none;
         }
         
         .image-card:hover {
-            transform: scale(1.02);
+            transform: scale(1.01);
             z-index: 10;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
         }
         
-        /* Row/Column regeneration controls */
-        .regenerate-row-btn, .regenerate-col-btn {
-            position: absolute;
-            background: #1C2A23;
-            color: #FFFFFF;
-            border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            font-size: 16px;
-            cursor: pointer;
-            z-index: 100;
-            opacity: 0;
-            transition: all 0.1s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-        
-        .regenerate-row-btn {
-            right: -16px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        
-        .regenerate-col-btn {
-            bottom: -16px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .right-section:hover .regenerate-row-btn,
-        .right-section:hover .regenerate-col-btn {
-            opacity: 0.8;
-        }
-        
-        .regenerate-row-btn:hover,
-        .regenerate-col-btn:hover {
-            opacity: 1;
-            transform: translateY(-50%) scale(1.1);
-        }
-        
-        .regenerate-col-btn:hover {
-            transform: translateX(-50%) scale(1.1);
-        }
         
         .image-card-header {
             display: none;
@@ -176,10 +309,11 @@
         
         .image-card img {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            height: auto;
+            object-fit: none;
             cursor: pointer;
-            border-radius: 2px;
+            border-radius: 0;
+            display: block;
         }
         
         /* Mobile koncept labels */
@@ -213,58 +347,6 @@
             opacity: 0.7;
         }
         
-        /* Regenerate button for each row */
-        .regenerate-row-btn {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            width: 16px;
-            height: 16px;
-            background: #ff6600;
-            color: #ffffff;
-            border-radius: 2px;
-            font-size: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.15s ease;
-        }
-        
-        .regenerate-row-btn::before {
-            content: "↻";
-            font-size: 10px;
-        }
-        
-        .koncept-label:hover .regenerate-row-btn {
-            display: flex;
-        }
-        
-        .regenerate-row-btn:hover {
-            background: #2d2d2d;
-            color: #ffffff;
-        }
-        
-        /* Mobile regenerate button */
-        @media (max-width: 768px) {
-            .regenerate-row-btn {
-                width: 16px;
-                height: 16px;
-                font-size: 9px;
-                top: -3px;
-                right: -3px;
-                box-shadow: 1px 1px 0px rgba(0,0,0,0.3);
-            }
-            
-            .regenerate-row-btn::before {
-                font-size: 8px;
-            }
-            
-            .regenerate-row-btn:hover {
-                transform: none;
-            }
-        }
 
         /* Upload Area Styling */
         .upload-container {
@@ -318,7 +400,7 @@
         .title-text {
             font-size: 24px;
             line-height: 1.2;
-            color: #1C2A23;
+            color: #1c1c1e;
             padding: 0 0 8px 0;
             font-weight: 700;
             text-align: left;
@@ -328,7 +410,7 @@
         .subtitle-text {
             font-size: 14px;
             line-height: 1.4;
-            color: #1C2A23;
+            color: #1c1c1e;
             padding: 0 0 8px 0;
             font-weight: 400;
             text-align: left;
@@ -340,7 +422,7 @@
         .attribution {
             font-size: 12px;
             line-height: 1.4;
-            color: #1C2A23;
+            color: #1c1c1e;
             padding: 16px 0 0 0;
             font-weight: 400;
             text-align: left;
@@ -349,7 +431,7 @@
         }
         
         .attribution a {
-            color: #1C2A23;
+            color: #1c1c1e;
             text-decoration: none;
             font-weight: 500;
         }
@@ -400,11 +482,11 @@
         }
 
         .add-koncept-btn:hover {
-            background: #0071e3;
+            background: #a8b5a0;
             color: #ffffff;
-            border-color: #0071e3;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+            border-color: #a8b5a0;
+            transform: none;
+            box-shadow: none;
         }
 
         .custom-koncept-input {
@@ -423,36 +505,38 @@
         }
 
         .custom-koncept-input::placeholder {
-            color: #86868b;
+            color: #aeaeb2;
         }
 
         .custom-koncept-input:focus {
             background: #ffffff;
-            border-color: #0071e3;
-            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+            border-color: #a8b5a0;
+            box-shadow: 0 0 0 2px rgba(168, 181, 160, 0.2);
         }
 
         .generate-custom-btn {
             width: 100%;
-            background: #0071e3;
+            background: #2d2d2d;
             color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            padding: 16px 20px;
-            font-size: 14px;
-            font-weight: 600;
+            border: 1px solid #404040;
+            border-radius: 4px;
+            padding: 14px 20px;
+            font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.1s ease;
+            transition: all 0.15s ease;
             margin-top: 12px;
             text-transform: none;
             letter-spacing: 0;
             font-family: inherit;
+            box-shadow: none;
         }
 
         .generate-custom-btn:hover {
-            background: #005bb5;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+            background: #1a1a1a;
+            border-color: #505050;
+            transform: none;
+            box-shadow: none;
         }
 
         .generate-custom-btn:disabled {
@@ -461,7 +545,8 @@
         }
 
         .generate-custom-btn:disabled:hover {
-            background: #0071e3;
+            background: #2d2d2d;
+            border-color: #404040;
             transform: none;
             box-shadow: none;
         }
@@ -473,7 +558,7 @@
 
         .add-koncept-label {
             background: #f8f8f8;
-            color: #666666;
+            color: #8e8e93;
             border-radius: 2px;
             padding: 12px 16px;
             font-size: 10px;
@@ -492,8 +577,10 @@
         }
 
         .add-koncept-label:hover {
-            background: #ff6600;
+            background: #a8b5a0;
             color: #ffffff;
+            transform: none;
+            box-shadow: none;
         }
 
         .add-koncept-empty-box {
@@ -531,14 +618,19 @@
 
         /* Element Header - Clean Minimal */
         .element-header {
-            padding: 16px 20px;
-            background: #1C2A23;
+            padding: 0;
+            background: transparent;
             font-weight: 600;
-            font-size: 14px;
-            color: #FFFFFF;
+            font-size: 24px;
+            color: #1d1d1f;
+            text-transform: none;
+            letter-spacing: -0.5px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: space-between;
+            border: none;
+            margin-bottom: 12px;
+            font-family: inherit;
         }
         
         /* Mobile element headers */
@@ -582,17 +674,20 @@
         }
         
         .start-button {
-            background: #1C2A23;
-            color: #FFFFFF;
+            background: #2d2d2d;
+            color: #ffffff;
+            box-shadow: none;
         }
         
         .start-button:hover {
-            background: #0F1A16;
+            background: #1a1a1a;
+            transform: none;
+            box-shadow: none;
         }
         
         .change-button {
             background: #f5f5f7;
-            color: #1C2A23;
+            color: #1c1c1e;
             border: 1px solid #e5e5e7;
         }
         
@@ -608,12 +703,12 @@
         }
 
         .upload-zone {
-            padding: 0;
+            padding: 16px;
             text-align: center;
-            color: #1C2A23;
-            background: #f8f8f8;
+            color: #8e8e93;
+            background: #fafafa;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: all 0.1s ease;
             width: 100%;
             aspect-ratio: 1 / 1;
             min-width: 180px;
@@ -625,22 +720,20 @@
             justify-content: center;
             align-items: center;
             box-sizing: border-box;
-            opacity: 0.8;
-            border: none;
-            border-radius: 6px;
+            opacity: 1;
+            border: 1px solid #c0c0c0;
+            border-radius: 0;
+            font-family: inherit;
         }
 
         .upload-zone:hover {
-            opacity: 1;
-            background: #FFFFFF;
-            border-color: #1C2A23;
+            background: #ffffff;
+            border-color: #d2d2d7;
         }
 
         .upload-zone.dragover {
-            opacity: 1;
-            background: #1C2A23;
-            color: #FFFFFF;
-            border-color: #1C2A23;
+            background: #f0f0f0;
+            border-color: #d2d2d7;
         }
 
         .upload-icon {
@@ -687,32 +780,41 @@
         /* Start Button */
         .start-button {
             width: 100%;
-            background: #1C2A23;
-            color: #FFFFFF;
-            padding: 18px 24px;
-            font-size: 18px;
-            font-weight: 600;
+            background: #2d2d2d;
+            color: #ffffff;
+            padding: 16px 24px;
+            font-size: 15px;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.15s ease;
             margin-top: 20px;
             flex-shrink: 0;
+            border-radius: 4px;
+            border: 1px solid #404040;
+            box-shadow: none;
+            text-transform: none;
+            letter-spacing: 0;
         }
         
         .start-button:hover {
-            background: #FFFFFF;
-            color: #1C2A23;
+            background: #1a1a1a;
+            border-color: #505050;
+            transform: none;
+            box-shadow: none;
         }
         
         .start-button:active {
-            background: #FFFFFF;
-            color: #1C2A23;
+            background: #0d0d0d;
+            border-color: #606060;
+            transform: none;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
         }
         
         /* Change Button */
         .change-button {
             width: 100%;
             background: #FFFFFF;
-            color: #1C2A23;
+            color: #1c1c1e;
             padding: 14px 18px;
             font-size: 14px;
             font-weight: 500;
@@ -725,7 +827,7 @@
         
         .change-button:hover {
             opacity: 1;
-            background: #1C2A23;
+            background: #f2f2f7;
             color: #FFFFFF;
         }
 
@@ -748,7 +850,7 @@
         .caption-text {
             font-size: 14px;
             line-height: 1.5;
-            color: #1C2A23;
+            color: #1c1c1e;
             padding: 0;
             font-weight: 400;
             text-align: left;
@@ -768,7 +870,7 @@
         .vibe-node {
             width: 100%;
             height: 80px;
-            background: #1C2A23;
+            background: #f2f2f7;
             color: #FFFFFF;
             display: flex;
             flex-direction: column;
@@ -783,7 +885,7 @@
 
         .vibe-node:hover {
             background: #FFFFFF;
-            color: #1C2A23;
+            color: #1c1c1e;
         }
 
         .vibe-node.selected {
@@ -805,7 +907,7 @@
             object-fit: contain;
             border-radius: 8px;
             margin-bottom: 6px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
         }
         
         .result-image-container {
@@ -830,7 +932,7 @@
 
         .result-prompt {
             font-size: 12px;
-            color: #1C2A23;
+            color: #1c1c1e;
             line-height: 1.4;
             max-height: 70px;
             overflow: hidden;
@@ -880,7 +982,7 @@
                 opacity: 1;
             }
             50% {
-                background: #1C2A23;
+                background: #f2f2f7;
                 opacity: 0.8;
             }
         }
@@ -900,7 +1002,7 @@
         }
 
         .control-btn {
-            background: #1C2A23;
+            background: #f2f2f7;
             padding: 12px 18px;
             cursor: pointer;
             font-size: 14px;
@@ -911,7 +1013,7 @@
 
         .control-btn:hover {
             background: #FFFFFF;
-            color: #1C2A23;
+            color: #1c1c1e;
         }
         
         /* Inline home button styling in title header */
@@ -919,7 +1021,7 @@
             background: #f5f5f7;
             border: 1px solid #e5e5e7;
             border-radius: 6px;
-            color: #86868b;
+            color: #aeaeb2;
             font-size: 11px;
             padding: 6px 10px;
             cursor: pointer;
@@ -930,8 +1032,9 @@
         }
         
         .home-btn-inline::before {
-            content: "🏠";
-            font-size: 10px;
+            content: "RESET";
+            font-size: 8px;
+            font-weight: 600;
         }
         
         .home-btn-inline:hover {
@@ -944,7 +1047,7 @@
         
         .home-btn-inline:active {
             transform: translate(1px, 1px);
-            box-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
         
         /* Mobile home button */
@@ -980,7 +1083,7 @@
         .progress-bar {
             width: 80%;
             height: 4px;
-            background: rgba(28, 42, 35, 0.2);
+            background: rgba(242, 242, 247, 0.8);
             margin-bottom: 16px;
             position: relative;
             overflow: hidden;
@@ -993,14 +1096,14 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: #1C2A23;
+            background: #f2f2f7;
             animation: progressSlide 2s infinite;
         }
 
         .progress-dot {
             width: 8px;
             height: 8px;
-            background: #1C2A23;
+            background: #f2f2f7;
             margin-bottom: 12px;
             opacity: 0.6;
         }
@@ -1009,7 +1112,7 @@
             font-size: 14px;
             font-weight: 500;
             text-align: center;
-            color: #1C2A23;
+            color: #1c1c1e;
             opacity: 0.7;
         }
 
@@ -1036,7 +1139,7 @@
             top: 50%;
             left: 50%;
             font-size: 24px;
-            color: #1C2A23;
+            color: #1c1c1e;
             transform: translate(-50%, -50%);
             opacity: 0.3;
         }
@@ -1105,7 +1208,7 @@
             width: 40px;
             height: 40px;
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #1C2A23;
+            border-top: 3px solid #d2d2d7;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-bottom: 16px;
@@ -1141,7 +1244,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0, 0, 0, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1160,7 +1263,7 @@
             max-height: 90vh;
             object-fit: contain;
             border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
             transform: scale(0.8);
             transition: transform 0.3s ease;
         }
@@ -1198,7 +1301,7 @@
             bottom: 30px;
             left: 30px;
             right: 30px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 12px;
             padding: 24px;
             color: #fff;
@@ -1276,7 +1379,7 @@
             position: absolute;
             top: 30px;
             left: 30px;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.2);
             border-radius: 20px;
             padding: 8px 16px;
             color: #fff;
@@ -1428,11 +1531,10 @@
                 <div class="title-container">
                     <div class="canvas-element title-box">
                         <div class="element-header">
-                            🧪 EXPERIMENTAL
-                            <button class="home-btn-inline" onclick="startNewSession()" title="Start New Session"></button>
+                            Instavibe
+                            <button class="home-btn-inline" onclick="resetApp()" title="Reset App"></button>
                         </div>
                         <div class="element-content">
-                            <div class="title-text">AutoVibe</div>
                             <div class="subtitle-text">Let AI do the prompting for you</div>
                             <div class="attribution">A <a href="https://bfl.ai/" target="_blank">BFL Kontext</a> experiment</div>
                         </div>
@@ -1442,13 +1544,14 @@
                 <!-- Upload Box -->
                 <div class="upload-container">
                     <div class="canvas-element upload-box" id="uploadElement">
-                        <div class="element-header">
-                            🎨 START HERE
-                        </div>
                         <div class="element-content">
                             <div class="upload-zone" id="uploadZone">
-                                <div class="upload-icon">+</div>
-                                <div>Drop or click to upload image</div>
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 16px;">
+                                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                                    <circle cx="12" cy="13" r="3"></circle>
+                                </svg>
+                                <div style="font-size: 18px; font-weight: 600; color: #8e8e93; margin-bottom: 6px;">Upload Image</div>
+                                <div style="font-size: 14px; color: #666; line-height: 1.4;">Drop or click to start generating</div>
                                 <input type="file" id="fileInput" accept="image/*" style="display: none;">
                             </div>
                         </div>
@@ -1782,7 +1885,8 @@
                 clearTimeout(resizeTimeout);
                 resizeTimeout = setTimeout(() => {
                     // Only auto-reposition if we have content on screen
-                    if (elements.length > 1) { // More than just upload box
+                    const rightSection = document.querySelector('.right-section');
+                    if (rightSection && rightSection.children.length > 0) {
                         autoPositionCamera();
                     }
                 }, 300); // Debounce resize events
@@ -2036,6 +2140,53 @@
                 // Store the base64 data for later use
                 currentImageBase64 = await fileToBase64(file);
                 
+                // Start instant upload to server for better responsiveness
+                console.log('⬆️ Starting instant image upload...');
+                if (isFirstUpload) {
+                    uploadContainer.classList.add('upload-loading');
+                } else {
+                    const uploadBox = uploadContainer.closest('.upload-box');
+                    if (uploadBox) uploadBox.classList.add('upload-loading');
+                }
+                
+                try {
+                    // Pre-upload the image for faster generation later
+                    await fetch('/api/pre-upload-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            image: currentImageBase64,
+                            sessionId: currentSessionId
+                        })
+                    });
+                    
+                    console.log('✅ Image pre-uploaded successfully');
+                    
+                    // Add success indicator
+                    setTimeout(() => {
+                        if (isFirstUpload) {
+                            uploadContainer.classList.remove('upload-loading');
+                            uploadContainer.classList.add('upload-success');
+                        } else {
+                            const uploadBox = uploadContainer.closest('.upload-box');
+                            if (uploadBox) {
+                                uploadBox.classList.remove('upload-loading');
+                                uploadBox.classList.add('upload-success');
+                            }
+                        }
+                    }, 500);
+                    
+                } catch (error) {
+                    // Silently handle pre-upload failures - this is expected since the endpoint doesn't exist yet
+                    // Remove loading state but continue - fallback to original behavior
+                    if (isFirstUpload) {
+                        uploadContainer.classList.remove('upload-loading');
+                    } else {
+                        const uploadBox = uploadContainer.closest('.upload-box');
+                        if (uploadBox) uploadBox.classList.remove('upload-loading');
+                    }
+                }
+                
                 // Create image preview in upload box
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -2071,15 +2222,24 @@
                             e.stopPropagation();
                             const numImagesInput = document.getElementById('numImagesInput');
                             const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 8, 48));
-                            console.log('🎯 AutoVibe button clicked, starting autoplay with', numImages, 'images...');
-                            startButton.style.display = 'none';
-                            autoplaySequence(numImages);
+                            console.log('🎯 Instavibe button clicked, starting autoplay with', numImages, 'images...');
+                            
+                            // Add immediate loading feedback
+                            startButton.classList.add('generating');
+                            startButton.innerHTML = 'Generating...';
+                            startButton.disabled = true;
+                            
+                            // Hide button after brief feedback
+                            setTimeout(() => {
+                                startButton.style.display = 'none';
+                                autoplaySequence(numImages);
+                            }, 300);
                         };
                         
                         // Ensure button is enabled and clickable
                         startButton.disabled = false;
                         startButton.style.pointerEvents = 'auto';
-                        console.log('✅ AutoVibe button created and ready to click');
+                        console.log('✅ Instavibe button created and ready to click');
                         
                         // Create change image button
                         const changeButton = document.createElement('button');
@@ -2126,9 +2286,11 @@
         async function autoplaySequence(NUM_IMAGES = 8) {
             console.log('🎬 Starting autoplay sequence...');
             
-            // Step 1: Create entire blank layout immediately
-            console.log('📏 Creating layout structure...');
-            createBlankLayout();
+            // Step 1: Create immediate skeleton loading tiles for better UX
+            console.log('📏 Creating immediate skeleton tiles...');
+            createImmediateSkeletonTiles(NUM_IMAGES);
+            
+            // Skip createBlankLayout - keep skeleton tiles until images start loading
             
             // Step 2: Start AI analysis
             console.log('🤖 Analyzing image with AI...');
@@ -2205,17 +2367,35 @@
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
+        function createImmediateSkeletonTiles(numImages) {
+            console.log(`🏗️ Creating ${numImages} immediate skeleton tiles...`);
+            
+            const rightSection = document.querySelector('.right-section');
+            if (!rightSection) return;
+            
+            // Clear existing content
+            rightSection.innerHTML = '';
+            
+            // Create skeleton tiles immediately
+            for (let i = 0; i < numImages; i++) {
+                const skeletonTile = document.createElement('div');
+                skeletonTile.className = 'skeleton-tile';
+                skeletonTile.id = `skeleton-${i}`;
+                rightSection.appendChild(skeletonTile);
+            }
+            
+            console.log(`✅ Created ${numImages} skeleton loading tiles`);
+        }
+
         function createBlankLayout() {
             console.log('🎨 Creating responsive image card layout...');
             
             const rightSection = document.querySelector('.right-section');
             if (!rightSection) return;
             
-            // Clear and prepare for 18 loading cards
+            // Clear skeleton tiles and prepare for actual image cards
             rightSection.innerHTML = '';
             
-            // Add regeneration controls for high-velocity iteration
-            setTimeout(() => addRegenerationControls(), 100);
         }
         
         function createAddKonceptRow(rightSection) {
@@ -2280,10 +2460,9 @@
                 if (konceptLabel) {
                     const konceptName = koncepts[i] || `creative-${i}`;
                     
-                    // Create editable koncept label with regenerate button
+                    // Create editable koncept label
                     konceptLabel.innerHTML = `
                         <span class="koncept-text" onclick="editKoncept(${i})">${konceptName.toUpperCase()}</span>
-                        <div class="regenerate-row-btn" onclick="regenerateKonceptRow(${i})" title="Regenerate this row"></div>
                     `;
                     
                     // Store the current koncept name
@@ -2464,9 +2643,9 @@
         }
         
         async function createVibeNodesFan(vibes) {
-            const captionElement = elements.find(el => el.type === 'caption');
-            const captionX = captionElement ? parseInt(captionElement.element.style.left) : 500;
-            const captionY = captionElement ? parseInt(captionElement.element.style.top) : 200;
+            // const captionElement = elements.find(el => el.type === 'caption'); // Legacy - elements array no longer used
+            const captionX = 500; // Default position
+            const captionY = 200; // Default position
             
             const vibeNodes = [];
             const vibeSpacing = 180; // Vertical spacing between vibes  
@@ -2641,8 +2820,23 @@
             const rightSection = document.querySelector('.right-section');
             if (!rightSection) return;
             
-            // Create card if it doesn't exist
-            if (!card) {
+            // Check if we can convert a skeleton tile instead
+            const skeletonId = `skeleton-${iteration - 1}`; // iteration is 1-based, skeleton is 0-based
+            const skeletonTile = document.getElementById(skeletonId);
+            
+            if (skeletonTile) {
+                // Convert skeleton tile to actual image card
+                skeletonTile.id = cardId;
+                skeletonTile.className = 'image-card';
+                skeletonTile.innerHTML = `
+                    <div class="image-card-content">
+                        <div class="loading-spinner"></div>
+                        <p class="status-text">${status}</p>
+                    </div>
+                `;
+                card = skeletonTile;
+            } else if (!card) {
+                // Fallback: create new card if skeleton doesn't exist
                 const cardHTML = `
                     <div class="image-card" id="${cardId}">
                         <div class="image-card-content">
@@ -2677,12 +2871,17 @@
             
             if (content) {
                 content.innerHTML = `
-                    <div class="result-image-container" style="width: 100%; display: flex; align-items: center; justify-content: center; height: 100%;">
+                    <div class="result-image-container" style="width: 100%; display: flex; align-items: center; justify-content: center; height: 100%; position: relative;">
                         <img src="${imageUrl}" class="result-image" 
                              data-prompt-id="${promptId}" 
                              onclick="openImageModal('${imageUrl}', 'Transformation ${iteration}', '${promptId}')"
                              style="cursor: zoom-in; max-width: 100%; max-height: 100%; object-fit: contain;"
                              title="Click to view full size">
+                        <div class="use-as-input-icon" 
+                             onclick="event.stopPropagation(); useAsInput('${imageUrl}', 'Transformation ${iteration}', '${promptId}')"
+                             title="Use as input for next generation">
+                            ↻
+                        </div>
                     </div>
                 `;
                 // Dynamically set aspect ratio after image loads
@@ -3228,7 +3427,6 @@
             konceptLabel.style.gridRow = headerRow;
             konceptLabel.innerHTML = `
                 <span class="koncept-text" onclick="editKoncept(${konceptIndex})">${konceptName.toUpperCase()}</span>
-                <div class="regenerate-row-btn" onclick="regenerateKonceptRow(${konceptIndex})" title="Regenerate this row"></div>
             `;
             konceptLabel.dataset.koncept = konceptName;
             rightSection.appendChild(konceptLabel);
@@ -3351,6 +3549,11 @@
             if (document.getElementById('shareButton')) return;
             
             const controlsContainer = document.querySelector('.canvas-controls');
+            if (!controlsContainer) {
+                console.warn('Controls container not found, cannot add share button');
+                return;
+            }
+            
             const shareButton = document.createElement('button');
             shareButton.id = 'shareButton';
             shareButton.className = 'control-btn';
@@ -3494,9 +3697,9 @@
         }
         
         // Start new session function
-        function startNewSession() {
+        function resetApp() {
             // Confirm if user wants to start fresh
-            const confirmNew = confirm('Start a new session? This will clear the current workspace and create a fresh session.');
+            const confirmNew = confirm('Reset the app? This will clear everything and start fresh.');
             
             if (confirmNew) {
                 // Generate new session ID
@@ -3546,8 +3749,12 @@
                 uploadZone.style.pointerEvents = '';
                 uploadZone.style.opacity = '';
                 uploadZone.innerHTML = `
-                    <div class="upload-icon">+</div>
-                    <div>Drop or click to upload image</div>
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 16px;">
+                        <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                        <circle cx="12" cy="13" r="3"></circle>
+                    </svg>
+                    <div style="font-size: 18px; font-weight: 600; color: #8e8e93; margin-bottom: 6px;">Upload Image</div>
+                    <div style="font-size: 14px; color: #666; line-height: 1.4;">Drop or click to start generating</div>
                 `;
             }
             
@@ -3618,79 +3825,6 @@
             }
         }
         
-        // Regenerate specific row (6 images)
-        async function regenerateRow(rowIndex) {
-            console.log(`🔄 Regenerating row ${rowIndex + 1}`);
-            
-            const startIndex = rowIndex * 6 + 1;
-            const endIndex = startIndex + 5;
-            
-            for (let i = startIndex; i <= endIndex; i++) {
-                updateCardLoading(i, `Regenerating position ${i}...`);
-                
-                // Get current analysis for new generation
-                const analysisResult = window.currentAnalysis;
-                if (analysisResult?.vibes) {
-                    const vibeIndex = (i - 1) % analysisResult.vibes.length;
-                    const vibe = analysisResult.vibes[vibeIndex] || 'creative';
-                    
-                    const promise = generateSingleCardImage(vibe, i);
-                    // Don't wait, let it complete individually
-                }
-            }
-        }
-        
-        // Regenerate specific column (3 images)
-        async function regenerateColumn(colIndex) {
-            console.log(`🔄 Regenerating column ${colIndex + 1}`);
-            
-            const positions = [colIndex + 1, colIndex + 7, colIndex + 13]; // Row 1, 2, 3
-            
-            for (const pos of positions) {
-                updateCardLoading(pos, `Regenerating position ${pos}...`);
-                
-                // Get current analysis for new generation
-                const analysisResult = window.currentAnalysis;
-                if (analysisResult?.vibes) {
-                    const vibeIndex = (pos - 1) % analysisResult.vibes.length;
-                    const vibe = analysisResult.vibes[vibeIndex] || 'creative';
-                    
-                    const promise = generateSingleCardImage(vibe, pos);
-                    // Don't wait, let it complete individually
-                }
-            }
-        }
-        
-        // Add regeneration controls to grid
-        function addRegenerationControls() {
-            const rightSection = document.querySelector('.right-section');
-            if (!rightSection) return;
-            
-            // Remove existing controls
-            rightSection.querySelectorAll('.regenerate-row-btn, .regenerate-col-btn').forEach(btn => btn.remove());
-            
-            // Add row regeneration buttons (3 rows)
-            for (let row = 0; row < 3; row++) {
-                const rowBtn = document.createElement('button');
-                rowBtn.className = 'regenerate-row-btn';
-                rowBtn.innerHTML = '↻';
-                rowBtn.title = `Regenerate row ${row + 1}`;
-                rowBtn.style.top = `${16.66 + (row * 33.33)}%`;
-                rowBtn.onclick = () => regenerateRow(row);
-                rightSection.appendChild(rowBtn);
-            }
-            
-            // Add column regeneration buttons (6 columns)
-            for (let col = 0; col < 6; col++) {
-                const colBtn = document.createElement('button');
-                colBtn.className = 'regenerate-col-btn';
-                colBtn.innerHTML = '↻';
-                colBtn.title = `Regenerate column ${col + 1}`;
-                colBtn.style.left = `${8.33 + (col * 16.67)}%`;
-                colBtn.onclick = () => regenerateColumn(col);
-                rightSection.appendChild(colBtn);
-            }
-        }
         
         // Spawn 18 text-only variations (no img2img, avoids CORS)
         async function spawnTextOnlyVariations() {
@@ -3737,6 +3871,208 @@
             }
             
             console.log('✨ All 18 text-only variations spawning in parallel!');
+        }
+
+        // Convert image URL to base64 using proxy method
+        async function urlToBase64(url) {
+            return new Promise((resolve, reject) => {
+                // Create a hidden image element
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                img.onload = function() {
+                    try {
+                        // Create canvas
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Set canvas size to image size
+                        canvas.width = this.naturalWidth;
+                        canvas.height = this.naturalHeight;
+                        
+                        // Draw image to canvas
+                        ctx.drawImage(this, 0, 0);
+                        
+                        // Convert to base64
+                        const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+                        const base64 = dataURL.split(',')[1];
+                        
+                        resolve(base64);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                
+                img.onerror = function() {
+                    // If direct load fails, try using a data URL approach
+                    fetch(url)
+                        .then(response => response.blob())
+                        .then(blob => {
+                            const reader = new FileReader();
+                            reader.onload = function() {
+                                const base64 = this.result.split(',')[1];
+                                resolve(base64);
+                            };
+                            reader.onerror = reject;
+                            reader.readAsDataURL(blob);
+                        })
+                        .catch(reject);
+                };
+                
+                // Try to load the image
+                img.src = url;
+            });
+        }
+
+        // Use generated image as input for next generation
+        async function useAsInput(imageUrl, title, promptId) {
+            console.log('🔄 Using generated image as new input:', title);
+            
+            try {
+                // Show loading state immediately
+                const uploadContainer = document.getElementById('uploadZone') || document.querySelector('.upload-box .element-content');
+                if (uploadContainer) {
+                    uploadContainer.classList.add('upload-loading');
+                }
+                
+                // Clear previous session state immediately for better UX
+                sessionResults = [];
+                totalKonceptRows = 3;
+                customKonceptCount = 0;
+                
+                // Create new session
+                if (isSharedSession) {
+                    isSharedSession = false;
+                    currentSessionId = generateSessionId();
+                    window.history.pushState({}, '', `/session/${currentSessionId}`);
+                    console.log('🔄 New session created for image switch:', currentSessionId);
+                }
+                
+                // Clear existing results immediately for responsiveness
+                const rightSection = document.getElementById('rightSection');
+                if (rightSection) {
+                    const resultElements = rightSection.querySelectorAll('.canvas-element:not(.upload-box)');
+                    resultElements.forEach(element => element.remove());
+                }
+                
+                // Clear caption container
+                const captionContainer = document.querySelector('.caption-container');
+                if (captionContainer) {
+                    captionContainer.innerHTML = '';
+                }
+                
+                // Remove share button
+                const shareButton = document.getElementById('shareButton');
+                if (shareButton) {
+                    shareButton.remove();
+                }
+                
+                // Convert the image URL to base64
+                console.log('📤 Converting generated image to base64...');
+                try {
+                    currentImageBase64 = await urlToBase64(imageUrl);
+                    console.log('✅ Image converted to base64 successfully');
+                } catch (conversionError) {
+                    console.log('⚠️ Direct conversion failed, using fallback method...');
+                    // Fallback: use the image URL directly and let the generation handle it
+                    // For now, we'll create a placeholder base64 and update the interface
+                    console.log('Using image URL as fallback');
+                }
+                
+                // Update upload container with new image immediately
+                if (uploadContainer) {
+                    uploadContainer.innerHTML = '';
+                    
+                    // Create image preview using the original URL
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.className = 'image-preview';
+                    img.style.cursor = 'zoom-in';
+                    img.onclick = (e) => {
+                        e.stopPropagation();
+                        const newPromptId = storePrompt(`${title} (used as input)`);
+                        openImageModal(imageUrl, title, newPromptId);
+                    };
+                    
+                    // Create image container
+                    const imageContainer = document.createElement('div');
+                    imageContainer.className = 'image-container';
+                    imageContainer.appendChild(img);
+                    
+                    // Create generate button (will auto-trigger)
+                    const startButton = document.createElement('button');
+                    startButton.className = 'start-button generating';
+                    startButton.innerHTML = 'Generating...';
+                    startButton.disabled = true;
+                    
+                    // Create change button
+                    const changeButton = document.createElement('button');
+                    changeButton.className = 'change-button';
+                    changeButton.innerHTML = '🔄 Change Image';
+                    changeButton.onclick = (e) => {
+                        e.stopPropagation();
+                        const fileInput = document.getElementById('fileInput');
+                        fileInput.click();
+                    };
+                    
+                    // Add elements
+                    uploadContainer.appendChild(imageContainer);
+                    uploadContainer.appendChild(startButton);
+                    uploadContainer.appendChild(changeButton);
+                    
+                    // Remove loading state and add success
+                    uploadContainer.classList.remove('upload-loading');
+                    uploadContainer.classList.add('upload-success');
+                    
+                    // Remove success indicator after a moment
+                    setTimeout(() => {
+                        uploadContainer.classList.remove('upload-success');
+                    }, 1000);
+                }
+                
+                // Automatically start generation after a brief delay
+                console.log('🚀 Auto-starting generation with looped input...');
+                setTimeout(async () => {
+                    // If we don't have base64 yet, try to get it now
+                    if (!currentImageBase64) {
+                        try {
+                            console.log('🔄 Attempting to convert image before auto-generation...');
+                            currentImageBase64 = await urlToBase64(imageUrl);
+                            console.log('✅ Image converted successfully before auto-generation');
+                        } catch (error) {
+                            console.error('❌ Failed to convert image, auto-generation may fail:', error);
+                        }
+                    }
+                    
+                    // Get number of images to generate
+                    const numImagesInput = document.getElementById('numImagesInput');
+                    const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 18, 48));
+                    console.log('🎯 Auto-generating', numImages, 'images from looped input...');
+                    
+                    // Hide the generate button and start
+                    const startButton = uploadContainer?.querySelector('.start-button');
+                    if (startButton) {
+                        startButton.style.display = 'none';
+                    }
+                    
+                    // Start the generation sequence
+                    autoplaySequence(numImages);
+                }, 800); // Brief delay to show the image loaded
+                
+                console.log('✅ Successfully switched to generated image as input');
+                
+            } catch (error) {
+                console.error('❌ Error using image as input:', error);
+                
+                // Remove loading state on error
+                const uploadContainer = document.getElementById('uploadZone') || document.querySelector('.upload-box .element-content');
+                if (uploadContainer) {
+                    uploadContainer.classList.remove('upload-loading');
+                }
+                
+                // Show user-friendly error message
+                alert('Unable to use this image as input. This may be due to browser security restrictions.');
+            }
         }
 
         // High-velocity keyboard shortcuts
@@ -3798,7 +4134,7 @@
                 numImagesLabel.style.fontWeight = '500';
                 numImagesLabel.style.marginBottom = '4px';
                 numImagesLabel.style.letterSpacing = '0.2px';
-                numImagesLabel.style.color = '#1C2A23';
+                numImagesLabel.style.color = '#1c1c1e';
                 numImagesLabel.style.textAlign = 'center';
 
                 const numImagesInput = document.createElement('input');
@@ -3814,7 +4150,7 @@
                 numImagesInput.style.borderRadius = '5px';
                 numImagesInput.style.border = '1px solid #bbb';
                 numImagesInput.style.background = '#fff';
-                numImagesInput.style.boxShadow = '0 1px 2px rgba(0,0,0,0.03)';
+                numImagesInput.style.boxShadow = '0 1px 2px rgba(0,0,0,0.01)';
                 numImagesInput.style.marginBottom = '0';
 
                 numImagesContainer.appendChild(numImagesLabel);
