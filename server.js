@@ -719,7 +719,7 @@ function generateOpenGraphTags(sessionData, sessionId, req) {
   const sessionUrl = `${baseUrl}/session/${sessionId}`;
   
   // Default values
-  let title = 'AutoVibe - AI Writes All Your Prompts | BFL Kontext';
+  let title = 'REKONTEXT - AI Writes All Your Prompts | BFL Kontext';
   let description = 'Upload image → AI creates wild prompts → See magic happen. A BFL Kontext experiment. No prompting skills needed!';
   let imageUrl = `${baseUrl}/og-image.svg`; // Default image
   
@@ -731,7 +731,7 @@ function generateOpenGraphTags(sessionData, sessionId, req) {
       : 'AI transformations';
     
     // Custom title with koncept names
-    title = `${konceptText} | AutoVibe - BFL Kontext`;
+    title = `${konceptText} | REKONTEXT - BFL Kontext`;
     
     // Custom description with session details
     const resultCount = sessionData.results ? sessionData.results.filter(r => !r.hasError && !r.isModerated).length : 0;
@@ -763,7 +763,7 @@ function generateOpenGraphTags(sessionData, sessionId, req) {
     <meta property="og:image" content="${imageUrl}">
     <meta property="og:url" content="${sessionUrl}">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="AutoVibe">
+    <meta property="og:site_name" content="REKONTEXT">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${safeTitle}">
     <meta name="twitter:description" content="${safeDescription}">
@@ -791,7 +791,7 @@ app.get('/session/:id', async (req, res) => {
     const ogTags = generateOpenGraphTags(sessionData, sessionId, req);
     
     // Inject Open Graph tags into HTML head
-    html = html.replace('<title>AutoVibe - AI Writes All Your Prompts | BFL Kontext</title>', ogTags);
+    html = html.replace('<title>REKONTEXT - AI Writes All Your Prompts | BFL Kontext</title>', ogTags);
     
     res.send(html);
     
@@ -1128,7 +1128,7 @@ Make sure there is a good deal of variation between the instructions.`
   }
 });
 
-// API endpoint for saving AutoVibe sessions
+// API endpoint for saving REKONTEXT sessions
 app.post('/api/save-session', async (req, res) => {
   console.log('💾 Save session endpoint hit');
   
@@ -1507,7 +1507,7 @@ app.post('/api/store-generated-image', async (req, res) => {
       responseType: 'arraybuffer',
       timeout: 30000,
       headers: {
-        'User-Agent': 'Instavibe-Server/1.0'
+        'User-Agent': 'REKONTEXT-Server/1.0'
       }
     });
     
@@ -1746,9 +1746,9 @@ app.get('/image/:sessionId/:konceptIndex/:resultIndex', async (req, res) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoVibe - AI Generated Image | BFL Kontext</title>
-    <meta property="og:title" content="AutoVibe - AI Generated Image | BFL Kontext">
-    <meta property="og:description" content="Check out this AI-generated image transformation from AutoVibe - a BFL Kontext experiment">
+    <title>REKONTEXT - AI Generated Image | BFL Kontext</title>
+    <meta property="og:title" content="REKONTEXT - AI Generated Image | BFL Kontext">
+    <meta property="og:description" content="Check out this AI-generated image transformation from REKONTEXT - a BFL Kontext experiment">
     <meta property="og:image" content="${imageData.imageUrl || imageData.image}">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
@@ -1816,7 +1816,7 @@ app.get('/image/:sessionId/:konceptIndex/:resultIndex', async (req, res) => {
 </head>
 <body>
     <div class="container">
-        <h1>🎨 AutoVibe</h1>
+        <h1>🎨 REKONTEXT</h1>
         <p>AI-Generated Image Transformation</p>
         <p style="font-size: 12px; color: #888; margin-top: 10px;">A <a href="https://bfl.ai/" style="color: #ff6600;">BFL Kontext</a> experiment</p>
         

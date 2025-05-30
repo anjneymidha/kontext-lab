@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instavibe - Let AI do the prompting for you | BFL Kontext</title>
+    <title>RE-KONTEXT - Let AI do the prompting for you | BFL Kontext</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
@@ -117,7 +117,8 @@
             backdrop-filter: blur(4px);
         }
 
-        .image-card:hover .use-as-input-icon {
+        .image-card:hover .use-as-input-icon,
+        .result-image-container:hover .use-as-input-icon {
             opacity: 1;
             transform: translateY(0);
         }
@@ -1862,7 +1863,7 @@
                 <div class="title-container">
                     <div class="canvas-element title-box">
                         <div class="element-header">
-                            Instavibe
+                            RE-KONTEXT
                             <button class="home-btn-inline" onclick="resetApp()" title="Reset App"></button>
                         </div>
                         <div class="element-content">
@@ -2126,7 +2127,7 @@
                 }).then(canvas => {
                     // Create download link
                     const link = document.createElement('a');
-                    link.download = `instavibe-sequence-${Date.now()}.png`;
+                    link.download = `re-kontext-sequence-${Date.now()}.png`;
                     link.href = canvas.toDataURL();
                     
                     // Trigger download
@@ -2701,7 +2702,7 @@
                             e.stopPropagation();
                             const numImagesInput = document.getElementById('numImagesInput');
                             const numImages = Math.max(1, Math.min(parseInt(numImagesInput?.value) || 8, 48));
-                            console.log('🎯 Instavibe button clicked, starting autoplay with', numImages, 'images...');
+                            console.log('🎯 RE-KONTEXT button clicked, starting autoplay with', numImages, 'images...');
                             
                             // Add immediate loading feedback
                             startButton.classList.add('generating');
@@ -2718,7 +2719,7 @@
                         // Ensure button is enabled and clickable
                         startButton.disabled = false;
                         startButton.style.pointerEvents = 'auto';
-                        console.log('✅ Instavibe button created and ready to click');
+                        console.log('✅ RE-KONTEXT button created and ready to click');
                         
                         // Create change image button
                         const changeButton = document.createElement('button');
