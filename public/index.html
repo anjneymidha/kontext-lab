@@ -155,10 +155,15 @@
         @-moz-document url-prefix() {
             .use-as-input-icon {
                 position: absolute !important;
-                top: 50% !important;
-                left: 50% !important;
-                transform: translate(-50%, -50%) !important;
-                z-index: 15000 !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100% !important;
+                height: 10% !important;
+                min-height: 32px !important;
+                max-height: 50px !important;
+                transform: none !important;
+                z-index: 50 !important;
                 will-change: transform !important;
                 isolation: isolate !important;
             }
@@ -2745,6 +2750,8 @@
                 button.style.setProperty('height', '10%', 'important');
                 button.style.setProperty('min-height', '32px', 'important');
                 button.style.setProperty('max-height', '50px', 'important');
+                button.style.setProperty('transform', 'none', 'important');
+                button.style.setProperty('top', 'auto', 'important');
                 
                 // Find the associated image in the simplified structure
                 const elementContent = button.closest('.element-content');
@@ -2761,13 +2768,12 @@
                 
                 // Firefox-specific handling
                 if (navigator.userAgent.includes('Firefox')) {
-                    button.style.setProperty('transform', 'translateZ(0)', 'important');
                     button.style.setProperty('isolation', 'isolate', 'important');
-                    button.style.setProperty('will-change', 'transform', 'important');
                     button.style.setProperty('-moz-user-select', 'none', 'important');
-                    
-                    // Firefox-specific force visible
                     button.style.setProperty('-moz-appearance', 'none', 'important');
+                    // Ensure Firefox uses bottom positioning, not transform
+                    button.style.setProperty('bottom', '0', 'important');
+                    button.style.setProperty('transform', 'none', 'important');
                     button.style.setProperty('contain', 'none', 'important');
                 }
                 
@@ -3096,6 +3102,8 @@
                 button.style.setProperty('border', 'none', 'important');
                 button.style.setProperty('border-top', '1px solid rgba(255, 255, 255, 0.2)', 'important');
                 button.style.setProperty('border-radius', '0', 'important');
+                button.style.setProperty('transform', 'none', 'important');
+                button.style.setProperty('top', 'auto', 'important');
                 
                 // Remove any hidden attributes
                 button.removeAttribute('hidden');
