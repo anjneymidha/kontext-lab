@@ -1846,9 +1846,7 @@
                 if (controls) {
                     controls.style.display = 'none';
                 }
-                if (zoomIndicator) {
-                    zoomIndicator.style.display = 'none';
-                }
+                // Zoom indicator functionality removed
             }
         }
         
@@ -2140,49 +2138,38 @@
         }
 
         function updateZoomIndicator() {
-            zoomIndicator.textContent = Math.round(currentZoom * 100) + '%';
+            // Zoom indicator functionality removed for simplicity
         }
 
-        // Auto-position camera for two-section layout
+        // Auto-position camera for normal view
         function autoPositionCamera() {
+            // Set to normal 100% zoom, centered
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
             
-            // Set zoom to 95% for better overview
-            const optimalZoom = 0.95;
+            currentZoom = 1.0; // Always normal zoom
+            panX = 0; // Always centered
+            panY = 0; // Always centered
             
-            // Center the canvas in the viewport
-            // Calculate the center position accounting for the zoom
-            const canvasWidth = screenWidth;
-            const canvasHeight = screenHeight;
-            
-            // Center horizontally and vertically
-            panX = (screenWidth - canvasWidth * optimalZoom) / 2;
-            panY = (screenHeight - canvasHeight * optimalZoom) / 2;
-            currentZoom = optimalZoom;
-            
-            // Apply transform without transition for performance
+            // Apply transform
             updateTransform();
-            updateZoomIndicator();
             
-            console.log(`📐 Canvas positioned: ${Math.round(optimalZoom * 100)}% zoom, centered`);
+            console.log(`📐 Camera positioned: normal view (100% zoom)`);
         }
 
         function resetZoom() {
-            // Reset to default 95% zoom with centering
+            // Always reset to normal view
             autoPositionCamera();
         }
 
         function zoomIn() {
-            currentZoom = Math.min(3, currentZoom * 1.2);
-            updateTransform();
-            updateZoomIndicator();
+            // Zoom functionality disabled - always keep normal view
+            autoPositionCamera();
         }
 
         function zoomOut() {
-            currentZoom = Math.max(0.1, currentZoom * 0.8);
-            updateTransform();
-            updateZoomIndicator();
+            // Zoom functionality disabled - always keep normal view
+            autoPositionCamera();
         }
 
         // File handling
@@ -2286,17 +2273,8 @@
                 }
                 
                 try {
-                    // Pre-upload the image for faster generation later
-                    await fetch('/api/pre-upload-image', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            image: currentImageBase64,
-                            sessionId: currentSessionId
-                        })
-                    });
-                    
-                    console.log('✅ Image pre-uploaded successfully');
+                    // Removed pre-upload - not needed for current implementation
+                    console.log('✅ Image processing ready');
                     
                     // Add success indicator
                     setTimeout(() => {
@@ -3690,9 +3668,13 @@
             // Check if share button already exists
             if (document.getElementById('shareButton')) return;
             
-            const controlsContainer = document.querySelector('.canvas-controls');
+            // Try multiple possible containers for the share button
+            const controlsContainer = document.querySelector('.canvas-controls') || 
+                                    document.querySelector('.upload-container') ||
+                                    document.querySelector('body');
+            
             if (!controlsContainer) {
-                console.warn('Controls container not found, cannot add share button');
+                console.log('No suitable container found for share button');
                 return;
             }
             
