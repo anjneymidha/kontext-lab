@@ -337,15 +337,15 @@
 
         .comic-strip-sequence {
             display: flex;
-            gap: 1px;
+            gap: 8px;
             max-width: 95vw;
             overflow-x: auto;
             padding: 0;
-            background: transparent;
+            background: white;
             border-radius: 0;
             box-shadow: none;
             margin-bottom: 48px;
-            border: 1px solid #e0e0e0;
+            border: none;
         }
 
         .comic-panel {
@@ -355,67 +355,21 @@
             border-radius: 0;
             overflow: hidden;
             border: none;
-            border-right: 1px solid #e0e0e0;
             box-shadow: none;
             position: relative;
         }
 
-        .comic-panel:last-child {
-            border-right: none;
-        }
-
-        .comic-panel:first-child::before {
-            content: '1';
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            background: transparent;
-            color: #999;
-            padding: 0;
-            border-radius: 0;
-            font-size: 14px;
-            font-weight: 300;
-            z-index: 2;
-            font-family: 'Georgia', serif;
-        }
-
+        .comic-panel:first-child::before,
         .comic-panel:last-child::after {
-            content: attr(data-step);
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: transparent;
-            color: #333;
-            padding: 0;
-            border-radius: 0;
-            font-size: 14px;
-            font-weight: 400;
-            z-index: 2;
-            font-family: 'Georgia', serif;
+            display: none;
         }
 
         .comic-panel-header {
-            background: transparent;
-            padding: 0;
-            border-bottom: none;
-            text-align: left;
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.95) 60%);
-            z-index: 1;
+            display: none;
         }
 
         .comic-panel-number {
-            font-size: 11px;
-            font-weight: 400;
-            color: #666;
-            margin: 0;
-            padding: 12px;
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            display: none;
         }
 
         .comic-panel-image {
@@ -426,19 +380,7 @@
         }
 
         .comic-panel-title {
-            padding: 8px 12px 12px 12px;
-            background: transparent;
-            border-top: none;
-            text-align: left;
-            font-size: 12px;
-            font-weight: 300;
-            color: #333;
-            margin: 0;
-            line-height: 1.3;
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            display: none;
         }
 
         .comic-strip-controls {
@@ -2065,14 +2007,9 @@
             seedHistory.forEach((seed, index) => {
                 const panel = document.createElement('div');
                 panel.className = 'comic-panel';
-                panel.setAttribute('data-step', index + 1);
                 
                 panel.innerHTML = `
-                    <img src="${seed.imageUrl}" alt="${seed.title}" class="comic-panel-image">
-                    <div class="comic-panel-header">
-                        <p class="comic-panel-number">Step ${index + 1}</p>
-                        <div class="comic-panel-title">${seed.title}</div>
-                    </div>
+                    <img src="${seed.imageUrl}" alt="Iteration ${index + 1}" class="comic-panel-image">
                 `;
                 
                 sequence.appendChild(panel);
