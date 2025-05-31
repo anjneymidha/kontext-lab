@@ -1513,14 +1513,20 @@ app.post('/api/store-sample-image', async (req, res) => {
   try {
     console.log('📸 Storing sample image...');
     
-    // Read the ricko.png file
-    const sampleImagePath = path.join(__dirname, 'public', 'ricko.png');
+    // Use external ricko.png file
+    const sampleImageUrl = 'https://raw.githubusercontent.com/anjneymidha/kontext-lab/refs/heads/main/public/ricko.png';
     
-    if (!fs.existsSync(sampleImagePath)) {
+    // Download the sample image from external URL
+    const imageResponse = await axios.get(sampleImageUrl, {
+      responseType: 'arraybuffer',
+      timeout: 30000
+    });
+    
+    if (imageResponse.status !== 200) {
       return res.status(404).json({ error: 'Sample image not found' });
     }
     
-    const imageBuffer = fs.readFileSync(sampleImagePath);
+    const imageBuffer = Buffer.from(imageResponse.data);
     const base64Data = imageBuffer.toString('base64');
     const filename = 'sample-ricko.png';
     const sessionId = 'sample';
