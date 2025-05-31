@@ -3572,15 +3572,16 @@
                 imageBase64: null // Will be populated when we cache the image
             };
             
-            // Cache the image as base64 for going back functionality
-            if (imageUrl) {
+            // Cache the image as base64 for going back functionality (skip on mobile)
+            const isMobile = window.innerWidth <= 768;
+            if (imageUrl && !isMobile) {
                 cacheImageAsBase64(imageUrl, seedData);
             }
             
             seedHistory.push(seedData);
             
-            // Clean up old cached base64 data to save memory (keep only current + 1 previous = 2 items)
-            if (seedHistory.length > 2) {
+            // Clean up old cached base64 data to save memory (skip on mobile)
+            if (!isMobile && seedHistory.length > 2) {
                 for (let i = 0; i < seedHistory.length - 2; i++) {
                     if (seedHistory[i].imageBase64) {
                         seedHistory[i].imageBase64 = null; // Clear base64 to save memory
@@ -3630,8 +3631,14 @@
             }
         }
         
-        // Cache a generation result for the current edit step
+        // Cache a generation result for the current edit step (skip on mobile)
         function cacheGenerationResult(imageUrl, prompt, promptId) {
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                console.log('📱 Skipping generation caching on mobile device');
+                return;
+            }
+            
             const currentStepIndex = seedHistory.length - 1; // Current step is the last in history
             
             if (currentStepIndex < 0) {
@@ -3766,8 +3773,14 @@
             }
         }
         
-        // Helper function to enforce cache limits (preserves UI display, only limits cached data)
+        // Helper function to enforce cache limits (preserves UI display, only limits cached data, skip on mobile)
         function enforceCacheLimits() {
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                console.log('📱 Skipping cache limits enforcement on mobile device');
+                return;
+            }
+            
             // Clean up old cached base64 data in seedHistory (keep only current + 1 previous)
             if (seedHistory.length > 2) {
                 for (let i = 0; i < seedHistory.length - 2; i++) {
