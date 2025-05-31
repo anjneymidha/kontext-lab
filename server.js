@@ -14,6 +14,21 @@ app.use(express.static('public'));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+// Handle favicon.ico requests
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).send();
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    hasDatabase: !!pool,
+    dbInitialized: dbInitialized 
+  });
+});
+
 // Configure multer for file uploads with 50MB limit
 const storage = multer.memoryStorage();
 const upload = multer({ 
@@ -776,28 +791,37 @@ function generateOpenGraphTags(sessionData, sessionId, req) {
 app.get('/session/:id', async (req, res) => {
   try {
     const sessionId = req.params.id;
+    console.log(`📄 Serving session page for ID: ${sessionId}`);
+    
     const indexPath = path.join(__dirname, 'public', 'index.html');
+    
+    if (!fs.existsSync(indexPath)) {
+      console.error('❌ index.html not found at:', indexPath);
+      return res.status(404).send('index.html not found');
+    }
+    
     let html = fs.readFileSync(indexPath, 'utf8');
     
     // Try to get session data for Open Graph tags
     let sessionData = null;
     try {
       sessionData = await getCollection(sessionId);
+      console.log(`✅ Found session data for ${sessionId}`);
     } catch (error) {
-      console.log(`Session ${sessionId} not found in database, using default OG tags`);
+      console.log(`⚠️ Session ${sessionId} not found in database, using default OG tags`);
     }
     
     // Generate dynamic Open Graph meta tags
     const ogTags = generateOpenGraphTags(sessionData, sessionId, req);
     
     // Inject Open Graph tags into HTML head
-    html = html.replace('<title>KOMPOSER - AI Writes All Your Prompts | BFL Kontext</title>', ogTags);
+    html = html.replace('<title>KOMPOSER | BFL Kontext</title>', ogTags);
     
     res.send(html);
     
   } catch (error) {
-    console.error('Error serving session page:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('❌ Error serving session page:', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 

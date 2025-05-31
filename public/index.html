@@ -3181,7 +3181,7 @@
                     <div class="empty-state" id="emptyState">
                         <div class="empty-state-content">
                             <div class="empty-state-sample">
-                                <img src="./ricky.png" alt="Sample edit tree" class="sample-image" id="sampleImage" onerror="console.log('Sample image failed to load:', this.src); this.src='./ricky.png';" onload="console.log('Sample image loaded successfully:', this.src);" />
+                                <img src="ricky.png" alt="Sample edit tree" class="sample-image" id="sampleImage" />
                                 <p class="sample-caption">Sample edit tree created from a single uploaded image</p>
                             </div>
                             <div class="empty-state-steps">
@@ -6589,7 +6589,7 @@
                     <div class="empty-state" id="emptyState">
                         <div class="empty-state-content">
                             <div class="empty-state-sample">
-                                <img src="./ricky.png" alt="Sample edit tree" class="sample-image" id="sampleImage" onerror="console.log('Sample image failed to load:', this.src); this.src='./ricky.png';" onload="console.log('Sample image loaded successfully:', this.src);" />
+                                <img src="ricky.png" alt="Sample edit tree" class="sample-image" id="sampleImage" />
                                 <p class="sample-caption">Sample edit tree created from a single uploaded image</p>
                             </div>
                             <div class="empty-state-steps">
@@ -7050,85 +7050,28 @@
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initWhiteboard);
         
-        // Initialize sample image with database storage and fallbacks
-        async function initializeSampleImage() {
+        // Simple sample image check
+        function initializeSampleImage() {
             const sampleImage = document.getElementById('sampleImage');
             if (!sampleImage) {
                 console.log('❌ Sample image element not found');
                 return;
             }
             
-            console.log('📸 Initializing sample image...');
+            console.log('📸 Sample image initialized with src:', sampleImage.src);
             
-            // First try to store in database and get the URL
-            try {
-                const response = await fetch('/api/store-sample-image', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('✅ Sample image stored in database:', result.localUrl);
-                    
-                    // Test if the database URL works
-                    const testImg = new Image();
-                    testImg.onload = () => {
-                        console.log('✅ Database image loads successfully');
-                        sampleImage.src = result.localUrl;
-                    };
-                    testImg.onerror = () => {
-                        console.log('❌ Database image failed, trying fallbacks');
-                        tryFallbackImages();
-                    };
-                    testImg.src = result.localUrl;
-                    return;
-                }
-            } catch (error) {
-                console.log('❌ Database storage failed:', error);
-            }
+            // Add error handler
+            sampleImage.onerror = function() {
+                console.log('❌ Sample image failed to load, trying ricko.png');
+                this.src = 'ricko.png';
+                this.onerror = function() {
+                    console.log('❌ Both sample images failed to load');
+                };
+            };
             
-            // If database storage failed, try fallback images
-            tryFallbackImages();
-            
-            function tryFallbackImages() {
-                const imageSources = [
-                    './ricky.png',
-                    './ricko.png', 
-                    '/ricky.png',
-                    '/ricko.png',
-                    'ricky.png',
-                    'ricko.png'
-                ];
-                
-                let currentIndex = 0;
-                
-                function tryNextImage() {
-                    if (currentIndex >= imageSources.length) {
-                        console.log('⚠️ All image sources failed');
-                        return;
-                    }
-                    
-                    const src = imageSources[currentIndex];
-                    console.log('🔍 Trying image source:', src);
-                    
-                    const testImg = new Image();
-                    testImg.onload = () => {
-                        console.log('✅ Image loads successfully:', src);
-                        sampleImage.src = src;
-                    };
-                    testImg.onerror = () => {
-                        console.log('❌ Image failed to load:', src);
-                        currentIndex++;
-                        tryNextImage();
-                    };
-                    testImg.src = src;
-                }
-                
-                tryNextImage();
-            }
+            sampleImage.onload = function() {
+                console.log('✅ Sample image loaded successfully');
+            };
         }
 
         // Enable mobile horizontal scrolling after page loads
