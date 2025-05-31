@@ -2700,6 +2700,9 @@
                 justify-content: center;
                 touch-action: manipulation;
                 -webkit-tap-highlight-color: transparent;
+                /* Mobile optimization for instant feedback */
+                transition: opacity 0.1s ease, background-color 0.1s ease;
+                will-change: opacity, background-color;
             }
             
             .result-image {
@@ -4174,7 +4177,7 @@
                          style="cursor: zoom-in; position: relative; width: 100%; height: 100%; object-fit: contain;"
                          title="Click to view full size">
                     <div class="use-as-input-icon" 
-                         onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; useAsInput('${result.imageUrl}', 'Cached ${index + 1}', '${result.promptId}')"
+                         onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; this.style.backgroundColor='#ccc'; setTimeout(() => useAsInput('${result.imageUrl}', 'Cached ${index + 1}', '${result.promptId}'), 10);"
                          title="Use this image to start a new generation">
                     </div>
                 </div>
@@ -4339,7 +4342,7 @@
                         object-fit: contain;
                     " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')">
                     <div class="use-as-input-icon" 
-                         onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; useAsInput('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')"
+                         onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; this.style.backgroundColor='#ccc'; setTimeout(() => useAsInput('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}'), 10);"
                          title="Use this image to start a new generation">
                     </div>
                 `;
@@ -6043,7 +6046,7 @@
                          style="cursor: zoom-in; position: relative; width: 100%; height: 100%; object-fit: contain;"
                          title="Click to view full size">
                     <div class="use-as-input-icon" 
-                         onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; useAsInput('${imageUrl}', 'Edit ${iteration}', '${promptId}')"
+                         onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; this.style.backgroundColor='#ccc'; setTimeout(() => useAsInput('${imageUrl}', 'Edit ${iteration}', '${promptId}'), 10);"
                          title="Use this image to start a new generation">
                     </div>
                 `;
@@ -6208,7 +6211,7 @@
                                 object-fit: contain;
                             " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')">
                             <div class="use-as-input-icon" 
-                                 onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; useAsInput('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')"
+                                 onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; this.style.backgroundColor='#ccc'; setTimeout(() => useAsInput('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}'), 10);"
                                  title="Use this image to start a new generation">
                             </div>
                         `;
@@ -7234,24 +7237,26 @@
         }
 
         // Use generated image as input for next generation
-        // Debounce to prevent rapid clicks
+        // Debounce to prevent rapid clicks (reduced since we have visual feedback)
         let useAsInputDebounce = null;
         async function useAsInput(imageUrl, title, promptId) {
-            // Prevent rapid clicks
+            // Quick check to prevent rapid clicks (reduced debounce for mobile)
             if (useAsInputDebounce) {
                 console.log('⏭️ Ignoring rapid click, processing previous request...');
                 return;
             }
-            useAsInputDebounce = setTimeout(() => { useAsInputDebounce = null; }, 3000); // Increased to 3 seconds
+            useAsInputDebounce = setTimeout(() => { useAsInputDebounce = null; }, 1500); // Reduced to 1.5 seconds
             
             console.log('🔄 Using generated image as new input:', title);
             
             try {
-                // Show loading state immediately
-                const uploadContainer = document.getElementById('uploadZone') || document.querySelector('.upload-box .element-content');
-                if (uploadContainer) {
-                    uploadContainer.classList.add('upload-loading');
-                }
+                // Show loading state immediately (non-blocking)
+                requestAnimationFrame(() => {
+                    const uploadContainer = document.getElementById('uploadZone') || document.querySelector('.upload-box .element-content');
+                    if (uploadContainer) {
+                        uploadContainer.classList.add('upload-loading');
+                    }
+                });
                 
                 // Clear previous session state immediately for better UX
                 sessionResults = [];
@@ -7262,7 +7267,9 @@
                 currentSessionId = generateSessionId();
                 console.log('🔄 New session created for image switch:', currentSessionId);
                 
-                // Clear existing results asynchronously to avoid blocking UI
+                // Clear existing results asynchronously to avoid blocking UI (immediate on mobile)
+                const isMobile = window.innerWidth <= 768;
+                const clearDelay = isMobile ? 10 : 50; // Faster on mobile
                 setTimeout(() => {
                     const rightSection = document.getElementById('rightSection');
                     if (rightSection) {
@@ -7275,7 +7282,7 @@
                     if (captionContainer) {
                         captionContainer.innerHTML = '';
                     }
-                }, 50); // Small delay to avoid blocking the click response
+                }, clearDelay);
                 
                 
                 // Use server endpoint to handle image storage and conversion
@@ -7389,6 +7396,7 @@
                 console.log('🚀 Auto-starting generation with looped input...');
                 console.log('📊 Using base64 data length:', currentImageBase64?.length || 'undefined');
                 
+                const autoStartDelay = isMobile ? 100 : 300; // Much faster on mobile
                 setTimeout(() => {
                     // Get number of images to generate
                     const numImagesInput = document.getElementById('numImagesInput');
@@ -7403,7 +7411,7 @@
                     
                     // Start the generation sequence
                     autoplaySequence(numImages);
-                }, 300); // Reduced delay for faster response
+                }, autoStartDelay);
                 
                 console.log('✅ Successfully switched to generated image as input');
                 
