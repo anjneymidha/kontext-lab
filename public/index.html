@@ -91,7 +91,7 @@
         
         .empty-state-content {
             text-align: center;
-            max-width: 480px;
+            max-width: 900px;
         }
         
         
@@ -113,14 +113,14 @@
         .sample-image {
             max-width: 100%;
             height: auto;
-            max-height: 200px;
+            max-height: 432px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             margin-bottom: 8px;
         }
         
         .sample-caption {
-            font-size: 9px;
+            font-size: 11px;
             color: #68767D;
             margin: 0;
             font-weight: 400;
@@ -141,8 +141,8 @@
         .empty-state-steps {
             display: flex;
             flex-direction: row;
-            gap: 16px;
-            margin-bottom: 32px;
+            gap: 24px;
+            margin-bottom: 38px;
             justify-content: center;
         }
         
@@ -150,12 +150,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
-            padding: 12px 20px;
+            gap: 19px;
+            padding: 16px 32px;
             background: #FFFFFF;
             border: 1px solid #B8C5C0;
-            border-radius: 8px;
+            border-radius: 10px;
             flex: 1;
+            min-width: 180px;
         }
         
         /* Mobile empty state */
@@ -191,7 +192,7 @@
             }
             
             .step-text {
-                font-size: 9px;
+                font-size: 11px;
             }
             
             .cta-button {
@@ -200,11 +201,11 @@
             }
             
             .sample-image {
-                max-height: 150px;
+                max-height: 324px;
             }
             
             .sample-caption {
-                font-size: 8px;
+                font-size: 10px;
             }
         }
         
@@ -222,34 +223,34 @@
             }
             
             .step-text {
-                font-size: 8px;
+                font-size: 10px;
             }
             
             .sample-image {
-                max-height: 120px;
+                max-height: 260px;
             }
             
             .sample-caption {
-                font-size: 7px;
+                font-size: 8px;
             }
         }
         
         .step-number {
-            width: 28px;
-            height: 28px;
+            width: 34px;
+            height: 34px;
             background: #5A7A70;
             color: #FFFFFF;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 17px;
             font-weight: 600;
             flex-shrink: 0;
         }
         
         .step-text {
-            font-size: 10px;
+            font-size: 12px;
             color: #1C2A23;
             font-weight: 500;
             letter-spacing: 0.05em;
@@ -392,7 +393,7 @@
         }
         
         .use-as-input-icon::after {
-            content: 'BRANCH FROM HERE';
+            content: 'BRANCH THIS';
             font-size: 14px;
             font-weight: 500;
             opacity: 0.9;
@@ -2533,7 +2534,7 @@
             .generations-section {
                 flex: 1;
                 min-height: calc(100vh - 100px);
-                padding: 8px;
+                padding: 8px 8px 100px 8px;
                 grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
                 gap: 8px;
                 overflow-y: auto;
@@ -2674,6 +2675,7 @@
                 backdrop-filter: blur(20px);
                 border-top: 1px solid rgba(0, 0, 0, 0.1);
                 box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
+                z-index: 1000;
                 z-index: 1000;
                 padding: 0;
             }
@@ -2933,7 +2935,7 @@
                 flex: 1;
                 grid-template-columns: 1fr;
                 gap: 12px;
-                padding: 8px;
+                padding: 8px 8px 90px 8px;
                 min-height: calc(100vh - 80px);
                 display: grid;
                 overflow-y: auto;
@@ -2958,6 +2960,7 @@
                 backdrop-filter: blur(20px);
                 border-top: 1px solid rgba(0, 0, 0, 0.1);
                 box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
+                z-index: 1000;
                 z-index: 1000;
                 padding: 0;
             }
@@ -3202,7 +3205,7 @@
                                 </div>
                                 <div class="step">
                                     <span class="step-number">3</span>
-                                    <span class="step-text">Click "BRANCH FROM HERE" on any result to create your tree</span>
+                                    <span class="step-text">Click "BRANCH THIS" on any result to create your tree</span>
                                 </div>
                             </div>
                             <div class="empty-state-cta">
@@ -6610,7 +6613,7 @@
                                 </div>
                                 <div class="step">
                                     <span class="step-number">3</span>
-                                    <span class="step-text">Click "BRANCH FROM HERE" on any result to create your tree</span>
+                                    <span class="step-text">Click "BRANCH THIS" on any result to create your tree</span>
                                 </div>
                             </div>
                             <div class="empty-state-cta">
