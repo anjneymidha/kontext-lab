@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KOMPOSER - Let AI do the prompting for you | BFL Kontext</title>
+    <title>KOMPOSER | BFL Kontext</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
@@ -957,7 +957,11 @@
             border-radius: 8px;
             border: 2px solid rgba(90, 122, 112, 0.3);
             transition: all 0.2s ease;
-            flex-shrink: 0;
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         
         .editing-chain-header:hover {
@@ -970,12 +974,7 @@
         }
         
         .collapse-indicator {
-            color: #5A7A70;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            margin-left: 12px;
-            font-weight: 500;
-            display: inline-block;
+            display: none;
         }
         
         .collapse-indicator:hover {
@@ -995,7 +994,7 @@
         }
 
         .editing-chain-header h3 {
-            font-size: 14px;
+            font-size: 28px;
             font-weight: 600;
             color: #1A202C;
             margin: 0;
@@ -1007,9 +1006,11 @@
         .header-controls {
             display: flex;
             gap: 8px;
+            margin-top: 12px;
+            justify-content: flex-start;
         }
         
-        .export-sequence-btn, .upload-btn, .reset-btn {
+        .export-sequence-btn, .upload-btn, .reset-btn, .mass-download-btn {
             background: #FFFFFF;
             color: #1A202C;
             border: 2px solid #B8C5C0;
@@ -1029,22 +1030,28 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         
-        .export-sequence-btn:hover, .upload-btn:hover, .reset-btn:hover {
+        .export-sequence-btn:hover, .upload-btn:hover, .reset-btn:hover, .mass-download-btn:hover {
             background: #5A7A70;
             color: #FFFFFF;
             border-color: #5A7A70;
             box-shadow: 0 2px 6px rgba(90, 122, 112, 0.2);
         }
         
-        .export-sequence-btn:active, .upload-btn:active, .reset-btn:active {
+        .export-sequence-btn:active, .upload-btn:active, .reset-btn:active, .mass-download-btn:active {
             background: #4A6A60;
             color: #FFFFFF;
             transform: translateY(1px);
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
+        
+        .mass-download-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
 
         .editing-chain-header .subtitle {
-            font-size: 7px;
+            font-size: 21px;
             color: #68767D;
             margin: 4px 0 0 0;
             font-weight: 400;
@@ -1071,10 +1078,12 @@
         }
         
         .controls-column {
-            flex: 0 0 350px;
+            flex: 0 0 20%;
+            max-width: 20%;
             display: flex;
             flex-direction: column;
             gap: 12px;
+            height: 100%;
         }
         
         .upload-container-inline {
@@ -1287,6 +1296,88 @@
             font-size: 14px;
             flex-shrink: 0;
             align-self: center;
+        }
+
+        .chain-upload-tile {
+            flex-shrink: 0;
+            width: 150px;
+            height: 100%;
+            min-height: 100px;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            border: 2px dashed #5A7A70;
+            background: linear-gradient(135deg, #F8FAFB 0%, #EDF1F0 100%);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chain-upload-tile:hover {
+            border-color: #4A6A60;
+            background: linear-gradient(135deg, #EDF1F0 0%, #E1E8E6 100%);
+            transform: scale(1.02);
+        }
+
+        .chain-upload-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 24px;
+            opacity: 0.7;
+        }
+
+        .upload-label {
+            font-size: 8px;
+            font-weight: 600;
+            color: #5A7A70;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-family: inherit;
+        }
+
+        .chain-skeleton-tile {
+            flex-shrink: 0;
+            width: 150px;
+            height: 100%;
+            min-height: 100px;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #E1E8E6;
+            background: #F8FAFB;
+        }
+
+        .skeleton-shimmer {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #F8FAFB 25%, #EDF1F0 50%, #F8FAFB 75%);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        .chain-arrow {
+            color: #B8C5C0;
+            font-size: 14px;
+            flex-shrink: 0;
+            align-self: center;
+            margin: 0 4px;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
         }
 
         .chain-image {
@@ -2700,6 +2791,7 @@
             }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
     <div class="whiteboard-container" id="whiteboardContainer">
@@ -2715,7 +2807,7 @@
                             <button class="home-btn-inline" onclick="resetApp()" title="Reset App"></button>
                         </div>
                         <div class="element-content">
-                            <div class="subtitle-text">Let AI do the prompting for you</div>
+                            <div class="subtitle-text">BFL Kontext experiment</div>
                             <div class="attribution">A <a href="https://bfl.ai/" target="_blank">BFL Kontext</a> experiment</div>
                         </div>
                     </div>
@@ -2753,7 +2845,7 @@
                         <div class="empty-state-content">
                             <h2 class="empty-state-title">Create Your Edit Tree</h2>
                             <div class="empty-state-sample">
-                                <img src="/sample chain1.png" alt="Sample edit tree" class="sample-image" />
+                                <img src="/ricky.png" alt="Sample edit tree" class="sample-image" />
                                 <p class="sample-caption">Sample edit tree created from a single uploaded image</p>
                             </div>
                             <div class="empty-state-steps">
@@ -2787,41 +2879,45 @@
                     <div class="controls-column">
                         <div class="editing-chain-header" onclick="toggleEditingPane()">
                             <div class="chain-title-row">
-                                <h3>KOMPOSER<span class="collapse-indicator">▲</span></h3>
-                                <div class="header-controls">
-                                    <button class="export-sequence-btn" onclick="openComicStripModal()" title="Export sequence">
-                                        EXPORT
-                                    </button>
-                                    <button class="reset-btn" onclick="resetApp()" title="Reset">
-                                        RESET
-                                    </button>
-                                </div>
+                                <h3>KOMPOSER</h3>
                             </div>
-                            <p class="subtitle">Let AI do the prompting for you — A <a href="https://bfl.ai/" target="_blank">BFL Kontext</a> experiment</p>
-                        </div>
-                        <div class="upload-container-inline" id="uploadContainerInline">
-                            <div class="upload-zone-inline" id="uploadZoneInline">
-                                <div class="upload-text">Drop, click, or paste to start generating</div>
-                                <input type="file" id="fileInputInline" accept="image/*" style="display: none;">
+                            <p class="subtitle">A <a href="https://bfl.ai/" target="_blank">BFL Kontext</a> experiment</p>
+                            <div class="header-controls">
+                                <button class="export-sequence-btn" onclick="openComicStripModal()" title="Export sequence">
+                                    SHARE
+                                </button>
+                                <button class="mass-download-btn" onclick="massDownloadImages()" title="Download all images as ZIP">
+                                    DOWNLOAD ALL
+                                </button>
+                                <button class="reset-btn" onclick="resetApp()" title="Reset">
+                                    RESET
+                                </button>
                             </div>
-                        </div>
-                        <div class="num-images-container" style="display: none;">
-                            <label class="num-images-label"># IMAGES</label>
-                            <input type="number" id="numImagesInputInline" class="num-images-input" min="1" max="48" value="12">
                         </div>
                     </div>
                     <div class="editing-chain-sequence" id="editingChainSequence">
-                        <div class="chain-placeholder">
-                            <div class="chain-placeholder-text">Your edit tree will appear here</div>
-                            <div class="chain-placeholder-items">
-                                <div class="chain-placeholder-item"></div>
-                                <div class="chain-placeholder-arrow">→</div>
-                                <div class="chain-placeholder-item"></div>
-                                <div class="chain-placeholder-arrow">→</div>
-                                <div class="chain-placeholder-item"></div>
-                                <div class="chain-placeholder-arrow">→</div>
-                                <div class="chain-placeholder-item"></div>
+                        <div class="chain-upload-tile" id="chainUploadTile">
+                            <div class="chain-upload-content" id="chainUploadContent">
+                                <div class="upload-icon">📁</div>
+                                <div class="upload-label">UPLOAD</div>
                             </div>
+                            <input type="file" id="fileInputInline" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="chain-arrow">→</div>
+                        <div class="chain-skeleton-tile">
+                            <div class="skeleton-shimmer"></div>
+                        </div>
+                        <div class="chain-arrow">→</div>
+                        <div class="chain-skeleton-tile">
+                            <div class="skeleton-shimmer"></div>
+                        </div>
+                        <div class="chain-arrow">→</div>
+                        <div class="chain-skeleton-tile">
+                            <div class="skeleton-shimmer"></div>
+                        </div>
+                        <div class="chain-arrow">→</div>
+                        <div class="chain-skeleton-tile">
+                            <div class="skeleton-shimmer"></div>
                         </div>
                     </div>
                 </div>
@@ -2934,19 +3030,43 @@
                 
                 if (seedHistory.length === 0) {
                     chainSequence.innerHTML = `
-                        <div class="chain-placeholder">
-                            <div class="chain-placeholder-text">Your edit tree will appear here</div>
-                            <div class="chain-placeholder-items">
-                                <div class="chain-placeholder-item"></div>
-                                <div class="chain-placeholder-arrow">→</div>
-                                <div class="chain-placeholder-item"></div>
-                                <div class="chain-placeholder-arrow">→</div>
-                                <div class="chain-placeholder-item"></div>
-                                <div class="chain-placeholder-arrow">→</div>
-                                <div class="chain-placeholder-item"></div>
+                        <div class="chain-upload-tile" id="chainUploadTile">
+                            <div class="chain-upload-content" id="chainUploadContent">
+                                <div class="upload-icon">📁</div>
+                                <div class="upload-label">UPLOAD</div>
                             </div>
+                            <input type="file" id="fileInputInline" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="chain-arrow">→</div>
+                        <div class="chain-skeleton-tile">
+                            <div class="skeleton-shimmer"></div>
+                        </div>
+                        <div class="chain-arrow">→</div>
+                        <div class="chain-skeleton-tile">
+                            <div class="skeleton-shimmer"></div>
+                        </div>
+                        <div class="chain-arrow">→</div>
+                        <div class="chain-skeleton-tile">
+                            <div class="skeleton-shimmer"></div>
+                        </div>
+                        <div class="chain-arrow">→</div>
+                        <div class="chain-skeleton-tile">
+                            <div class="skeleton-shimmer"></div>
                         </div>
                     `;
+                    
+                    // Re-attach event listeners after recreating the upload tile
+                    const chainUploadContent = document.getElementById('chainUploadContent');
+                    const fileInputInline = document.getElementById('fileInputInline');
+                    if (chainUploadContent && fileInputInline) {
+                        chainUploadContent.addEventListener('click', () => {
+                            fileInputInline.value = '';
+                            fileInputInline.click();
+                        });
+                        chainUploadContent.addEventListener('dragover', handleDragOver);
+                        chainUploadContent.addEventListener('drop', handleDrop);
+                        fileInputInline.addEventListener('change', handleFileSelect);
+                    }
                 } else {
                     // Add each seed to the chain
                     seedHistory.forEach((seed, index) => {
@@ -2985,19 +3105,43 @@
             const chainSequence = document.getElementById('editingChainSequence');
             if (chainSequence) {
                 chainSequence.innerHTML = `
-                    <div class="chain-placeholder">
-                        <div class="chain-placeholder-text">Your edit tree will appear here</div>
-                        <div class="chain-placeholder-items">
-                            <div class="chain-placeholder-item"></div>
-                            <div class="chain-placeholder-arrow">→</div>
-                            <div class="chain-placeholder-item"></div>
-                            <div class="chain-placeholder-arrow">→</div>
-                            <div class="chain-placeholder-item"></div>
-                            <div class="chain-placeholder-arrow">→</div>
-                            <div class="chain-placeholder-item"></div>
+                    <div class="chain-upload-tile" id="chainUploadTile">
+                        <div class="chain-upload-content" id="chainUploadContent">
+                            <div class="upload-icon">📁</div>
+                            <div class="upload-label">UPLOAD</div>
                         </div>
+                        <input type="file" id="fileInputInline" accept="image/*" style="display: none;">
+                    </div>
+                    <div class="chain-arrow">→</div>
+                    <div class="chain-skeleton-tile">
+                        <div class="skeleton-shimmer"></div>
+                    </div>
+                    <div class="chain-arrow">→</div>
+                    <div class="chain-skeleton-tile">
+                        <div class="skeleton-shimmer"></div>
+                    </div>
+                    <div class="chain-arrow">→</div>
+                    <div class="chain-skeleton-tile">
+                        <div class="skeleton-shimmer"></div>
+                    </div>
+                    <div class="chain-arrow">→</div>
+                    <div class="chain-skeleton-tile">
+                        <div class="skeleton-shimmer"></div>
                     </div>
                 `;
+                
+                // Re-attach event listeners after recreating the upload tile
+                const chainUploadContent = document.getElementById('chainUploadContent');
+                const fileInputInline = document.getElementById('fileInputInline');
+                if (chainUploadContent && fileInputInline) {
+                    chainUploadContent.addEventListener('click', () => {
+                        fileInputInline.value = '';
+                        fileInputInline.click();
+                    });
+                    chainUploadContent.addEventListener('dragover', handleDragOver);
+                    chainUploadContent.addEventListener('drop', handleDrop);
+                    fileInputInline.addEventListener('change', handleFileSelect);
+                }
             }
             
             console.log('🗑️ Cleared seed history');
@@ -3463,13 +3607,16 @@
                 fileInput.addEventListener('change', handleFileSelect);
             }
 
-            // Inline upload functionality
-            const uploadZoneInline = document.getElementById('uploadZoneInline');
+            // Chain upload tile functionality
+            const chainUploadContent = document.getElementById('chainUploadContent');
             const fileInputInline = document.getElementById('fileInputInline');
-            if (uploadZoneInline && fileInputInline) {
-                uploadZoneInline.addEventListener('click', () => fileInputInline.click());
-                uploadZoneInline.addEventListener('dragover', handleDragOver);
-                uploadZoneInline.addEventListener('drop', handleDrop);
+            if (chainUploadContent && fileInputInline) {
+                chainUploadContent.addEventListener('click', () => {
+                    fileInputInline.value = ''; // Reset to allow same file selection
+                    fileInputInline.click();
+                });
+                chainUploadContent.addEventListener('dragover', handleDragOver);
+                chainUploadContent.addEventListener('drop', handleDrop);
                 fileInputInline.addEventListener('change', handleFileSelect);
             }
 
@@ -3499,6 +3646,13 @@
         function initializeSidebarState() {
             const leftSection = document.getElementById('leftSection');
             const toggleButton = document.getElementById('sidebarToggle');
+            
+            // Check if elements exist before proceeding
+            if (!leftSection || !toggleButton) {
+                console.log('🔧 Sidebar elements not found, skipping initialization');
+                return;
+            }
+            
             const isMobile = window.innerWidth <= 768;
             
             if (isMobile) {
@@ -3576,11 +3730,11 @@
             });
         }
         
-        // Run visibility check after images load and periodically
+        // Run visibility check after images load and periodically (less frequent)
         window.addEventListener('load', () => {
             setTimeout(ensureRemixButtonsVisible, 500);
             setTimeout(ensureRemixButtonsVisible, 2000);
-            setInterval(ensureRemixButtonsVisible, 5000);
+            setInterval(ensureRemixButtonsVisible, 15000); // Reduced frequency from 5s to 15s
             
             // Start mutation observer to catch when buttons get hidden
             startRemixButtonObserver();
@@ -3590,7 +3744,12 @@
         function startRemixButtonObserver() {
             console.log('🔍 Starting REMIX button mutation observer for Firefox...');
             
+            let observerThrottle = null;
+            
             const observer = new MutationObserver((mutations) => {
+                // Throttle observer callbacks to prevent spam
+                if (observerThrottle) return;
+                observerThrottle = setTimeout(() => { observerThrottle = null; }, 1000);
                 let buttonsNeedFix = false;
                 
                 mutations.forEach((mutation) => {
@@ -4096,19 +4255,19 @@
         }
 
         async function processImageFile(file) {
-            // Find the upload container - prioritize inline container
-            let uploadContainer = document.getElementById('uploadContainerInline');
-            let isInlineUpload = true;
+            // Find the upload container - prioritize chain upload tile
+            let uploadContainer = document.getElementById('chainUploadTile');
+            let isChainUpload = true;
             
-            // Fallback to original containers if inline doesn't exist
+            // Fallback to original containers if chain tile doesn't exist
             if (!uploadContainer) {
                 uploadContainer = document.getElementById('uploadZone');
-                isInlineUpload = false;
+                isChainUpload = false;
             }
             
             if (!uploadContainer) {
                 uploadContainer = document.querySelector('.upload-box .element-content');
-                isInlineUpload = false;
+                isChainUpload = false;
             }
             
             if (!uploadContainer) {
@@ -4116,11 +4275,13 @@
                 return;
             }
             
-            console.log('📤 Processing image file, inline upload:', isInlineUpload);
+            console.log('📤 Processing image file, chain upload:', isChainUpload);
             
             // Show loading state
-            if (isInlineUpload) {
+            if (isChainUpload) {
                 uploadContainer.style.opacity = '0.7';
+                const uploadLabel = uploadContainer.querySelector('.upload-label');
+                if (uploadLabel) uploadLabel.textContent = 'LOADING...';
             } else {
                 // Add loading state to the upload box
                 const uploadBox = uploadContainer.closest('.upload-box');
@@ -4173,7 +4334,7 @@
                 
                 // Start instant upload to server for better responsiveness
                 console.log('⬆️ Starting instant image upload...');
-                if (isInlineUpload) {
+                if (isChainUpload) {
                     uploadContainer.style.opacity = '0.5';
                 } else {
                     const uploadBox = uploadContainer.closest('.upload-box');
@@ -4186,7 +4347,7 @@
                     
                     // Add success indicator
                     setTimeout(() => {
-                        if (isInlineUpload) {
+                        if (isChainUpload) {
                             uploadContainer.style.opacity = '1';
                         } else {
                             const uploadBox = uploadContainer.closest('.upload-box');
@@ -4200,7 +4361,7 @@
                 } catch (error) {
                     // Silently handle pre-upload failures - this is expected since the endpoint doesn't exist yet
                     // Remove loading state but continue - fallback to original behavior
-                    if (isInlineUpload) {
+                    if (isChainUpload) {
                         uploadContainer.style.opacity = '1';
                     } else {
                         const uploadBox = uploadContainer.closest('.upload-box');
@@ -4227,27 +4388,30 @@
                             openImageModal(img.src, 'Original Upload', promptId);
                         };
                         
-                        if (isInlineUpload) {
-                            // For inline upload, update the upload zone to show the image and add generate button
-                            const uploadZoneInline = uploadContainer.querySelector('.upload-zone-inline');
-                            if (uploadZoneInline) {
-                                uploadZoneInline.innerHTML = '';
+                        if (isChainUpload) {
+                            // For chain upload, update the upload tile to show the image and add generate button
+                            const uploadContent = uploadContainer.querySelector('.chain-upload-content');
+                            if (uploadContent) {
+                                uploadContent.innerHTML = '';
                                 
                                 // Create compact image preview
                                 const imagePreview = document.createElement('div');
-                                imagePreview.className = 'inline-image-preview';
+                                imagePreview.className = 'chain-image-preview';
                                 imagePreview.style.cssText = `
                                     display: flex;
+                                    flex-direction: column;
                                     align-items: center;
-                                    gap: 12px;
+                                    gap: 8px;
                                     padding: 8px;
+                                    height: 100%;
+                                    justify-content: center;
                                 `;
                                 
                                 // Smaller image thumbnail
                                 const imgThumb = img.cloneNode();
                                 imgThumb.style.cssText = `
-                                    width: 40px;
-                                    height: 40px;
+                                    width: 60px;
+                                    height: 60px;
                                     object-fit: cover;
                                     border-radius: 2px;
                                     border: 1px solid #5A7A70;
@@ -4255,28 +4419,26 @@
                                 
                                 // Generate button
                                 const generateBtn = document.createElement('button');
-                                generateBtn.className = 'generate-btn-inline';
+                                generateBtn.className = 'generate-btn-chain';
                                 generateBtn.innerHTML = 'GENERATE';
                                 generateBtn.style.cssText = `
                                     background: #5A7A70;
                                     color: #FFFFFF;
                                     border: 1px solid #B8C5C0;
-                                    padding: 8px 16px;
+                                    padding: 6px 12px;
                                     border-radius: 2px;
-                                    font-size: 11px;
+                                    font-size: 8px;
                                     font-weight: 600;
                                     cursor: pointer;
                                     text-transform: uppercase;
                                     letter-spacing: 0.1em;
                                     font-family: inherit;
-                                    flex: 1;
                                 `;
                                 
                                 generateBtn.onclick = (e) => {
                                     e.stopPropagation();
-                                    const numImagesInput = document.getElementById('numImagesInputInline');
                                     const numImages = 12;
-                                    console.log('🎯 Inline GENERATE clicked, starting autoplay with', numImages, 'images...');
+                                    console.log('🎯 Chain GENERATE clicked, starting autoplay with', numImages, 'images...');
                                     
                                     generateBtn.innerHTML = 'GENERATING...';
                                     generateBtn.disabled = true;
@@ -4300,7 +4462,7 @@
                                 
                                 imagePreview.appendChild(imgThumb);
                                 imagePreview.appendChild(generateBtn);
-                                uploadZoneInline.appendChild(imagePreview);
+                                uploadContent.appendChild(imagePreview);
                             }
                         } else {
                             // Original upload container logic
@@ -4345,7 +4507,10 @@
                             changeButton.onclick = (e) => {
                                 e.stopPropagation();
                                 const fileInput = document.getElementById('fileInput') || document.getElementById('fileInputInline');
-                                if (fileInput) fileInput.click();
+                                if (fileInput) {
+                                    fileInput.value = ''; // Reset to allow same file selection
+                                    fileInput.click();
+                                }
                             };
                             
                             // Add elements to upload container
@@ -4372,7 +4537,7 @@
                         uploadContainer.style.opacity = '1';
                         
                         // Add original image to seed history
-                        if (isInlineUpload) {
+                        if (isChainUpload) {
                             clearSeedHistory(); // Clear any existing history for new uploads
                             addToSeedHistory(img.src, 'Original Upload', true);
                         }
@@ -4386,7 +4551,7 @@
                 console.error('Error processing image:', error);
                 
                 // Remove loading state on error
-                if (isInlineUpload) {
+                if (isChainUpload) {
                     uploadContainer.style.opacity = '1';
                 } else {
                     const uploadBox = uploadContainer.closest('.upload-box');
@@ -4461,7 +4626,10 @@
                                     startButton.onclick = (e) => {
                                         e.stopPropagation();
                                         const fileInput = document.getElementById('fileInput') || document.getElementById('fileInputInline');
-                                        if (fileInput) fileInput.click();
+                                        if (fileInput) {
+                                            fileInput.value = ''; // Reset to allow same file selection
+                                            fileInput.click();
+                                        }
                                     };
                                     
                                     // Add regenerate button next to change image button
@@ -4494,7 +4662,10 @@
                                     inlineGenerateBtn.onclick = (e) => {
                                         e.stopPropagation();
                                         const fileInput = document.getElementById('fileInputInline');
-                                        if (fileInput) fileInput.click();
+                                        if (fileInput) {
+                                            fileInput.value = ''; // Reset to allow same file selection
+                                            fileInput.click();
+                                        }
                                     };
                                     
                                     // Add regenerate button next to change image button in inline version
@@ -5849,6 +6020,82 @@
             }
         }
         
+        // Mass download function
+        async function massDownloadImages() {
+            console.log('📦 Starting mass download...');
+            
+            // Collect all available images
+            collectModalImages();
+            
+            if (modalImages.length === 0) {
+                alert('No images available to download.');
+                return;
+            }
+            
+            // Show progress indicator
+            const button = document.querySelector('.mass-download-btn');
+            const originalText = button.textContent;
+            button.textContent = 'PREPARING...';
+            button.disabled = true;
+            
+            try {
+                const zip = new JSZip();
+                let downloadCount = 0;
+                
+                // Process each image
+                for (let i = 0; i < modalImages.length; i++) {
+                    const image = modalImages[i];
+                    button.textContent = `DOWNLOADING ${i + 1}/${modalImages.length}`;
+                    
+                    try {
+                        // Fetch image as blob
+                        const response = await fetch(image.src);
+                        const blob = await response.blob();
+                        
+                        // Generate filename
+                        const extension = image.src.includes('.png') ? '.png' : '.jpg';
+                        const filename = `${image.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}${extension}`;
+                        
+                        // Add to zip
+                        zip.file(filename, blob);
+                        downloadCount++;
+                        
+                    } catch (error) {
+                        console.warn(`Failed to download image ${i + 1}:`, error);
+                    }
+                }
+                
+                if (downloadCount === 0) {
+                    alert('Failed to download any images.');
+                    return;
+                }
+                
+                // Generate and download ZIP
+                button.textContent = 'CREATING ZIP...';
+                const zipBlob = await zip.generateAsync({type: 'blob'});
+                
+                // Create download link
+                const url = URL.createObjectURL(zipBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `komposer_images_${new Date().toISOString().split('T')[0]}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                console.log(`📦 Successfully downloaded ${downloadCount} images`);
+                
+            } catch (error) {
+                console.error('❌ Mass download failed:', error);
+                alert('Failed to create download. Please try again.');
+            } finally {
+                // Restore button
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+        
         // Start new session function
         function resetApp() {
             // Confirm if user wants to start fresh
@@ -5892,7 +6139,7 @@
                         <div class="empty-state-content">
                             <h2 class="empty-state-title">Create Your Edit Tree</h2>
                             <div class="empty-state-sample">
-                                <img src="/sample chain1.png" alt="Sample edit tree" class="sample-image" />
+                                <img src="/ricky.png" alt="Sample edit tree" class="sample-image" />
                                 <p class="sample-caption">Sample edit tree created from a single uploaded image</p>
                             </div>
                             <div class="empty-state-steps">
@@ -6244,7 +6491,10 @@
                     changeButton.onclick = (e) => {
                         e.stopPropagation();
                         const fileInput = document.getElementById('fileInput');
-                        fileInput.click();
+                        if (fileInput) {
+                            fileInput.value = ''; // Reset to allow same file selection
+                            fileInput.click();
+                        }
                     };
                     
                     // Add elements
