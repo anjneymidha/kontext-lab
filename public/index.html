@@ -3782,16 +3782,11 @@
             }
         }
         
-        // Individual image sharing function
-        function shareIndividualImage(event, konceptIndex, resultIndex) {
+        // Share main website URL
+        function shareIndividualImage(event) {
             event.stopPropagation(); // Prevent image modal from opening
             
-            if (!currentSessionId) {
-                alert('Session not available for sharing');
-                return;
-            }
-            
-            const shareUrl = `${window.location.origin}/image/${currentSessionId}/${konceptIndex}/${resultIndex}`;
+            const shareUrl = 'https://komposer.xyz/';
             
             // Copy to clipboard
             navigator.clipboard.writeText(shareUrl).then(() => {
@@ -3808,10 +3803,10 @@
             }).catch(err => {
                 console.error('Failed to copy:', err);
                 // Fallback - show URL in prompt
-                prompt('Copy this share URL:', shareUrl);
+                prompt('Copy this URL:', shareUrl);
             });
             
-            console.log('🔗 Individual image share URL:', shareUrl);
+            console.log('🔗 Sharing main URL:', shareUrl);
         }
         let isSharedSession = false;
 
@@ -3852,21 +3847,11 @@
         
         // Check if we're loading a shared session
         function checkForSharedSession() {
-            const path = window.location.pathname;
-            const sessionMatch = path.match(/^\/session\/([a-f0-9]+)$/);
+            // Generate new session ID for all sessions
+            currentSessionId = generateSessionId();
+            console.log('🆕 New session created:', currentSessionId);
             
-            if (sessionMatch) {
-                const sessionId = sessionMatch[1];
-                console.log('🔗 Loading shared session:', sessionId);
-                loadSharedSession(sessionId);
-            } else {
-                // Generate new session ID for new sessions
-                currentSessionId = generateSessionId();
-                console.log('🆕 New session created:', currentSessionId);
-                
-                // Update URL immediately for new sessions
-                window.history.replaceState({}, '', `/session/${currentSessionId}`);
-            }
+            // Keep URL clean - no session URLs
         }
         
         // Generate a random session ID
@@ -3876,62 +3861,7 @@
                 .join('');
         }
         
-        // Load a shared session from the server
-        async function loadSharedSession(sessionId) {
-            try {
-                isSharedSession = true;
-                currentSessionId = sessionId;
-                
-                console.log('📥 Fetching session data...');
-                const response = await fetch(`/api/session/${sessionId}`);
-                
-                if (!response.ok) {
-                    throw new Error('Session not found');
-                }
-                
-                const sessionData = await response.json();
-                console.log('✅ Session data loaded:', sessionData);
-                
-                // Load the original image
-                if (sessionData.originalImage) {
-                    const imageBlob = await fetch(`data:image/jpeg;base64,${sessionData.originalImage}`).then(r => r.blob());
-                    const file = new File([imageBlob], 'shared-image.jpg', { type: 'image/jpeg' });
-                    await processImageFile(file);
-                    
-                    // Set the base64 for future operations
-                    currentImageBase64 = sessionData.originalImage;
-                }
-                
-                // Load the results
-                loadSessionResults(sessionData.results);
-                
-                // Load the caption if it exists
-                if (sessionData.caption) {
-                    console.log('🔄 Loading session caption:', sessionData.caption);
-                    fillCaptionBox(sessionData.caption);
-                }
-                
-                // Load the koncept names if they exist
-                if (sessionData.konceptNames && Array.isArray(sessionData.konceptNames)) {
-                    console.log('🔄 Loading session koncept names:', sessionData.konceptNames);
-                    fillKonceptLabels(sessionData.konceptNames);
-                }
-                
-                // Disable upload for shared sessions
-                disableUploadForSharedSession();
-                
-            } catch (error) {
-                console.log('📝 Session not found in database, treating as new session:', sessionId);
-                
-                // Don't show error alert - this is normal for new sessions
-                // Keep the session ID from the URL and treat as a new session
-                currentSessionId = sessionId;
-                isSharedSession = false;
-                
-                // No need to update URL since it's already correct
-                console.log('✅ New session initialized with ID:', currentSessionId);
-            }
-        }
+        // Session URL functionality removed - now just sharing main URL
         
         // Load session results into the interface
         function loadSessionResults(results) {
@@ -4709,13 +4639,9 @@
                 totalKonceptRows = 3;
                 customKonceptCount = 0;
                 
-                // If this was a shared session, create a new session for the new image
-                if (isSharedSession) {
-                    isSharedSession = false;
-                    currentSessionId = generateSessionId();
-                    window.history.pushState({}, '', `/session/${currentSessionId}`);
-                    console.log('🔄 New session created for image change:', currentSessionId);
-                }
+                // Create new session for new image
+                currentSessionId = generateSessionId();
+                console.log('🔄 New session created for image change:', currentSessionId);
                 
                 // Reset any ongoing operations
                 // (Add any cleanup for running processes here if needed)
@@ -6497,8 +6423,7 @@
                 // Generate new session ID
                 currentSessionId = generateSessionId();
                 
-                // Update URL immediately
-                window.history.pushState({}, '', `/session/${currentSessionId}`);
+                // Session ID updated
                 
                 // Reset ALL global state variables
                 sessionResults = [];
@@ -6859,12 +6784,8 @@
                 customKonceptCount = 0;
                 
                 // Create new session
-                if (isSharedSession) {
-                    isSharedSession = false;
-                    currentSessionId = generateSessionId();
-                    window.history.pushState({}, '', `/session/${currentSessionId}`);
-                    console.log('🔄 New session created for image switch:', currentSessionId);
-                }
+                currentSessionId = generateSessionId();
+                console.log('🔄 New session created for image switch:', currentSessionId);
                 
                 // Clear existing results immediately for responsiveness
                 const rightSection = document.getElementById('rightSection');
