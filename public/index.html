@@ -2478,6 +2478,13 @@
             backdrop-filter: blur(10px);
         }
 
+        /* Hide mobile menu elements on desktop */
+        .hamburger-menu,
+        .menu-overlay,
+        .menu-panel {
+            display: none;
+        }
+
         /* Simple Mobile Layout with Hamburger Menu */
         @media (max-width: 768px) {
             body {
@@ -2764,7 +2771,7 @@
                 display: none;
             }
             
-            /* Hamburger menu button */
+            /* Show mobile menu elements on mobile */
             .hamburger-menu {
                 position: fixed;
                 top: 20px;
