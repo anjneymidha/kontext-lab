@@ -1334,6 +1334,19 @@
             position: relative;
             border: 2px solid #4A5A52;
             background: #B8C5C0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .chain-image:hover {
+            border-color: #007AFF;
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+        
+        .chain-image.active {
+            border-color: #007AFF;
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
         }
 
         .chain-image img {
@@ -2741,6 +2754,16 @@
                 transform: scale(0.95);
             }
             
+            .chain-image:hover {
+                border-color: #007AFF;
+                box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+            }
+            
+            .chain-image.active {
+                border-color: #007AFF;
+                box-shadow: 0 0 0 1px rgba(0, 122, 255, 0.4);
+            }
+            
             .chain-upload-tile {
                 background: #007AFF;
                 border: none;
@@ -3416,12 +3439,55 @@
                 imageUrl: imageUrl,
                 title: title,
                 timestamp: Date.now(),
-                isOriginal: isOriginal
+                isOriginal: isOriginal,
+                imageBase64: null // Will be populated when we cache the image
             };
+            
+            // Cache the image as base64 for going back functionality
+            if (imageUrl) {
+                cacheImageAsBase64(imageUrl, seedData);
+            }
             
             seedHistory.push(seedData);
             updateSeedHistoryDisplay();
             console.log('📜 Added to seed history:', title);
+        }
+        
+        // Cache image as base64 for offline access
+        async function cacheImageAsBase64(imageUrl, seedData) {
+            try {
+                let imageBlob;
+                
+                // Handle different URL types
+                if (imageUrl.startsWith('data:')) {
+                    // Already base64 - extract it
+                    const base64Data = imageUrl.split(',')[1];
+                    seedData.imageBase64 = base64Data;
+                    console.log('📷 Cached base64 data for:', seedData.title);
+                    return;
+                } else if (imageUrl.startsWith('blob:')) {
+                    // Convert blob URL to base64
+                    const response = await fetch(imageUrl);
+                    imageBlob = await response.blob();
+                } else {
+                    // Regular URL - fetch the image
+                    const response = await fetch(imageUrl);
+                    imageBlob = await response.blob();
+                }
+                
+                // Convert blob to base64
+                const reader = new FileReader();
+                reader.onload = function() {
+                    const base64Data = reader.result.split(',')[1];
+                    seedData.imageBase64 = base64Data;
+                    console.log('📷 Cached image as base64 for:', seedData.title);
+                };
+                reader.readAsDataURL(imageBlob);
+                
+            } catch (error) {
+                console.warn('⚠️ Could not cache image for:', seedData.title, error);
+                // Not critical - user can still view but not go back to this step
+            }
         }
         
         function updateSeedHistoryDisplay() {
@@ -3490,11 +3556,18 @@
                             <div class="chain-image-label">${seed.title}</div>
                         `;
                         
-                        // Add click handler to view in modal
+                        // Mark the last step as active (current)
+                        if (index === seedHistory.length - 1) {
+                            chainImage.classList.add('active');
+                        }
+                        
+                        // Add click handler to go back to this step
                         chainImage.onclick = () => {
-                            const promptId = storePrompt(`${seed.title} (iteration ${index + 1})`);
-                            openImageModal(seed.imageUrl, seed.title, promptId);
+                            goBackToStep(index);
                         };
+                        
+                        // Add tooltip
+                        chainImage.title = `Click to go back to: ${seed.title}`;
                         
                         chainSequence.appendChild(chainImage);
                     });
@@ -3859,6 +3932,86 @@
             return Array.from(crypto.getRandomValues(new Uint8Array(8)))
                 .map(b => b.toString(16).padStart(2, '0'))
                 .join('');
+        }
+        
+        // Go back to a specific step in the edit history
+        function goBackToStep(stepIndex) {
+            if (!seedHistory || stepIndex >= seedHistory.length) {
+                console.log('❌ Invalid step index or no history available');
+                return;
+            }
+            
+            const targetStep = seedHistory[stepIndex];
+            console.log(`🔙 Going back to step ${stepIndex + 1}: ${targetStep.title}`);
+            
+            // Truncate history to this point (remove all steps after)
+            seedHistory = seedHistory.slice(0, stepIndex + 1);
+            
+            // Set the current image to this step's image
+            currentImageBase64 = targetStep.imageBase64 || null;
+            
+            // If we have the base64, convert it back to a file and process
+            if (targetStep.imageBase64) {
+                try {
+                    // Convert base64 back to blob/file
+                    const byteCharacters = atob(targetStep.imageBase64);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const imageBlob = new Blob([byteArray], { type: 'image/jpeg' });
+                    const imageFile = new File([imageBlob], `step-${stepIndex}.jpg`, { type: 'image/jpeg' });
+                    
+                    // Clear current generations and regenerate from this point
+                    clearCurrentGenerations();
+                    
+                    // Process this image as if it was newly uploaded
+                    processImageFile(imageFile);
+                    
+                    // Update the editing chain display
+                    updateSeedHistoryDisplay();
+                    
+                    console.log(`✅ Restored to step ${stepIndex + 1}, ready to generate new variations`);
+                    
+                } catch (error) {
+                    console.error('❌ Error restoring step:', error);
+                    alert('Error going back to this step. Please try again.');
+                }
+            } else {
+                console.log('⚠️ No image data for this step, using URL');
+                // Fallback: use the image URL if no base64 available
+                fetch(targetStep.imageUrl)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        const file = new File([blob], `step-${stepIndex}.jpg`, { type: 'image/jpeg' });
+                        clearCurrentGenerations();
+                        processImageFile(file);
+                        updateSeedHistoryDisplay();
+                    })
+                    .catch(error => {
+                        console.error('❌ Error fetching step image:', error);
+                        alert('Error loading step image. Please try again.');
+                    });
+            }
+        }
+        
+        // Clear current generations but keep the editing chain
+        function clearCurrentGenerations() {
+            const rightSection = document.getElementById('rightSection');
+            if (rightSection) {
+                // Show loading state
+                rightSection.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-content">
+                            <div style="text-align: center; padding: 40px;">
+                                <div style="font-size: 18px; color: #333; margin-bottom: 12px;">🔄 Generating from this step...</div>
+                                <div style="font-size: 14px; color: #666;">Click "BRANCH THIS" on any result to continue your edit tree</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
         }
         
         // Session URL functionality removed - now just sharing main URL
