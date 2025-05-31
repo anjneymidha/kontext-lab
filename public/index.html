@@ -4182,7 +4182,7 @@
                          style="cursor: zoom-in; position: relative; width: 100%; height: 100%; object-fit: contain;"
                          title="Click to view full size">
                     <div class="use-as-input-icon" 
-                         onclick="event.stopPropagation(); useAsInput('${result.imageUrl}', 'Cached ${index + 1}', '${result.promptId}')"
+                         onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; useAsInput('${result.imageUrl}', 'Cached ${index + 1}', '${result.promptId}')"
                          title="Use this image to start a new generation">
                     </div>
                 </div>
@@ -4347,7 +4347,7 @@
                         object-fit: contain;
                     " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')">
                     <div class="use-as-input-icon" 
-                         onclick="event.stopPropagation(); useAsInput('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')"
+                         onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; useAsInput('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')"
                          title="Use this image to start a new generation">
                     </div>
                 `;
@@ -6051,7 +6051,7 @@
                          style="cursor: zoom-in; position: relative; width: 100%; height: 100%; object-fit: contain;"
                          title="Click to view full size">
                     <div class="use-as-input-icon" 
-                         onclick="event.stopPropagation(); useAsInput('${imageUrl}', 'Edit ${iteration}', '${promptId}')"
+                         onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; useAsInput('${imageUrl}', 'Edit ${iteration}', '${promptId}')"
                          title="Use this image to start a new generation">
                     </div>
                 `;
@@ -6216,7 +6216,7 @@
                                 object-fit: contain;
                             " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')">
                             <div class="use-as-input-icon" 
-                                 onclick="event.stopPropagation(); useAsInput('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')"
+                                 onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; useAsInput('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')"
                                  title="Use this image to start a new generation">
                             </div>
                         `;
@@ -7250,7 +7250,7 @@
                 console.log('⏭️ Ignoring rapid click, processing previous request...');
                 return;
             }
-            useAsInputDebounce = setTimeout(() => { useAsInputDebounce = null; }, 2000);
+            useAsInputDebounce = setTimeout(() => { useAsInputDebounce = null; }, 3000); // Increased to 3 seconds
             
             console.log('🔄 Using generated image as new input:', title);
             
@@ -7270,18 +7270,20 @@
                 currentSessionId = generateSessionId();
                 console.log('🔄 New session created for image switch:', currentSessionId);
                 
-                // Clear existing results immediately for responsiveness
-                const rightSection = document.getElementById('rightSection');
-                if (rightSection) {
-                    const resultElements = rightSection.querySelectorAll('.canvas-element:not(.upload-box)');
-                    resultElements.forEach(element => element.remove());
-                }
-                
-                // Clear caption container
-                const captionContainer = document.querySelector('.caption-container');
-                if (captionContainer) {
-                    captionContainer.innerHTML = '';
-                }
+                // Clear existing results asynchronously to avoid blocking UI
+                setTimeout(() => {
+                    const rightSection = document.getElementById('rightSection');
+                    if (rightSection) {
+                        const resultElements = rightSection.querySelectorAll('.canvas-element:not(.upload-box)');
+                        resultElements.forEach(element => element.remove());
+                    }
+                    
+                    // Clear caption container
+                    const captionContainer = document.querySelector('.caption-container');
+                    if (captionContainer) {
+                        captionContainer.innerHTML = '';
+                    }
+                }, 50); // Small delay to avoid blocking the click response
                 
                 
                 // Use server endpoint to handle image storage and conversion
@@ -7409,7 +7411,7 @@
                     
                     // Start the generation sequence
                     autoplaySequence(numImages);
-                }, 800); // Brief delay to show the image loaded
+                }, 300); // Reduced delay for faster response
                 
                 console.log('✅ Successfully switched to generated image as input');
                 
