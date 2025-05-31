@@ -1484,6 +1484,92 @@ app.get('/api/check-generation/:requestId', async (req, res) => {
   }
 });
 
+// Store sample image endpoint
+app.post('/api/store-sample-image', async (req, res) => {
+  try {
+    console.log('📸 Storing sample image...');
+    
+    // Read the ricky.png file
+    const sampleImagePath = path.join(__dirname, 'public', 'ricky.png');
+    
+    if (!fs.existsSync(sampleImagePath)) {
+      return res.status(404).json({ error: 'Sample image not found' });
+    }
+    
+    const imageBuffer = fs.readFileSync(sampleImagePath);
+    const base64Data = imageBuffer.toString('base64');
+    const filename = 'sample-ricky.png';
+    const sessionId = 'sample';
+    const title = 'Sample Edit Tree';
+    
+    let localUrl;
+    
+    if (pool) {
+      // Store in PostgreSQL for production
+      console.log('💾 Storing sample image in PostgreSQL...');
+      
+      try {
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS stored_images (
+            id VARCHAR(255) PRIMARY KEY,
+            session_id VARCHAR(255),
+            title TEXT,
+            image_data TEXT NOT NULL,
+            file_size INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          )
+        `);
+      } catch (tableError) {
+        console.warn('⚠️ Table creation warning:', tableError.message);
+      }
+      
+      // Check if sample already exists
+      const existingResult = await pool.query(
+        'SELECT id FROM stored_images WHERE id = $1',
+        [filename]
+      );
+      
+      if (existingResult.rows.length > 0) {
+        console.log('ℹ️ Sample image already exists in database');
+        localUrl = `/api/stored-image/${filename}`;
+      } else {
+        // Insert the sample image
+        await pool.query(
+          'INSERT INTO stored_images (id, session_id, title, image_data, file_size) VALUES ($1, $2, $3, $4, $5)',
+          [filename, sessionId, title, base64Data, imageBuffer.length]
+        );
+        localUrl = `/api/stored-image/${filename}`;
+        console.log('✅ Sample image stored in PostgreSQL');
+      }
+      
+    } else {
+      // Store in file system for local development
+      console.log('💾 Storing sample image in file system...');
+      
+      const storedImagesDir = path.join(__dirname, 'stored-images');
+      if (!fs.existsSync(storedImagesDir)) {
+        fs.mkdirSync(storedImagesDir, { recursive: true });
+      }
+      
+      const filePath = path.join(storedImagesDir, filename);
+      fs.writeFileSync(filePath, imageBuffer);
+      
+      localUrl = `/api/stored-image/${filename}`;
+      console.log('✅ Sample image stored in file system');
+    }
+    
+    res.json({
+      success: true,
+      localUrl: localUrl,
+      filename: filename
+    });
+    
+  } catch (error) {
+    console.error('❌ Store sample image error:', error);
+    res.status(500).json({ error: 'Failed to store sample image' });
+  }
+});
+
 // Store generated image endpoint for loop functionality
 app.post('/api/store-generated-image', async (req, res) => {
   console.log('💾 Store generated image endpoint hit');
