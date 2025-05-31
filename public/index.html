@@ -744,55 +744,6 @@
             }
         }
         
-        /* Mobile layout adjustments */
-        @media (max-width: 768px) {
-            .canvas-surface {
-                grid-template-rows: 80% 20%;
-                height: auto;
-                min-height: 100vh;
-            }
-            
-            .left-section {
-                width: 100vw;
-                left: -100vw;
-                height: 70vh;
-                padding: 16px;
-            }
-            
-            /* Start closed on mobile */
-            .left-section {
-                left: -100vw;
-            }
-            
-            .left-section:not(.closed) {
-                left: 0;
-            }
-            
-            /* Toggle button positioning on mobile */
-            .sidebar-toggle {
-                left: 20px; /* Always left on mobile */
-            }
-            
-            .generations-section {
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 12px;
-                padding: 16px;
-            }
-            
-            .editing-chain-section {
-                padding: 12px;
-            }
-            
-            .chain-image {
-                width: 80px;
-                height: auto;
-                max-height: 120px;
-            }
-            
-            .image-card {
-                min-height: 300px;
-            }
-        }
 
         .left-section {
             display: none;
@@ -832,13 +783,6 @@
             }
         }
         
-        @media (max-width: 768px) {
-            .generations-section {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                gap: 8px;
-                padding: 12px;
-            }
-        }
         
         @media (max-width: 480px) {
             .generations-section {
@@ -2534,186 +2478,316 @@
             backdrop-filter: blur(10px);
         }
 
-        /* Mobile-first responsive design */
+        /* Tablet and Mobile-Friendly Responsive Design */
         @media (max-width: 768px) {
             body {
                 overflow-y: auto;
                 overflow-x: hidden;
+                font-size: 16px; /* Prevent zoom on input focus */
+                -webkit-text-size-adjust: 100%;
             }
             
             .whiteboard-container {
                 overflow-y: auto;
                 height: auto;
                 min-height: 100vh;
+                -webkit-overflow-scrolling: touch;
             }
             
-            /* Improve touch interaction */
+            .canvas-surface {
+                position: relative;
+                width: 100vw;
+                height: 100vh;
+                min-height: 100vh;
+                grid-template-rows: 60% 40%;
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "main"
+                    "editing-chain";
+                padding: 0;
+                gap: 0;
+                display: grid;
+            }
+            
+            .left-section {
+                display: none;
+            }
+            
+            .right-section-container {
+                grid-area: main;
+                padding: 8px;
+                overflow: visible;
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+            }
+            
+            /* Responsive tablet image grid */
+            .generations-section {
+                flex: 1;
+                min-height: 50vh;
+                padding: 12px 8px;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 12px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                display: grid;
+            }
+            
+            /* Enhanced touch-friendly image cards */
             .image-card {
+                min-height: 220px;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                transition: all 0.2s ease;
                 cursor: pointer;
-                transition: transform 0.2s ease;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .image-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
             }
             
             .image-card:active {
                 transform: scale(0.98);
             }
             
-            .canvas-surface {
-                position: static;
-                height: 100vh;
-                grid-template-rows: 75% 25%;
-            }
-            
-            .generations-section {
-                grid-template-columns: repeat(2, 1fr);
-                grid-template-rows: repeat(4, 1fr);
-            }
-            
-            /* Mobile koncept grid - single column with koncept above each row */
-            .mobile-koncept-row {
-                display: grid;
-                grid-template-columns: 1fr;
-                gap: 10px;
-                margin-bottom: 20px;
-            }
-            
-            .mobile-results-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-            }
-            
-            .canvas-element {
-                min-height: 120px;
-            }
-            
-            .result-box {
-                min-height: 250px;
-            }
-            
-            .result-image {
-                height: 180px;
-                min-height: 160px;
-            }
-            
-            .element-content {
-                padding: 8px;
-            }
-            
-            /* Mobile controls */
-            .canvas-controls {
-                position: fixed;
-                bottom: 10px;
-                left: 50%;
-                transform: translateX(-50%);
-                flex-wrap: wrap;
-                justify-content: center;
-                max-width: 90vw;
-            }
-            
-            .control-btn {
-                padding: 8px 12px;
-                font-size: 9px;
-                margin: 2px;
-            }
-            
-            .zoom-indicator {
-                bottom: 60px;
-                left: 10px;
-                font-size: 10px;
-                padding: 4px 8px;
-            }
-            
-            /* Mobile upload zone */
-            .upload-zone {
-                min-height: 100px;
-                padding: 15px;
-            }
-            
-            .upload-icon {
-                font-size: 20px;
-            }
-            
-            /* Mobile caption box */
-            .caption-text {
-                font-size: 11px;
-                padding: 8px;
-            }
-            
-            /* Touch-friendly sizing */
-            .koncept-text {
-                min-height: 44px;
+            /* Touch-optimized REMIX buttons */
+            .use-as-input-icon {
+                padding: 12px 16px;
+                font-size: 12px;
+                font-weight: 700;
+                border-radius: 8px;
+                box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+                min-height: 44px; /* Apple's recommended touch target */
+                min-width: 44px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
             }
-        }
-        
-        /* Mobile editing pane improvements */
-        @media (max-width: 768px) {
+            
+            .result-image {
+                border-radius: 8px;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            
+            /* Mobile-optimized modals */
+            .modal-content {
+                width: 98vw;
+                height: 95vh;
+                margin: 2.5vh auto;
+                border-radius: 16px;
+                max-width: none;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            }
+            
+            .modal-image {
+                max-height: 75vh;
+                max-width: 95vw;
+                object-fit: contain;
+            }
+            
+            .modal-nav {
+                font-size: 28px;
+                width: 60px;
+                height: 60px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                background: rgba(0, 0, 0, 0.7);
+                color: white;
+                backdrop-filter: blur(10px);
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .modal-close {
+                font-size: 32px;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background: rgba(0, 0, 0, 0.7);
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                backdrop-filter: blur(10px);
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            /* Mobile editing pane enhancements */
+            .editing-chain-header h3 {
+                font-size: 18px;
+            }
+            
+            .editing-chain-header .subtitle {
+                font-size: 10px;
+            }
+            
+            .header-controls {
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-top: 8px;
+                width: 100%;
+            }
+            
+            .export-sequence-btn, .mass-download-btn, .reset-btn {
+                padding: 12px 16px;
+                font-size: 11px;
+                min-height: 44px; /* Touch-friendly */
+                flex: 1;
+                min-width: 80px;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .controls-column {
+                flex: 0 0 100%;
+                max-width: 100%;
+                width: 100%;
+            }
+            
+            /* Ensure editing chain stays at bottom */
             .editing-chain-section {
-                padding: 16px;
+                grid-area: editing-chain;
+                position: relative;
+                height: 100%;
                 min-height: 200px;
                 max-height: 40vh;
             }
             
-            .editing-chain-section.collapsed {
-                padding: 8px 16px;
+            /* Mobile-optimized chain elements */
+            .editing-chain-sequence {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 8px 0;
+            }
+            
+            .chain-upload-tile {
+                width: 100px;
                 min-height: 70px;
+                flex-shrink: 0;
             }
             
-            .editing-chain-header {
-                padding: 8px 12px;
-            }
-            
-            .upload-container-inline {
-                flex: 0 0 auto;
-                margin-bottom: 12px;
-            }
-            
-            .editing-chain-content {
-                gap: 8px;
+            .chain-skeleton-tile {
+                width: 100px;
+                min-height: 70px;
+                flex-shrink: 0;
             }
             
             .chain-image {
-                width: 60px;
-                height: 60px;
+                width: 100px;
+                flex-shrink: 0;
             }
             
-            .controls-column {
-                flex: 0 0 280px;
-                gap: 8px;
+            .upload-icon {
+                font-size: 18px;
             }
             
-            .chain-placeholder-text {
-                font-size: 9px;
-                margin-right: 8px;
+            .upload-label {
+                font-size: 8px;
             }
             
-            .chain-placeholder-item {
-                width: 75px;
-            }
-            
-            .chain-placeholder-arrow {
+            .chain-arrow {
                 font-size: 12px;
+                margin: 0 2px;
+            }
+            
+            /* Empty state mobile optimization */
+            .empty-state {
+                padding: 20px 16px;
+                min-height: 50vh;
+            }
+            
+            .empty-state-title {
+                font-size: 20px;
+            }
+            
+            .sample-image {
+                max-width: 100%;
+                height: auto;
+            }
+            
+            .cta-button {
+                padding: 14px 20px;
+                font-size: 14px;
+                min-height: 44px;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            /* iOS Safari specific fixes */
+            @supports (-webkit-touch-callout: none) {
+                .canvas-surface {
+                    height: -webkit-fill-available;
+                    min-height: -webkit-fill-available;
+                }
             }
         }
         
-        /* Extra small mobile devices */
+        /* Extra Small Mobile Devices - Ultra Touch Optimized */
         @media (max-width: 480px) {
+            body {
+                font-size: 16px; /* Prevent iOS zoom on input focus */
+            }
+            
             .canvas-surface {
+                position: relative;
+                width: 100vw;
+                height: 100vh;
+                grid-template-rows: 55% 45%;
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "main"
+                    "editing-chain";
                 padding: 0;
                 gap: 0;
+                display: grid;
             }
             
             .right-section-container {
-                padding: 0;
+                grid-area: main;
+                padding: 8px;
+                display: flex;
+                flex-direction: column;
+                height: 100%;
             }
             
+            /* Single column layout for smallest screens */
+            .generations-section {
+                flex: 1;
+                grid-template-columns: 1fr;
+                gap: 16px;
+                padding: 16px 12px;
+                min-height: 50vh;
+                display: grid;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .image-card {
+                min-height: 280px;
+                border-radius: 16px;
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+            }
+            
+            /* Ultra compact editing pane */
             .editing-chain-section {
+                grid-area: editing-chain;
                 padding: 12px;
                 min-height: 180px;
-                max-height: 35vh;
+                max-height: 45vh;
                 border-top: 3px solid #4A5A52;
+                position: relative;
+                height: 100%;
             }
             
             .editing-chain-section.collapsed {
@@ -2725,69 +2799,148 @@
                 padding: 6px 10px;
             }
             
+            .editing-chain-header h3 {
+                font-size: 16px;
+            }
+            
+            .editing-chain-header .subtitle {
+                font-size: 9px;
+            }
+            
             .resize-handle {
                 height: 6px;
                 background: linear-gradient(to bottom, #4A5A52, #3A4A42);
                 border-top: 1px solid #2A3A32;
             }
             
-            .upload-container-inline {
-                flex: 0 0 auto;
-                border-radius: 4px;
-                margin-bottom: 8px;
+            /* Stack buttons vertically on small screens */
+            .header-controls {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .export-sequence-btn, .mass-download-btn, .reset-btn {
+                width: 100%;
+                padding: 16px;
+                font-size: 12px;
+                min-height: 48px; /* Larger touch targets */
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
             }
             
             .controls-column {
-                flex: 0 0 220px;
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            
+            /* Compact chain elements */
+            .editing-chain-sequence {
                 gap: 6px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 8px 0;
             }
             
-            .chain-image {
-                width: 100px;
+            .chain-upload-tile, .chain-skeleton-tile, .chain-image {
+                width: 80px;
+                min-height: 60px;
+                flex-shrink: 0;
             }
             
-            .chain-placeholder-text {
-                font-size: 8px;
-                margin-right: 6px;
+            .upload-icon {
+                font-size: 16px;
             }
             
-            .chain-placeholder-item {
-                width: 62px;
+            .upload-label {
+                font-size: 7px;
             }
             
-            .chain-placeholder-arrow {
+            .chain-arrow {
                 font-size: 10px;
+                margin: 0 1px;
             }
             
-            .export-sequence-btn {
-                padding: 6px 12px;
-                font-size: 12px;
+            /* Full-screen modals on phones */
+            .modal-content {
+                width: 100vw;
+                height: 100vh;
+                margin: 0;
+                border-radius: 0;
             }
             
-            /* Better touch targets */
+            .modal-image {
+                max-height: 80vh;
+                max-width: 95vw;
+            }
+            
+            .modal-nav {
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(15px);
+            }
+            
+            .modal-close {
+                width: 44px;
+                height: 44px;
+                font-size: 28px;
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(15px);
+                top: 20px;
+                right: 20px;
+            }
+            
+            /* Better touch targets for REMIX buttons */
             .use-as-input-icon {
-                min-height: 44px !important;
+                min-height: 48px !important;
+                min-width: 48px !important;
                 font-size: 12px !important;
+                padding: 14px 18px;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
             }
             
-            .use-as-input-icon::after {
-                font-size: 12px;
+            /* Empty state optimization */
+            .empty-state {
+                padding: 20px 16px;
+                min-height: 45vh;
             }
             
-            /* Responsive button styling */
+            .empty-state-title {
+                font-size: 18px;
+            }
+            
+            .sample-image {
+                max-width: 100%;
+                height: auto;
+                border-radius: 12px;
+            }
+            
             .cta-button {
-                padding: 12px 24px;
+                padding: 16px 24px;
                 font-size: 14px;
-                min-height: 44px;
+                min-height: 48px;
+                width: 100%;
+                max-width: 300px;
+                margin: 0 auto;
+                display: block;
             }
             
-            .mobile-results-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .control-btn {
-                padding: 6px 10px;
-                font-size: 8px;
+            /* iOS Safari specific enhancements */
+            @supports (-webkit-touch-callout: none) {
+                .canvas-surface {
+                    height: -webkit-fill-available;
+                    min-height: -webkit-fill-available;
+                }
+                
+                .generations-section {
+                    min-height: calc(55vh - env(safe-area-inset-bottom));
+                }
+                
+                .editing-chain-section {
+                    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+                }
             }
         }
     </style>
