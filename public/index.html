@@ -7069,8 +7069,8 @@
             
             // Add error handler
             sampleImage.onerror = function() {
-                console.log('❌ Sample image failed to load, trying /ricko.png');
-                this.src = '/ricko.png';
+                console.log('❌ Sample image failed to load, trying backup external URL');
+                this.src = 'https://raw.githubusercontent.com/anjneymidha/kontext-lab/refs/heads/main/public/ricko.png';
                 this.onerror = function() {
                     console.log('❌ Both sample images failed to load');
                 };
