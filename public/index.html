@@ -6,16 +6,17 @@
     <title>KOMPOSER | KONTEXT</title>
     
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Upload image → AI creates wild prompts → See magic happen. A KONTEXT experiment. No prompting skills needed!">
+    <meta name="description" content="Upload image → Let AI create for you → Branch your picks">
     <meta name="keywords" content="AI image editing, image transformation, AI prompts, creative AI, image generation, KONTEXT, KOMPOSER">
     <meta name="author" content="KONTEXT">
     
     <!-- Open Graph Meta Tags for Facebook, LinkedIn, etc. -->
-    <meta property="og:title" content="KOMPOSER - AI Writes All Your Prompts | KONTEXT">
-    <meta property="og:description" content="Upload image → AI creates wild prompts → See magic happen. A KONTEXT experiment. No prompting skills needed!">
-    <meta property="og:image" content="https://komposer.xyz/og-image.svg">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
+    <meta property="og:title" content="KOMPOSER - A FLUX.1 Kontext Experiment">
+    <meta property="og:description" content="Upload image → Let AI create for you → Branch your picks">
+    <meta property="og:image" content="https://komposer.xyz/ricko.png">
+    <meta property="og:image:width" content="1024">
+    <meta property="og:image:height" content="256">
+    <meta property="og:image:type" content="image/png">
     <meta property="og:url" content="https://komposer.xyz/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="KOMPOSER">
@@ -23,9 +24,9 @@
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="KOMPOSER - AI Writes All Your Prompts | KONTEXT">
-    <meta name="twitter:description" content="Upload image → AI creates wild prompts → See magic happen. A KONTEXT experiment. No prompting skills needed!">
-    <meta name="twitter:image" content="https://komposer.xyz/og-image.svg">
+    <meta name="twitter:title" content="KOMPOSER - A FLUX.1 Kontext Experiment">
+    <meta name="twitter:description" content="Upload image → Let AI create for you → Branch your picks">
+    <meta name="twitter:image" content="https://komposer.xyz/ricko.png">
     <meta name="twitter:site" content="@kontext">
     <meta name="twitter:creator" content="@kontext">
     
@@ -33,6 +34,11 @@
     <meta name="theme-color" content="#5A7A70">
     <meta name="msapplication-TileColor" content="#5A7A70">
     <link rel="canonical" href="https://komposer.xyz/">
+    
+    <!-- Additional meta tags for better link unfurling -->
+    <meta property="og:image:alt" content="KOMPOSER - A FLUX.1 Kontext Experiment">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="en-US">
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/og-image.svg">
@@ -44,7 +50,7 @@
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "KOMPOSER",
-        "description": "Upload image → AI creates wild prompts → See magic happen. A KONTEXT experiment. No prompting skills needed!",
+        "description": "Upload image → Let AI create for you → Branch your picks",
         "url": "https://komposer.xyz/",
         "applicationCategory": "Creative AI Tool",
         "operatingSystem": "Web Browser",
@@ -1438,6 +1444,45 @@
             min-width: 12px;
             text-align: center;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Toast Notifications */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            max-width: 400px;
+            z-index: 10000;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toast-notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .toast-info {
+            background: #007AFF;
+        }
+        
+        .toast-error {
+            background: #FF3B30;
+        }
+        
+        .toast-success {
+            background: #28CD41;
+        }
+        
+        .toast-warning {
+            background: #FF9500;
         }
 
         .chain-arrow {
@@ -4206,6 +4251,32 @@
                     </div>
                 `;
             }
+        }
+        
+        // Toast notification system
+        function showToast(message, type = 'info', duration = 4000) {
+            // Remove any existing toast
+            const existingToast = document.querySelector('.toast-notification');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast-notification toast-${type}`;
+            toast.textContent = message;
+            
+            // Add to page
+            document.body.appendChild(toast);
+            
+            // Show with animation
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            // Auto-remove after duration
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
         }
         
         // Session URL functionality removed - now just sharing main URL
@@ -7154,6 +7225,8 @@
                 
                 // Use server endpoint to handle image storage and conversion
                 console.log('📤 Requesting server to store and convert generated image...');
+                let conversionSuccessful = false;
+                
                 try {
                     const response = await fetch('/api/store-generated-image', {
                         method: 'POST',
@@ -7170,26 +7243,37 @@
                     }
                     
                     const result = await response.json();
-                    currentImageBase64 = result.base64;
-                    const localImageUrl = result.localUrl; // Use this for display instead of external URL
-                    
-                    console.log('✅ Image stored and converted successfully, length:', currentImageBase64.length);
-                    
-                    // Update imageUrl to use local stored version
-                    imageUrl = localImageUrl;
+                    if (result.success && result.base64) {
+                        currentImageBase64 = result.base64;
+                        const localImageUrl = result.localUrl;
+                        
+                        console.log('✅ Image stored and converted successfully, length:', currentImageBase64.length);
+                        
+                        // Update imageUrl to use local stored version
+                        imageUrl = localImageUrl;
+                        conversionSuccessful = true;
+                    } else {
+                        throw new Error('Server conversion failed');
+                    }
                     
                 } catch (conversionError) {
-                    console.error('❌ Server conversion failed:', conversionError);
+                    console.warn('⚠️ Server conversion failed, trying fallback:', conversionError);
                     
                     // Fallback: try client-side conversion (will likely fail due to CORS but worth trying)
                     try {
                         console.log('🔄 Attempting client-side fallback conversion...');
                         currentImageBase64 = await urlToBase64(imageUrl);
                         console.log('✅ Fallback conversion successful');
+                        conversionSuccessful = true;
                     } catch (fallbackError) {
-                        console.error('❌ Fallback conversion also failed:', fallbackError);
-                        throw new Error('Unable to convert image - server storage required');
+                        console.error('❌ Both server and fallback conversion failed:', fallbackError);
+                        // Don't throw here - we'll handle this below
                     }
+                }
+                
+                // If neither conversion method worked, we can't proceed
+                if (!conversionSuccessful && !currentImageBase64) {
+                    throw new Error('Unable to convert image for processing');
                 }
                 
                 // Update upload container with new image immediately
@@ -7280,8 +7364,18 @@
                     uploadContainer.classList.remove('upload-loading');
                 }
                 
-                // Show user-friendly error message
-                alert('Unable to use this image as input. This may be due to browser security restrictions.');
+                // Show specific error message based on the error type
+                let errorMessage = 'Unable to use this image as input.';
+                if (error.message.includes('Server error')) {
+                    errorMessage = 'Server temporarily unavailable. Please try again in a moment.';
+                } else if (error.message.includes('convert image')) {
+                    errorMessage = 'Unable to process this image. Try using a different image or refresh the page.';
+                } else if (error.message.includes('CORS') || error.message.includes('security')) {
+                    errorMessage = 'Image access restricted. This may be due to browser security settings.';
+                }
+                
+                // Show a less intrusive toast notification instead of alert
+                showToast(errorMessage, 'error');
             }
         }
 
