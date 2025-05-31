@@ -7333,9 +7333,33 @@
                     }
                 }
                 
-                // If neither conversion method worked, we can't proceed
+                // If neither conversion method worked, try to continue with existing base64 or use URL directly
                 if (!conversionSuccessful && !currentImageBase64) {
-                    throw new Error('Unable to convert image for processing');
+                    console.warn('⚠️ Image conversion failed, trying alternative approaches...');
+                    
+                    // Last resort: try to fetch the image URL directly as a blob
+                    try {
+                        console.log('🔄 Attempting direct blob fetch...');
+                        const imageResponse = await fetch(imageUrl);
+                        if (imageResponse.ok) {
+                            const blob = await imageResponse.blob();
+                            const reader = new FileReader();
+                            await new Promise((resolve, reject) => {
+                                reader.onload = () => {
+                                    currentImageBase64 = reader.result.split(',')[1]; // Remove data:image prefix
+                                    conversionSuccessful = true;
+                                    console.log('✅ Blob conversion successful, length:', currentImageBase64.length);
+                                    resolve();
+                                };
+                                reader.onerror = reject;
+                                reader.readAsDataURL(blob);
+                            });
+                        }
+                    } catch (blobError) {
+                        console.error('❌ Blob conversion also failed:', blobError);
+                        // Continue anyway - the generation might still work
+                        console.warn('⚠️ Continuing without image conversion - using URL directly');
+                    }
                 }
                 
                 // Update upload container with new image immediately
@@ -7398,6 +7422,19 @@
                 
                 const autoStartDelay = isMobile ? 100 : 300; // Much faster on mobile
                 setTimeout(() => {
+                    // Check if we have image data before starting generation
+                    if (!currentImageBase64) {
+                        console.error('❌ No image data available for generation');
+                        showToast('Unable to process image. Please try a different image.', 'error');
+                        
+                        // Reset button states
+                        const uploadContainer = document.getElementById('uploadZone') || document.querySelector('.upload-box .element-content');
+                        if (uploadContainer) {
+                            uploadContainer.classList.remove('upload-loading');
+                        }
+                        return;
+                    }
+                    
                     // Get number of images to generate
                     const numImagesInput = document.getElementById('numImagesInput');
                     const numImages = 12;
