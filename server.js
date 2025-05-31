@@ -734,8 +734,8 @@ function generateOpenGraphTags(sessionData, sessionId, req) {
   const sessionUrl = `${baseUrl}/session/${sessionId}`;
   
   // Default values
-  let title = 'KOMPOSER - AI Writes All Your Prompts | BFL Kontext';
-  let description = 'Upload image → AI creates wild prompts → See magic happen. A BFL Kontext experiment. No prompting skills needed!';
+  let title = 'KOMPOSER - AI Writes All Your Prompts | KONTEXT';
+  let description = 'Upload image → AI creates wild prompts → See magic happen. A KONTEXT experiment. No prompting skills needed!';
   let imageUrl = `${baseUrl}/og-image.svg`; // Default image
   
   if (sessionData) {
@@ -746,7 +746,7 @@ function generateOpenGraphTags(sessionData, sessionId, req) {
       : 'AI transformations';
     
     // Custom title with koncept names
-    title = `${konceptText} | KOMPOSER - BFL Kontext`;
+    title = `${konceptText} | KOMPOSER - KONTEXT`;
     
     // Custom description with session details
     const resultCount = sessionData.results ? sessionData.results.filter(r => !r.hasError && !r.isModerated).length : 0;
