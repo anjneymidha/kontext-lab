@@ -1513,8 +1513,8 @@ app.post('/api/store-sample-image', async (req, res) => {
   try {
     console.log('📸 Storing sample image...');
     
-    // Read the ricky.png file
-    const sampleImagePath = path.join(__dirname, 'public', 'ricky.png');
+    // Read the ricko.png file
+    const sampleImagePath = path.join(__dirname, 'public', 'ricko.png');
     
     if (!fs.existsSync(sampleImagePath)) {
       return res.status(404).json({ error: 'Sample image not found' });
@@ -1522,7 +1522,7 @@ app.post('/api/store-sample-image', async (req, res) => {
     
     const imageBuffer = fs.readFileSync(sampleImagePath);
     const base64Data = imageBuffer.toString('base64');
-    const filename = 'sample-ricky.png';
+    const filename = 'sample-ricko.png';
     const sessionId = 'sample';
     const title = 'Sample Edit Tree';
     
