@@ -22,17 +22,17 @@
   
   <!-- Title -->
   <text x="600" y="220" font-family="Inter, sans-serif" font-size="64" font-weight="600" text-anchor="middle" fill="#1a1a1a">
-    Kontext Lab
+    KOMPOSER
   </text>
   
   <!-- Subtitle -->
   <text x="600" y="270" font-family="Inter, sans-serif" font-size="28" font-weight="400" text-anchor="middle" fill="#666666">
-    A BFL Kontext experiment
+    A KONTEXT experiment
   </text>
   
   <!-- Description -->
   <text x="600" y="320" font-family="Inter, sans-serif" font-size="20" font-weight="400" text-anchor="middle" fill="#999999">
-    Transform your images with AI
+    Upload image → AI creates wild prompts → See magic happen
   </text>
   
   <!-- Visual elements - abstract representation of image transformation -->
