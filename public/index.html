@@ -1368,6 +1368,21 @@
             padding: 4px 6px;
             text-align: center;
         }
+        
+        .cache-indicator {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: #007AFF;
+            color: white;
+            font-size: 8px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 12px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
 
         .chain-arrow {
             flex-shrink: 0;
@@ -3432,6 +3447,7 @@
         let currentSessionId = null;
         let sessionResults = [];
         let seedHistory = []; // Track iteration history
+        let generationCache = {}; // Cache all generations by step index
         
         // Seed history management functions
         function addToSeedHistory(imageUrl, title, isOriginal = false) {
@@ -3488,6 +3504,34 @@
                 console.warn('⚠️ Could not cache image for:', seedData.title, error);
                 // Not critical - user can still view but not go back to this step
             }
+        }
+        
+        // Cache a generation result for the current edit step
+        function cacheGenerationResult(imageUrl, prompt, promptId) {
+            const currentStepIndex = seedHistory.length - 1; // Current step is the last in history
+            
+            if (currentStepIndex < 0) {
+                console.warn('⚠️ No current step to cache generation for');
+                return;
+            }
+            
+            // Initialize cache for this step if it doesn't exist
+            if (!generationCache[currentStepIndex]) {
+                generationCache[currentStepIndex] = [];
+            }
+            
+            // Add this generation to the cache
+            const cachedResult = {
+                imageUrl: imageUrl,
+                prompt: prompt,
+                promptId: promptId,
+                timestamp: Date.now()
+            };
+            
+            generationCache[currentStepIndex].push(cachedResult);
+            
+            console.log(`💾 Cached generation for step ${currentStepIndex + 1}: "${prompt.substring(0, 50)}..."`);
+            console.log(`📊 Step ${currentStepIndex + 1} now has ${generationCache[currentStepIndex].length} cached generations`);
         }
         
         function updateSeedHistoryDisplay() {
@@ -3551,9 +3595,15 @@
                         // Add image
                         const chainImage = document.createElement('div');
                         chainImage.className = 'chain-image';
+                        
+                        // Check if there are cached generations for this step
+                        const cachedCount = generationCache[index] ? generationCache[index].length : 0;
+                        const cacheIndicator = cachedCount > 0 ? `<div class="cache-indicator">${cachedCount}</div>` : '';
+                        
                         chainImage.innerHTML = `
                             <img src="${seed.imageUrl}" alt="${seed.title}">
                             <div class="chain-image-label">${seed.title}</div>
+                            ${cacheIndicator}
                         `;
                         
                         // Mark the last step as active (current)
@@ -3567,7 +3617,10 @@
                         };
                         
                         // Add tooltip
-                        chainImage.title = `Click to go back to: ${seed.title}`;
+                        const tooltip = cachedCount > 0 
+                            ? `Click to restore ${cachedCount} cached generations from: ${seed.title}`
+                            : `Click to go back to: ${seed.title}`;
+                        chainImage.title = tooltip;
                         
                         chainSequence.appendChild(chainImage);
                     });
@@ -3580,6 +3633,7 @@
         
         function clearSeedHistory() {
             seedHistory = [];
+            generationCache = {}; // Clear all cached generations
             
             // Clear the editing chain
             const chainSequence = document.getElementById('editingChainSequence');
@@ -3945,12 +3999,87 @@
             console.log(`🔙 Going back to step ${stepIndex + 1}: ${targetStep.title}`);
             
             // Truncate history to this point (remove all steps after)
+            const originalLength = seedHistory.length;
             seedHistory = seedHistory.slice(0, stepIndex + 1);
+            
+            // Clean up generation cache for removed steps
+            for (let i = stepIndex + 1; i < originalLength; i++) {
+                delete generationCache[i];
+            }
             
             // Set the current image to this step's image
             currentImageBase64 = targetStep.imageBase64 || null;
             
-            // If we have the base64, convert it back to a file and process
+            // Restore cached generations for this step if available
+            if (generationCache[stepIndex]) {
+                console.log(`📂 Restoring ${generationCache[stepIndex].length} cached generations for step ${stepIndex + 1}`);
+                restoreCachedGenerations(stepIndex);
+            } else {
+                console.log(`🔄 No cached generations found, regenerating from step ${stepIndex + 1}`);
+                // If no cached generations, regenerate
+                regenerateFromStep(stepIndex);
+            }
+            
+            // Update the editing chain display
+            updateSeedHistoryDisplay();
+        }
+        
+        // Restore cached generations for a specific step
+        function restoreCachedGenerations(stepIndex) {
+            const cachedResults = generationCache[stepIndex];
+            if (!cachedResults || cachedResults.length === 0) {
+                console.log('❌ No cached results to restore');
+                return;
+            }
+            
+            const rightSection = document.getElementById('rightSection');
+            if (!rightSection) return;
+            
+            // Clear current view
+            rightSection.innerHTML = '';
+            
+            // Restore each cached result
+            cachedResults.forEach((result, index) => {
+                displayCachedResult(result, index);
+            });
+            
+            console.log(`✅ Restored ${cachedResults.length} cached generations`);
+        }
+        
+        // Display a cached result
+        function displayCachedResult(result, index) {
+            const rightSection = document.getElementById('rightSection');
+            if (!rightSection) return;
+            
+            // Create image card similar to updateCardLoading
+            const cardId = `image-card-${index + 1}`;
+            const imageCard = document.createElement('div');
+            imageCard.id = cardId;
+            imageCard.className = 'image-card';
+            imageCard.innerHTML = `
+                <div class="image-container">
+                    <img src="${result.imageUrl}" alt="${result.prompt}" loading="lazy">
+                    <div class="image-overlay">
+                        <button class="branch-button" onclick="branchFromImage('${result.imageUrl}', '${result.prompt.replace(/'/g, "\\'")}', '${result.promptId}')">
+                            BRANCH THIS
+                        </button>
+                        <button class="share-button" onclick="shareIndividualImage(event)">
+                            🔗
+                        </button>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="prompt-text">${result.prompt}</div>
+                </div>
+            `;
+            
+            rightSection.appendChild(imageCard);
+        }
+        
+        // Regenerate from a specific step (fallback when no cache available)
+        function regenerateFromStep(stepIndex) {
+            const targetStep = seedHistory[stepIndex];
+            
             if (targetStep.imageBase64) {
                 try {
                     // Convert base64 back to blob/file
@@ -3969,17 +4098,14 @@
                     // Process this image as if it was newly uploaded
                     processImageFile(imageFile);
                     
-                    // Update the editing chain display
-                    updateSeedHistoryDisplay();
-                    
-                    console.log(`✅ Restored to step ${stepIndex + 1}, ready to generate new variations`);
+                    console.log(`✅ Regenerating from step ${stepIndex + 1}`);
                     
                 } catch (error) {
-                    console.error('❌ Error restoring step:', error);
+                    console.error('❌ Error regenerating from step:', error);
                     alert('Error going back to this step. Please try again.');
                 }
             } else {
-                console.log('⚠️ No image data for this step, using URL');
+                console.log('⚠️ No cached image data, using URL fallback');
                 // Fallback: use the image URL if no base64 available
                 fetch(targetStep.imageUrl)
                     .then(response => response.blob())
@@ -3987,7 +4113,6 @@
                         const file = new File([blob], `step-${stepIndex}.jpg`, { type: 'image/jpeg' });
                         clearCurrentGenerations();
                         processImageFile(file);
-                        updateSeedHistoryDisplay();
                     })
                     .catch(error => {
                         console.error('❌ Error fetching step image:', error);
@@ -5721,6 +5846,9 @@
             if (!card) return;
             
             const promptId = storePrompt(prompt);
+            
+            // Cache this generation for the current step
+            cacheGenerationResult(imageUrl, prompt, promptId);
             const content = card.querySelector('.image-card-content');
             
             if (content) {
@@ -6581,6 +6709,7 @@
                 // Reset ALL global state variables
                 sessionResults = [];
                 isSharedSession = false;
+                generationCache = {}; // Clear all cached generations
                 currentImageBase64 = null;
                 modalImages = [];
                 currentModalIndex = 0;
