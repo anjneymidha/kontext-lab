@@ -6035,64 +6035,47 @@
             // Show progress indicator
             const button = document.querySelector('.mass-download-btn');
             const originalText = button.textContent;
-            button.textContent = 'PREPARING...';
+            button.textContent = 'OPENING DOWNLOADS...';
             button.disabled = true;
             
             try {
-                const zip = new JSZip();
-                let downloadCount = 0;
+                // Due to CORS restrictions, we'll open each image in a new tab for manual download
+                const confirmDownload = confirm(`This will open ${modalImages.length} new tabs for you to download each image individually. Continue?`);
                 
-                // Process each image
-                for (let i = 0; i < modalImages.length; i++) {
-                    const image = modalImages[i];
-                    button.textContent = `DOWNLOADING ${i + 1}/${modalImages.length}`;
-                    
-                    try {
-                        // Fetch image as blob
-                        const response = await fetch(image.src);
-                        const blob = await response.blob();
-                        
-                        // Generate filename
-                        const extension = image.src.includes('.png') ? '.png' : '.jpg';
-                        const filename = `${image.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}${extension}`;
-                        
-                        // Add to zip
-                        zip.file(filename, blob);
-                        downloadCount++;
-                        
-                    } catch (error) {
-                        console.warn(`Failed to download image ${i + 1}:`, error);
-                    }
-                }
-                
-                if (downloadCount === 0) {
-                    alert('Failed to download any images.');
+                if (!confirmDownload) {
                     return;
                 }
                 
-                // Generate and download ZIP
-                button.textContent = 'CREATING ZIP...';
-                const zipBlob = await zip.generateAsync({type: 'blob'});
+                // Open each image in a new tab with download attribute
+                modalImages.forEach((image, index) => {
+                    setTimeout(() => {
+                        const a = document.createElement('a');
+                        a.href = image.src;
+                        a.target = '_blank';
+                        a.download = `${image.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        
+                        button.textContent = `OPENED ${index + 1}/${modalImages.length}`;
+                    }, index * 200); // Stagger the downloads to avoid browser blocking
+                });
                 
-                // Create download link
-                const url = URL.createObjectURL(zipBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `komposer_images_${new Date().toISOString().split('T')[0]}.zip`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                console.log(`📦 Successfully downloaded ${downloadCount} images`);
+                // Show completion message
+                setTimeout(() => {
+                    alert(`Opened ${modalImages.length} image downloads. Check your browser's download manager.`);
+                    console.log(`📦 Successfully opened ${modalImages.length} image downloads`);
+                }, modalImages.length * 200 + 500);
                 
             } catch (error) {
                 console.error('❌ Mass download failed:', error);
-                alert('Failed to create download. Please try again.');
+                alert('Failed to initiate downloads. Please try again.');
             } finally {
-                // Restore button
-                button.textContent = originalText;
-                button.disabled = false;
+                // Restore button after all downloads are initiated
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }, modalImages.length * 200 + 1000);
             }
         }
         
