@@ -3578,6 +3578,17 @@
             }
             
             seedHistory.push(seedData);
+            
+            // Clean up old cached base64 data to save memory (keep only current + 1 previous = 2 items)
+            if (seedHistory.length > 2) {
+                for (let i = 0; i < seedHistory.length - 2; i++) {
+                    if (seedHistory[i].imageBase64) {
+                        seedHistory[i].imageBase64 = null; // Clear base64 to save memory
+                        console.log(`🗑️ Cleared cached base64 for old item: ${seedHistory[i].title}`);
+                    }
+                }
+            }
+            
             updateSeedHistoryDisplay();
             console.log('📜 Added to seed history:', title);
         }
@@ -3642,6 +3653,17 @@
             };
             
             generationCache[currentStepIndex].push(cachedResult);
+            
+            // Limit generationCache to current + 1 previous step (max 2 steps)
+            const stepIndices = Object.keys(generationCache).map(Number).sort((a, b) => b - a);
+            if (stepIndices.length > 2) {
+                const indicesToRemove = stepIndices.slice(2);
+                indicesToRemove.forEach(index => {
+                    const removedCount = generationCache[index] ? generationCache[index].length : 0;
+                    delete generationCache[index];
+                    console.log(`🗑️ Cleared generation cache for old step ${index + 1} (${removedCount} items)`);
+                });
+            }
             
             console.log(`💾 Cached generation for step ${currentStepIndex + 1}: "${prompt.substring(0, 50)}..."`);
             console.log(`📊 Step ${currentStepIndex + 1} now has ${generationCache[currentStepIndex].length} cached generations`);
@@ -3741,6 +3763,30 @@
                 
                 // Enable horizontal scrolling after updating the display
                 setTimeout(() => enableHorizontalScrolling(), 100);
+            }
+        }
+        
+        // Helper function to enforce cache limits (preserves UI display, only limits cached data)
+        function enforceCacheLimits() {
+            // Clean up old cached base64 data in seedHistory (keep only current + 1 previous)
+            if (seedHistory.length > 2) {
+                for (let i = 0; i < seedHistory.length - 2; i++) {
+                    if (seedHistory[i].imageBase64) {
+                        seedHistory[i].imageBase64 = null; // Clear base64 to save memory
+                        console.log(`🗑️ Cleared cached base64 for old step: ${seedHistory[i].title}`);
+                    }
+                }
+            }
+            
+            // Limit generationCache to current + 1 previous step (max 2 steps)
+            const stepIndices = Object.keys(generationCache).map(Number).sort((a, b) => b - a);
+            if (stepIndices.length > 2) {
+                const indicesToRemove = stepIndices.slice(2);
+                indicesToRemove.forEach(index => {
+                    const removedCount = generationCache[index] ? generationCache[index].length : 0;
+                    delete generationCache[index];
+                    console.log(`🗑️ Cleared generation cache for old step ${index + 1} (${removedCount} items)`);
+                });
             }
         }
         
