@@ -2478,7 +2478,7 @@
             backdrop-filter: blur(10px);
         }
 
-        /* Mobile Instagram-Style Layout */
+        /* Simple Mobile Layout with Hamburger Menu */
         @media (max-width: 768px) {
             body {
                 overflow-y: auto;
@@ -2525,7 +2525,7 @@
             /* Full height image grid on mobile */
             .generations-section {
                 flex: 1;
-                min-height: calc(100vh - 120px);
+                min-height: calc(100vh - 100px);
                 padding: 8px;
                 grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
                 gap: 8px;
@@ -2655,16 +2655,14 @@
                 width: 100%;
             }
             
-            /* Instagram-style bottom bar */
+            /* Simple horizontal scrolling bottom editor */
             .editing-chain-section {
                 grid-area: editing-chain;
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
-                height: auto;
-                min-height: 90px;
-                max-height: none;
+                height: 80px;
                 background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(20px);
                 border-top: 1px solid rgba(0, 0, 0, 0.1);
@@ -2678,41 +2676,44 @@
                 display: none;
             }
             
-            /* Instagram-style tab layout */
+            /* Hide workflow controls */
             .workflow-row {
-                display: flex;
-                flex-direction: row;
-                height: 90px;
-                align-items: center;
-                justify-content: space-around;
-                padding: 0 16px;
-                gap: 0;
+                display: block;
+                height: 80px;
+                padding: 0;
             }
             
             .controls-column {
                 display: none; /* Hide the title and buttons */
             }
             
-            /* Instagram-style bottom tabs */
+            /* Simple horizontal scrolling chain */
             .editing-chain-sequence {
                 display: flex;
                 flex-direction: row;
-                justify-content: space-around;
                 align-items: center;
                 width: 100%;
-                height: 100%;
-                padding: 16px 8px;
-                gap: 8px;
-                overflow: visible;
+                height: 80px;
+                padding: 12px 16px;
+                gap: 12px;
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
             }
             
-            /* Instagram-style tab icons */
+            .editing-chain-sequence::-webkit-scrollbar {
+                display: none;
+            }
+            
+            /* Simple horizontal scrolling thumbnails */
             .chain-upload-tile, .chain-skeleton-tile, .chain-image {
-                width: 48px;
-                height: 48px;
-                min-width: 48px;
-                min-height: 48px;
-                border-radius: 50%;
+                width: 56px;
+                height: 56px;
+                min-width: 56px;
+                min-height: 56px;
+                border-radius: 8px;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -2729,11 +2730,10 @@
             
             .chain-upload-tile:active, .chain-skeleton-tile:active, .chain-image:active {
                 transform: scale(0.95);
-                background: #e9ecef;
             }
             
             .chain-upload-tile {
-                background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+                background: #007AFF;
                 border: none;
                 color: white;
             }
@@ -2742,7 +2742,7 @@
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
-                border-radius: 50%;
+                border-radius: 8px;
             }
             
             .chain-skeleton-tile {
@@ -2751,59 +2751,114 @@
             }
             
             .upload-icon {
-                font-size: 20px;
+                font-size: 18px;
                 margin-bottom: 0;
             }
             
             .upload-label {
-                font-size: 8px;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                margin-top: 2px;
+                display: none; /* Hide label to keep it clean */
             }
             
-            /* Hide arrows in Instagram style */
+            /* Hide arrows on mobile */
             .chain-arrow {
                 display: none;
             }
             
-            /* Add floating action buttons for actions */
-            .mobile-action-bar {
+            /* Hamburger menu button */
+            .hamburger-menu {
                 position: fixed;
                 top: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                display: flex;
-                gap: 8px;
-                z-index: 1001;
+                right: 20px;
+                width: 44px;
+                height: 44px;
                 background: rgba(255, 255, 255, 0.9);
                 backdrop-filter: blur(20px);
-                border-radius: 25px;
-                padding: 8px 12px;
+                border: none;
+                border-radius: 22px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 1001;
                 box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                transition: all 0.2s ease;
             }
             
-            .mobile-action-btn {
-                background: rgba(0, 0, 0, 0.8);
-                color: white;
+            .hamburger-menu:active {
+                transform: scale(0.95);
+            }
+            
+            .hamburger-icon {
+                width: 20px;
+                height: 20px;
+                position: relative;
+            }
+            
+            .hamburger-icon span {
+                display: block;
+                width: 20px;
+                height: 2px;
+                background: #333;
+                margin: 4px 0;
+                transition: all 0.3s ease;
+            }
+            
+            /* Menu overlay */
+            .menu-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1000;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
+            }
+            
+            .menu-overlay.active {
+                opacity: 1;
+                visibility: visible;
+            }
+            
+            /* Menu panel */
+            .menu-panel {
+                position: fixed;
+                top: 0;
+                right: -300px;
+                width: 280px;
+                height: 100vh;
+                background: white;
+                z-index: 1001;
+                transition: right 0.3s ease;
+                box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+                padding: 80px 20px 20px 20px;
+            }
+            
+            .menu-panel.active {
+                right: 0;
+            }
+            
+            .menu-item {
+                display: block;
+                width: 100%;
+                padding: 16px 20px;
+                margin-bottom: 8px;
+                background: #f8f9fa;
                 border: none;
-                border-radius: 20px;
-                padding: 8px 16px;
-                font-size: 12px;
+                border-radius: 12px;
+                font-size: 16px;
                 font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
+                color: #333;
                 cursor: pointer;
                 transition: all 0.2s ease;
-                min-height: 36px;
-                touch-action: manipulation;
-                -webkit-tap-highlight-color: transparent;
+                text-align: left;
             }
             
-            .mobile-action-btn:active {
-                transform: scale(0.95);
-                background: rgba(0, 0, 0, 0.9);
+            .menu-item:active {
+                transform: scale(0.98);
+                background: #e9ecef;
             }
             
             /* Empty state mobile optimization */
@@ -2838,7 +2893,7 @@
             }
         }
         
-        /* Extra Small Mobile Devices - Instagram Style */
+        /* Extra Small Mobile Devices - Simple Layout */
         @media (max-width: 480px) {
             body {
                 font-size: 16px; /* Prevent iOS zoom on input focus */
@@ -2872,7 +2927,7 @@
                 grid-template-columns: 1fr;
                 gap: 12px;
                 padding: 8px;
-                min-height: calc(100vh - 100px);
+                min-height: calc(100vh - 80px);
                 display: grid;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
@@ -2884,14 +2939,14 @@
                 box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
             }
             
-            /* Instagram-style bottom bar for small phones */
+            /* Simple bottom editor for small phones */
             .editing-chain-section {
                 grid-area: editing-chain;
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
-                height: 80px;
+                height: 70px;
                 background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(20px);
                 border-top: 1px solid rgba(0, 0, 0, 0.1);
@@ -2905,38 +2960,41 @@
             }
             
             .workflow-row {
-                display: flex;
-                flex-direction: row;
-                height: 80px;
-                align-items: center;
-                justify-content: space-around;
-                padding: 0 12px;
-                gap: 0;
+                display: block;
+                height: 70px;
+                padding: 0;
             }
             
             .controls-column {
                 display: none;
             }
             
-            /* Instagram-style tabs for small phones */
+            /* Horizontal scrolling for small phones */
             .editing-chain-sequence {
                 display: flex;
                 flex-direction: row;
-                justify-content: space-around;
                 align-items: center;
                 width: 100%;
-                height: 100%;
-                padding: 12px 8px;
-                gap: 6px;
-                overflow: visible;
+                height: 70px;
+                padding: 8px 12px;
+                gap: 8px;
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            
+            .editing-chain-sequence::-webkit-scrollbar {
+                display: none;
             }
             
             .chain-upload-tile, .chain-skeleton-tile, .chain-image {
-                width: 40px;
-                height: 40px;
-                min-width: 40px;
-                min-height: 40px;
-                border-radius: 50%;
+                width: 48px;
+                height: 48px;
+                min-width: 48px;
+                min-height: 48px;
+                border-radius: 6px;
                 flex-shrink: 0;
                 flex-grow: 0;
             }
@@ -2946,24 +3004,19 @@
             }
             
             .upload-label {
-                font-size: 6px;
-                margin-top: 1px;
+                display: none;
             }
             
             .chain-arrow {
                 display: none;
             }
             
-            /* Floating action bar for small phones */
-            .mobile-action-bar {
+            /* Smaller hamburger for phones */
+            .hamburger-menu {
+                width: 40px;
+                height: 40px;
                 top: 16px;
-                padding: 6px 10px;
-            }
-            
-            .mobile-action-btn {
-                padding: 6px 12px;
-                font-size: 10px;
-                min-height: 32px;
+                right: 16px;
             }
             
             /* Full-screen modals on phones */
@@ -3096,16 +3149,28 @@
                 </div>
             </div>
             
-            <!-- Mobile Action Bar -->
-            <div class="mobile-action-bar" id="mobileActionBar" style="display: none;">
-                <button class="mobile-action-btn" onclick="openComicStripModal()" title="Share sequence">
-                    SHARE
+            <!-- Mobile Hamburger Menu -->
+            <button class="hamburger-menu" id="hamburgerMenu" style="display: none;" onclick="toggleMobileMenu()">
+                <div class="hamburger-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </button>
+            
+            <!-- Menu Overlay -->
+            <div class="menu-overlay" id="menuOverlay" onclick="closeMobileMenu()"></div>
+            
+            <!-- Menu Panel -->
+            <div class="menu-panel" id="menuPanel">
+                <button class="menu-item" onclick="openComicStripModal(); closeMobileMenu();">
+                    📤 Share Sequence
                 </button>
-                <button class="mobile-action-btn" onclick="massDownloadImages()" title="Download all">
-                    DOWNLOAD
+                <button class="menu-item" onclick="massDownloadImages(); closeMobileMenu();">
+                    💾 Download All Images
                 </button>
-                <button class="mobile-action-btn" onclick="resetApp()" title="Reset">
-                    RESET
+                <button class="menu-item" onclick="resetApp(); closeMobileMenu();">
+                    🔄 Reset Everything
                 </button>
             </div>
             
@@ -6995,11 +7060,33 @@
         
         // Check if mobile layout should be used
         function checkMobileLayout() {
-            const mobileActionBar = document.getElementById('mobileActionBar');
-            if (window.innerWidth <= 768 && mobileActionBar) {
-                mobileActionBar.style.display = 'flex';
-            } else if (mobileActionBar) {
-                mobileActionBar.style.display = 'none';
+            const hamburgerMenu = document.getElementById('hamburgerMenu');
+            if (window.innerWidth <= 768 && hamburgerMenu) {
+                hamburgerMenu.style.display = 'flex';
+            } else if (hamburgerMenu) {
+                hamburgerMenu.style.display = 'none';
+                closeMobileMenu(); // Close menu if switching to desktop
+            }
+        }
+        
+        // Mobile menu functions
+        function toggleMobileMenu() {
+            const menuOverlay = document.getElementById('menuOverlay');
+            const menuPanel = document.getElementById('menuPanel');
+            
+            if (menuOverlay && menuPanel) {
+                menuOverlay.classList.toggle('active');
+                menuPanel.classList.toggle('active');
+            }
+        }
+        
+        function closeMobileMenu() {
+            const menuOverlay = document.getElementById('menuOverlay');
+            const menuPanel = document.getElementById('menuPanel');
+            
+            if (menuOverlay && menuPanel) {
+                menuOverlay.classList.remove('active');
+                menuPanel.classList.remove('active');
             }
         }
         
