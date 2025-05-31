@@ -2478,7 +2478,7 @@
             backdrop-filter: blur(10px);
         }
 
-        /* Tablet and Mobile-Friendly Responsive Design */
+        /* Mobile Instagram-Style Layout */
         @media (max-width: 768px) {
             body {
                 overflow-y: auto;
@@ -2499,7 +2499,7 @@
                 width: 100vw;
                 height: 100vh;
                 min-height: 100vh;
-                grid-template-rows: 60% 40%;
+                grid-template-rows: 1fr auto;
                 grid-template-columns: 1fr;
                 grid-template-areas:
                     "main"
@@ -2515,20 +2515,20 @@
             
             .right-section-container {
                 grid-area: main;
-                padding: 8px;
+                padding: 8px 8px 0 8px;
                 overflow: visible;
                 display: flex;
                 flex-direction: column;
                 height: 100%;
             }
             
-            /* Responsive tablet image grid */
+            /* Full height image grid on mobile */
             .generations-section {
                 flex: 1;
-                min-height: 50vh;
-                padding: 12px 8px;
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                gap: 12px;
+                min-height: calc(100vh - 120px);
+                padding: 8px;
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 8px;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
                 display: grid;
@@ -2655,86 +2655,155 @@
                 width: 100%;
             }
             
-            /* Ensure editing chain stays at bottom */
+            /* Instagram-style bottom bar */
             .editing-chain-section {
                 grid-area: editing-chain;
-                position: relative;
-                height: 100%;
-                min-height: 200px;
-                max-height: 40vh;
-            }
-            
-            /* Mobile workflow layout fixes */
-            .workflow-row {
-                flex-direction: column;
-                gap: 8px;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
                 height: auto;
+                min-height: 90px;
+                max-height: none;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                border-top: 1px solid rgba(0, 0, 0, 0.1);
+                box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
+                z-index: 1000;
+                padding: 0;
             }
             
-            .controls-column {
-                flex: 0 0 auto;
-                max-width: 100%;
-                width: 100%;
-                order: 1;
-            }
-            
-            /* Mobile-optimized chain elements */
-            .editing-chain-sequence {
-                order: 2;
-                flex: 0 0 auto;
-                display: flex;
-                overflow-x: auto;
-                overflow-y: hidden;
-                -webkit-overflow-scrolling: touch;
-                padding: 8px 0;
-                width: 100%;
-                min-width: 0;
-                scrollbar-width: none;
-                -ms-overflow-style: none;
-            }
-            
-            .editing-chain-sequence::-webkit-scrollbar {
+            /* Hide resize handle on mobile */
+            .resize-handle {
                 display: none;
             }
             
-            .chain-upload-tile {
-                width: 100px;
-                min-width: 100px;
-                min-height: 70px;
+            /* Instagram-style tab layout */
+            .workflow-row {
+                display: flex;
+                flex-direction: row;
+                height: 90px;
+                align-items: center;
+                justify-content: space-around;
+                padding: 0 16px;
+                gap: 0;
+            }
+            
+            .controls-column {
+                display: none; /* Hide the title and buttons */
+            }
+            
+            /* Instagram-style bottom tabs */
+            .editing-chain-sequence {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-around;
+                align-items: center;
+                width: 100%;
+                height: 100%;
+                padding: 16px 8px;
+                gap: 8px;
+                overflow: visible;
+            }
+            
+            /* Instagram-style tab icons */
+            .chain-upload-tile, .chain-skeleton-tile, .chain-image {
+                width: 48px;
+                height: 48px;
+                min-width: 48px;
+                min-height: 48px;
+                border-radius: 50%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: #f8f9fa;
+                border: 1px solid #e9ecef;
                 flex-shrink: 0;
                 flex-grow: 0;
+                transition: all 0.2s ease;
+                cursor: pointer;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .chain-upload-tile:active, .chain-skeleton-tile:active, .chain-image:active {
+                transform: scale(0.95);
+                background: #e9ecef;
+            }
+            
+            .chain-upload-tile {
+                background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+                border: none;
+                color: white;
+            }
+            
+            .chain-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 50%;
             }
             
             .chain-skeleton-tile {
-                width: 100px;
-                min-width: 100px;
-                min-height: 70px;
-                flex-shrink: 0;
-                flex-grow: 0;
-            }
-            
-            .chain-image {
-                width: 100px;
-                min-width: 100px;
-                flex-shrink: 0;
-                flex-grow: 0;
+                background: #f8f9fa;
+                border: 2px dashed #dee2e6;
             }
             
             .upload-icon {
-                font-size: 18px;
+                font-size: 20px;
+                margin-bottom: 0;
             }
             
             .upload-label {
                 font-size: 8px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-top: 2px;
             }
             
+            /* Hide arrows in Instagram style */
             .chain-arrow {
+                display: none;
+            }
+            
+            /* Add floating action buttons for actions */
+            .mobile-action-bar {
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                gap: 8px;
+                z-index: 1001;
+                background: rgba(255, 255, 255, 0.9);
+                backdrop-filter: blur(20px);
+                border-radius: 25px;
+                padding: 8px 12px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            }
+            
+            .mobile-action-btn {
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                border: none;
+                border-radius: 20px;
+                padding: 8px 16px;
                 font-size: 12px;
-                margin: 0 2px;
-                flex-shrink: 0;
-                flex-grow: 0;
-                width: auto;
-                min-width: 20px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                min-height: 36px;
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .mobile-action-btn:active {
+                transform: scale(0.95);
+                background: rgba(0, 0, 0, 0.9);
             }
             
             /* Empty state mobile optimization */
@@ -2769,7 +2838,7 @@
             }
         }
         
-        /* Extra Small Mobile Devices - Ultra Touch Optimized */
+        /* Extra Small Mobile Devices - Instagram Style */
         @media (max-width: 480px) {
             body {
                 font-size: 16px; /* Prevent iOS zoom on input focus */
@@ -2779,7 +2848,7 @@
                 position: relative;
                 width: 100vw;
                 height: 100vh;
-                grid-template-rows: 55% 45%;
+                grid-template-rows: 1fr auto;
                 grid-template-columns: 1fr;
                 grid-template-areas:
                     "main"
@@ -2791,7 +2860,7 @@
             
             .right-section-container {
                 grid-area: main;
-                padding: 8px;
+                padding: 8px 8px 0 8px;
                 display: flex;
                 flex-direction: column;
                 height: 100%;
@@ -2801,9 +2870,9 @@
             .generations-section {
                 flex: 1;
                 grid-template-columns: 1fr;
-                gap: 16px;
-                padding: 16px 12px;
-                min-height: 50vh;
+                gap: 12px;
+                padding: 8px;
+                min-height: calc(100vh - 100px);
                 display: grid;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
@@ -2815,98 +2884,59 @@
                 box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
             }
             
-            /* Ultra compact editing pane */
+            /* Instagram-style bottom bar for small phones */
             .editing-chain-section {
                 grid-area: editing-chain;
-                padding: 12px;
-                min-height: 180px;
-                max-height: 45vh;
-                border-top: 3px solid #4A5A52;
-                position: relative;
-                height: 100%;
-            }
-            
-            .editing-chain-section.collapsed {
-                padding: 6px 12px;
-                min-height: 60px;
-            }
-            
-            .editing-chain-header {
-                padding: 6px 10px;
-            }
-            
-            .editing-chain-header h3 {
-                font-size: 16px;
-            }
-            
-            .editing-chain-header .subtitle {
-                font-size: 9px;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 80px;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                border-top: 1px solid rgba(0, 0, 0, 0.1);
+                box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
+                z-index: 1000;
+                padding: 0;
             }
             
             .resize-handle {
-                height: 6px;
-                background: linear-gradient(to bottom, #4A5A52, #3A4A42);
-                border-top: 1px solid #2A3A32;
-            }
-            
-            /* Stack buttons vertically on small screens */
-            .header-controls {
-                flex-direction: column;
-                gap: 12px;
-            }
-            
-            .export-sequence-btn, .mass-download-btn, .reset-btn {
-                width: 100%;
-                padding: 16px;
-                font-size: 12px;
-                min-height: 48px; /* Larger touch targets */
-                touch-action: manipulation;
-                -webkit-tap-highlight-color: transparent;
-            }
-            
-            .controls-column {
-                flex: 0 0 100%;
-                max-width: 100%;
-            }
-            
-            /* Mobile workflow layout for small screens */
-            .workflow-row {
-                flex-direction: column;
-                gap: 6px;
-                height: auto;
-            }
-            
-            .controls-column {
-                flex: 0 0 auto;
-                max-width: 100%;
-                width: 100%;
-                order: 1;
-            }
-            
-            /* Compact chain elements with enhanced scrolling */
-            .editing-chain-sequence {
-                order: 2;
-                flex: 0 0 auto;
-                display: flex;
-                gap: 6px;
-                overflow-x: auto;
-                overflow-y: hidden;
-                -webkit-overflow-scrolling: touch;
-                padding: 8px 0;
-                width: 100%;
-                min-width: 0;
-                scrollbar-width: none;
-                -ms-overflow-style: none;
-            }
-            
-            .editing-chain-sequence::-webkit-scrollbar {
                 display: none;
             }
             
+            .workflow-row {
+                display: flex;
+                flex-direction: row;
+                height: 80px;
+                align-items: center;
+                justify-content: space-around;
+                padding: 0 12px;
+                gap: 0;
+            }
+            
+            .controls-column {
+                display: none;
+            }
+            
+            /* Instagram-style tabs for small phones */
+            .editing-chain-sequence {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-around;
+                align-items: center;
+                width: 100%;
+                height: 100%;
+                padding: 12px 8px;
+                gap: 6px;
+                overflow: visible;
+            }
+            
             .chain-upload-tile, .chain-skeleton-tile, .chain-image {
-                width: 80px;
-                min-width: 80px;
-                min-height: 60px;
+                width: 40px;
+                height: 40px;
+                min-width: 40px;
+                min-height: 40px;
+                border-radius: 50%;
                 flex-shrink: 0;
                 flex-grow: 0;
             }
@@ -2916,16 +2946,24 @@
             }
             
             .upload-label {
-                font-size: 7px;
+                font-size: 6px;
+                margin-top: 1px;
             }
             
             .chain-arrow {
+                display: none;
+            }
+            
+            /* Floating action bar for small phones */
+            .mobile-action-bar {
+                top: 16px;
+                padding: 6px 10px;
+            }
+            
+            .mobile-action-btn {
+                padding: 6px 12px;
                 font-size: 10px;
-                margin: 0 1px;
-                flex-shrink: 0;
-                flex-grow: 0;
-                width: auto;
-                min-width: 16px;
+                min-height: 32px;
             }
             
             /* Full-screen modals on phones */
@@ -3058,6 +3096,19 @@
                 </div>
             </div>
             
+            <!-- Mobile Action Bar -->
+            <div class="mobile-action-bar" id="mobileActionBar" style="display: none;">
+                <button class="mobile-action-btn" onclick="openComicStripModal()" title="Share sequence">
+                    SHARE
+                </button>
+                <button class="mobile-action-btn" onclick="massDownloadImages()" title="Download all">
+                    DOWNLOAD
+                </button>
+                <button class="mobile-action-btn" onclick="resetApp()" title="Reset">
+                    RESET
+                </button>
+            </div>
+            
             <!-- Right Section - Now just generations -->
             <div class="right-section-container">
                 <div class="generations-section" id="rightSection">
@@ -3180,6 +3231,62 @@
         // Custom koncept state
         let customKonceptCount = 0;
         let totalKonceptRows = 3; // Start with 3 default koncepts
+        
+        // Fix mobile horizontal scrolling
+        function enableHorizontalScrolling() {
+            const editingChainSequence = document.getElementById('editingChainSequence');
+            if (editingChainSequence) {
+                // Remove any existing event listeners
+                editingChainSequence.ontouchstart = null;
+                editingChainSequence.ontouchmove = null;
+                editingChainSequence.ontouchend = null;
+                
+                // Force scrollable properties
+                editingChainSequence.style.overflowX = 'scroll';
+                editingChainSequence.style.overflowY = 'hidden';
+                editingChainSequence.style.webkitOverflowScrolling = 'touch';
+                editingChainSequence.style.touchAction = 'pan-x';
+                
+                // Ensure proper flex layout
+                editingChainSequence.style.display = 'flex';
+                editingChainSequence.style.flexWrap = 'nowrap';
+                
+                // Add touch event handlers specifically for horizontal scrolling
+                let isScrolling = false;
+                let startX = 0;
+                let scrollLeft = 0;
+                
+                editingChainSequence.addEventListener('touchstart', function(e) {
+                    isScrolling = false;
+                    startX = e.touches[0].pageX;
+                    scrollLeft = editingChainSequence.scrollLeft;
+                }, { passive: true });
+                
+                editingChainSequence.addEventListener('touchmove', function(e) {
+                    if (!isScrolling) {
+                        const deltaX = Math.abs(e.touches[0].pageX - startX);
+                        const deltaY = Math.abs(e.touches[0].pageY - (e.touches[0].pageY));
+                        
+                        if (deltaX > deltaY) {
+                            isScrolling = true;
+                        }
+                    }
+                    
+                    if (isScrolling) {
+                        const x = e.touches[0].pageX;
+                        const walk = (x - startX) * 2;
+                        editingChainSequence.scrollLeft = scrollLeft - walk;
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+                
+                editingChainSequence.addEventListener('touchend', function() {
+                    isScrolling = false;
+                }, { passive: true });
+                
+                console.log('✅ Horizontal scrolling enabled for editing chain');
+            }
+        }
         
         // Polling function for async generation
         async function pollForCompletion(requestId, imageIndex) {
@@ -3316,6 +3423,9 @@
                         chainSequence.appendChild(chainImage);
                     });
                 }
+                
+                // Enable horizontal scrolling after updating the display
+                setTimeout(() => enableHorizontalScrolling(), 100);
             }
         }
         
@@ -6876,6 +6986,25 @@
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initWhiteboard);
+        
+        // Enable mobile horizontal scrolling after page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => enableHorizontalScrolling(), 100);
+            checkMobileLayout();
+        });
+        
+        // Check if mobile layout should be used
+        function checkMobileLayout() {
+            const mobileActionBar = document.getElementById('mobileActionBar');
+            if (window.innerWidth <= 768 && mobileActionBar) {
+                mobileActionBar.style.display = 'flex';
+            } else if (mobileActionBar) {
+                mobileActionBar.style.display = 'none';
+            }
+        }
+        
+        // Update layout on resize
+        window.addEventListener('resize', checkMobileLayout);
 
         // Add persistent number of images input to left-section after upload box
         document.addEventListener('DOMContentLoaded', function() {
