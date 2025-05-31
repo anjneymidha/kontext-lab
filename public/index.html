@@ -2622,13 +2622,15 @@
                 overflow-x: hidden;
                 font-size: 16px; /* Prevent zoom on input focus */
                 -webkit-text-size-adjust: 100%;
+                padding-bottom: 80px !important; /* Account for fixed bottom bar */
             }
             
             .whiteboard-container {
                 overflow-y: auto;
                 height: auto;
-                min-height: 100vh;
+                min-height: calc(100vh - 80px);
                 -webkit-overflow-scrolling: touch;
+                padding-bottom: 0 !important;
             }
             
             .canvas-surface {
@@ -2662,13 +2664,14 @@
             /* Full height image grid on mobile */
             .generations-section {
                 flex: 1;
-                min-height: calc(100vh - 100px);
-                padding: 8px 8px 100px 8px;
+                min-height: calc(100vh - 180px);
+                padding: 8px 8px 20px 8px;
                 grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
                 gap: 8px;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
                 display: grid;
+                margin-bottom: 80px !important; /* Extra space for bottom bar */
             }
             
             /* Enhanced touch-friendly image cards */
@@ -2795,18 +2798,20 @@
             /* Simple horizontal scrolling bottom editor */
             .editing-chain-section {
                 grid-area: editing-chain;
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: 80px;
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(20px);
-                border-top: 1px solid rgba(0, 0, 0, 0.1);
-                box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
-                z-index: 1000;
-                z-index: 1000;
-                padding: 0;
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100vw !important;
+                height: 80px !important;
+                background: rgba(255, 255, 255, 0.95) !important;
+                backdrop-filter: blur(20px) !important;
+                border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
+                box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1) !important;
+                z-index: 9999 !important;
+                padding: 0 !important;
+                transform: none !important;
+                margin: 0 !important;
             }
             
             /* Hide resize handle on mobile */
@@ -2901,6 +2906,18 @@
             .upload-icon {
                 font-size: 18px;
                 margin-bottom: 0;
+            }
+            
+            /* Force bottom bar to always be sticky */
+            .mobile-bottom-bar-force {
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100vw !important;
+                z-index: 9999 !important;
+                transform: translateZ(0) !important; /* Force hardware acceleration */
+                will-change: transform !important;
             }
             
             .upload-label {
@@ -4618,6 +4635,38 @@
             }
         }
 
+        // Mobile Bottom Bar Fix
+        function ensureMobileBottomBarSticky() {
+            const editingSection = document.querySelector('.editing-chain-section');
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile && editingSection) {
+                // Force sticky positioning on mobile
+                editingSection.classList.add('mobile-bottom-bar-force');
+                
+                // Ensure proper z-index and positioning
+                editingSection.style.setProperty('position', 'fixed', 'important');
+                editingSection.style.setProperty('bottom', '0', 'important');
+                editingSection.style.setProperty('left', '0', 'important');
+                editingSection.style.setProperty('right', '0', 'important');
+                editingSection.style.setProperty('width', '100vw', 'important');
+                editingSection.style.setProperty('z-index', '9999', 'important');
+                editingSection.style.setProperty('transform', 'translateZ(0)', 'important');
+                
+                console.log('✅ Mobile bottom bar forced to sticky position');
+            } else if (!isMobile && editingSection) {
+                // Remove mobile fixes on desktop
+                editingSection.classList.remove('mobile-bottom-bar-force');
+            }
+        }
+        
+        // Call on load and resize
+        window.addEventListener('load', ensureMobileBottomBarSticky);
+        window.addEventListener('resize', ensureMobileBottomBarSticky);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(ensureMobileBottomBarSticky, 100);
+        });
+
         // Bottom Pane Resize Functionality
         let isResizing = false;
         let startY = 0;
@@ -5515,6 +5564,8 @@
             // Clear skeleton tiles and prepare for actual image cards
             rightSection.innerHTML = '';
             
+            // Ensure mobile bottom bar is sticky after layout creation
+            setTimeout(ensureMobileBottomBarSticky, 100);
         }
         
         function createAddKonceptRow(rightSection) {
