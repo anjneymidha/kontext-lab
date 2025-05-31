@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>KOMPOSER - Let AI do the prompting for you | BFL Kontext</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -131,6 +131,66 @@
             border: 1px solid #B8C5C0;
             border-radius: 8px;
             flex: 1;
+        }
+        
+        /* Mobile empty state */
+        @media (max-width: 768px) {
+            .empty-state {
+                min-height: 300px;
+                padding: 20px;
+            }
+            
+            .empty-state-content {
+                max-width: 100%;
+            }
+            
+            .empty-state-title {
+                font-size: 24px;
+                margin-bottom: 12px;
+            }
+            
+            .empty-state-description {
+                font-size: 14px;
+                margin-bottom: 24px;
+            }
+            
+            .empty-state-steps {
+                flex-direction: column;
+                gap: 12px;
+                margin-bottom: 24px;
+            }
+            
+            .step {
+                padding: 12px 16px;
+                gap: 12px;
+            }
+            
+            .step-text {
+                font-size: 13px;
+            }
+            
+            .cta-button {
+                padding: 14px 28px;
+                font-size: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .empty-state-title {
+                font-size: 20px;
+            }
+            
+            .empty-state-description {
+                font-size: 13px;
+            }
+            
+            .step {
+                padding: 10px 14px;
+            }
+            
+            .step-text {
+                font-size: 12px;
+            }
         }
         
         .step-number {
@@ -272,8 +332,19 @@
         }
 
         .use-as-input-icon::before {
-            content: 'REMIX';
+            content: '';
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='18' r='3'/%3E%3Ccircle cx='6' cy='6' r='3'/%3E%3Ccircle cx='18' cy='6' r='3'/%3E%3Cpath d='m18 9-4 9-4-9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 16px 16px;
+            width: 16px;
+            height: 16px;
             margin-right: 8px;
+            display: inline-block;
+        }
+        
+        .use-as-input-icon::after {
+            content: 'BRANCH FROM HERE';
             font-size: 14px;
             font-weight: 500;
             opacity: 0.9;
@@ -599,7 +670,7 @@
             background: #FFFFFF;
             display: grid;
             grid-template-columns: 1fr;
-            grid-template-rows: 70% 30%;
+            grid-template-rows: 1fr auto;
             grid-template-areas: 
                 "main"
                 "editing-chain";
@@ -612,10 +683,25 @@
             display: none;
         }
         
+        /* Tablet layout */
+        @media (max-width: 1024px) {
+            .canvas-surface {
+                grid-template-rows: 1fr auto;
+            }
+            
+            .generations-section {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+                gap: 8px;
+                padding: 12px;
+            }
+        }
+        
         /* Mobile layout adjustments */
         @media (max-width: 768px) {
             .canvas-surface {
-                grid-template-rows: 70% 30%;
+                grid-template-rows: 1fr auto;
+                height: auto;
+                min-height: 100vh;
             }
             
             .left-section {
@@ -689,24 +775,50 @@
             align-content: start;
             overflow-y: auto;
         }
+        
+        /* Responsive image grid */
+        @media (max-width: 1200px) {
+            .generations-section {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 6px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .generations-section {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 8px;
+                padding: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .generations-section {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                padding: 16px;
+            }
+        }
 
-        /* Bottom Docked - Teenage Engineering Style */
+        /* Bottom Editing Workspace - Professional Tool Style */
         .editing-chain-section {
             grid-area: editing-chain;
             height: 100%;
-            background: #1C2A23;
-            padding: 16px;
+            background: linear-gradient(135deg, #F8FAFB 0%, #F1F5F4 100%);
+            padding: 20px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             position: relative;
-            border-top: 2px solid #5A7A70;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            border-top: 3px solid #5A7A70;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
             transition: all 0.3s ease;
         }
         
         .editing-chain-section.collapsed {
-            padding: 8px 16px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #FAFBFC 0%, #F3F6F5 100%);
         }
         
         .editing-chain-section.collapsed .editing-chain-header {
@@ -715,28 +827,38 @@
         
         .editing-chain-section.collapsed h3 {
             font-size: 16px;
-            color: #B8C5C0;
+            color: #4A5568;
             transition: color 0.2s ease;
+            font-weight: 600;
         }
         
         .editing-chain-section.collapsed .editing-chain-header:hover h3 {
-            color: #FFFFFF;
+            color: #2D3748;
         }
         
         /* Interactive resize handle */
         .resize-handle {
             position: absolute;
-            top: -2px;
+            top: -3px;
             left: 0;
             right: 0;
-            height: 4px;
-            background: #5A7A70;
+            height: 6px;
+            background: linear-gradient(to bottom, #5A7A70, #4A6A60);
             cursor: ns-resize;
             z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.1s ease;
+            transition: all 0.2s ease;
+        }
+        
+        .resize-handle::before {
+            content: '';
+            width: 40px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 2px;
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
         }
         
         .resize-handle:hover {
@@ -779,24 +901,34 @@
             margin-bottom: 16px;
             cursor: pointer;
             user-select: none;
+            padding: 12px 16px;
+            background: rgba(90, 122, 112, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(90, 122, 112, 0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .editing-chain-header:hover {
+            background: rgba(90, 122, 112, 0.08);
+            border-color: rgba(90, 122, 112, 0.2);
         }
         
         .editing-chain-header:hover h3 {
-            color: #FFFFFF;
+            color: #2D3748;
         }
         
         .collapse-indicator {
-            color: #B8C5C0;
-            font-size: 18px;
+            color: #5A7A70;
+            font-size: 16px;
             transition: all 0.3s ease;
             margin-left: 12px;
-            font-weight: bold;
+            font-weight: 500;
             display: inline-block;
         }
         
         .collapse-indicator:hover {
-            color: #FFFFFF;
-            transform: scale(1.2);
+            color: #2D3748;
+            transform: scale(1.1);
         }
         
         .editing-chain-section.collapsed .collapse-indicator {
@@ -811,13 +943,13 @@
         }
 
         .editing-chain-header h3 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #FFFFFF;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1A202C;
             margin: 0;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.02em;
             text-transform: uppercase;
-            font-family: inherit;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
         }
         
         .header-controls {
@@ -826,50 +958,55 @@
         }
         
         .export-sequence-btn, .upload-btn, .reset-btn {
-            background: #5A7A70;
-            color: #FFFFFF;
-            border: 1px solid #B8C5C0;
-            padding: 6px 12px;
-            border-radius: 2px;
-            font-size: 10px;
-            font-weight: 600;
+            background: #FFFFFF;
+            color: #1A202C;
+            border: 1px solid #E2E8F0;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.1s ease;
+            transition: all 0.2s ease;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            font-family: inherit;
+            letter-spacing: 0.02em;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
             min-width: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         
         .export-sequence-btn:hover, .upload-btn:hover, .reset-btn:hover {
-            background: #B8C5C0;
-            color: #1C2A23;
+            background: #5A7A70;
+            color: #FFFFFF;
+            border-color: #5A7A70;
+            box-shadow: 0 2px 6px rgba(90, 122, 112, 0.2);
         }
         
         .export-sequence-btn:active, .upload-btn:active, .reset-btn:active {
-            background: #FFFFFF;
-            color: #1C2A23;
+            background: #4A6A60;
+            color: #FFFFFF;
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .editing-chain-header .subtitle {
-            font-size: 11px;
-            color: #B8C5C0;
+            font-size: 12px;
+            color: #68767D;
             margin: 0;
             font-weight: 400;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.02em;
             font-family: inherit;
         }
 
         .editing-chain-header .subtitle a {
-            color: #B8C5C0;
+            color: #5A7A70;
             text-decoration: underline;
         }
 
         .editing-chain-header .subtitle a:hover {
-            color: #FFFFFF;
+            color: #2D3748;
         }
 
         .workflow-row {
@@ -2175,6 +2312,16 @@
                 min-height: 100vh;
             }
             
+            /* Improve touch interaction */
+            .image-card {
+                cursor: pointer;
+                transition: transform 0.2s ease;
+            }
+            
+            .image-card:active {
+                transform: scale(0.98);
+            }
+            
             .canvas-surface {
                 position: static;
                 height: 100vh;
@@ -2266,33 +2413,101 @@
             }
         }
         
-        /* Extra small mobile devices */
-        @media (max-width: 480px) {
-            .canvas-surface {
-                padding: 8px;
+        /* Mobile editing pane improvements */
+        @media (max-width: 768px) {
+            .editing-chain-section {
+                padding: 16px;
+                min-height: 200px;
+                max-height: 40vh;
+            }
+            
+            .editing-chain-section.collapsed {
+                padding: 8px 16px;
+                min-height: 70px;
+            }
+            
+            .editing-chain-header {
+                padding: 8px 12px;
+            }
+            
+            .upload-container-inline {
+                flex: 0 0 auto;
+                margin-bottom: 12px;
+            }
+            
+            .editing-chain-content {
                 gap: 8px;
             }
             
-            .left-section {
-                padding: 12px;
+            .chain-image {
+                width: 60px;
+                height: 60px;
+            }
+        }
+        
+        /* Extra small mobile devices */
+        @media (max-width: 480px) {
+            .canvas-surface {
+                padding: 0;
+                gap: 0;
             }
             
             .right-section-container {
-                padding: 12px;
-            }
-            
-            .generations-section {
-                grid-template-columns: 1fr;
-                grid-template-rows: repeat(8, 1fr);
+                padding: 0;
             }
             
             .editing-chain-section {
-                height: 100%;
+                padding: 12px;
+                min-height: 180px;
+                max-height: 35vh;
+                border-top: 2px solid #5A7A70;
+            }
+            
+            .editing-chain-section.collapsed {
+                padding: 6px 12px;
+                min-height: 60px;
+            }
+            
+            .editing-chain-header {
+                padding: 6px 10px;
+            }
+            
+            .resize-handle {
+                height: 6px;
+                background: #5A7A70;
+            }
+            
+            .upload-container-inline {
+                flex: 0 0 auto;
+                border-radius: 4px;
+                margin-bottom: 8px;
+            }
+            
+            .chain-image {
+                width: 50px;
+                height: 50px;
             }
             
             .export-sequence-btn {
                 padding: 6px 12px;
                 font-size: 12px;
+            }
+            
+            /* Better touch targets */
+            .use-as-input-icon {
+                min-height: 44px !important;
+                font-size: 12px !important;
+            }
+            
+            .use-as-input-icon::after {
+                font-size: 12px;
+            }
+            
+            /* Responsive button styling */
+            .cta-button {
+                padding: 12px 24px;
+                font-size: 14px;
+                min-height: 44px;
             }
             
             .mobile-results-grid {
@@ -3007,7 +3222,6 @@
                     <div class="use-as-input-icon" 
                          onclick="event.stopPropagation(); useAsInput('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')"
                          title="Use this image to start a new generation">
-                        ↻
                     </div>
                 `;
                 
@@ -4617,7 +4831,6 @@
                     <div class="use-as-input-icon" 
                          onclick="event.stopPropagation(); useAsInput('${imageUrl}', 'Edit ${iteration}', '${promptId}')"
                          title="Use this image to start a new generation">
-                        ↻
                     </div>
                 `;
                 // Dynamically set aspect ratio after image loads
@@ -4783,7 +4996,6 @@
                             <div class="use-as-input-icon" 
                                  onclick="event.stopPropagation(); useAsInput('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')"
                                  title="Use this image to start a new generation">
-                                ↻
                             </div>
                         `;
                         
