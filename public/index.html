@@ -3181,7 +3181,7 @@
                     <div class="empty-state" id="emptyState">
                         <div class="empty-state-content">
                             <div class="empty-state-sample">
-                                <img src="ricky.png" alt="Sample edit tree" class="sample-image" id="sampleImage" />
+                                <img src="/ricky.png" alt="Sample edit tree" class="sample-image" id="sampleImage" />
                                 <p class="sample-caption">Sample edit tree created from a single uploaded image</p>
                             </div>
                             <div class="empty-state-steps">
@@ -6589,7 +6589,7 @@
                     <div class="empty-state" id="emptyState">
                         <div class="empty-state-content">
                             <div class="empty-state-sample">
-                                <img src="ricky.png" alt="Sample edit tree" class="sample-image" id="sampleImage" />
+                                <img src="/ricky.png" alt="Sample edit tree" class="sample-image" id="sampleImage" />
                                 <p class="sample-caption">Sample edit tree created from a single uploaded image</p>
                             </div>
                             <div class="empty-state-steps">
@@ -7062,8 +7062,8 @@
             
             // Add error handler
             sampleImage.onerror = function() {
-                console.log('❌ Sample image failed to load, trying ricko.png');
-                this.src = 'ricko.png';
+                console.log('❌ Sample image failed to load, trying /ricko.png');
+                this.src = '/ricko.png';
                 this.onerror = function() {
                     console.log('❌ Both sample images failed to load');
                 };
