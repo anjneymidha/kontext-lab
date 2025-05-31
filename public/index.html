@@ -2863,7 +2863,7 @@
                                 </div>
                             </div>
                             <div class="empty-state-cta">
-                                <button class="cta-button" onclick="document.getElementById('fileInputInline').click()">
+                                <button class="cta-button" onclick="const fileInput = document.getElementById('fileInputInline'); if (fileInput) { fileInput.value = ''; fileInput.click(); } else { alert('Please use the upload box in the editing panel below.'); }">
                                     GET STARTED
                                 </button>
                             </div>
@@ -6114,18 +6114,40 @@
                 // Clear the interface completely
                 clearWorkspace();
                 
-                // Ensure editing pane is expanded (not collapsed)
+                // Ensure editing pane is expanded and properly structured
                 const editingSection = document.querySelector('.editing-chain-section');
                 const canvasSurface = document.getElementById('canvasSurface');
-                if (editingSection && editingSection.classList.contains('collapsed')) {
+                if (editingSection) {
+                    // Force remove collapsed state
                     editingSection.classList.remove('collapsed');
-                    canvasSurface.style.gridTemplateRows = '70% 30%';
+                    
+                    // Ensure proper grid layout
+                    if (canvasSurface) {
+                        canvasSurface.style.gridTemplateRows = '70% 30%';
+                    }
+                    
+                    // Force a reflow to ensure the layout is applied
+                    editingSection.offsetHeight;
+                    
+                    // Double-check the chain sequence exists and is visible
+                    const chainSequence = document.getElementById('editingChainSequence');
+                    if (chainSequence) {
+                        chainSequence.style.display = 'flex';
+                        chainSequence.style.visibility = 'visible';
+                    }
+                    
+                    // Ensure workflow row is visible
+                    const workflowRow = editingSection.querySelector('.workflow-row');
+                    if (workflowRow) {
+                        workflowRow.style.display = 'flex';
+                        workflowRow.style.visibility = 'visible';
+                    }
                 }
                 
                 // Reset zoom and position
                 autoPositionCamera();
                 
-                // Force garbage collection of any remaining elements
+                // Force garbage collection and final state verification
                 setTimeout(() => {
                     // Clear any remaining modal states
                     const modal = document.getElementById('imageModal');
@@ -6133,7 +6155,27 @@
                     
                     const comicModal = document.getElementById('comicStripModal');
                     if (comicModal) comicModal.style.display = 'none';
-                }, 100);
+                    
+                    // Final verification that editing pane is visible and expanded
+                    const editingSection = document.querySelector('.editing-chain-section');
+                    const workflowRow = editingSection?.querySelector('.workflow-row');
+                    const chainSequence = document.getElementById('editingChainSequence');
+                    
+                    if (editingSection?.classList.contains('collapsed')) {
+                        console.log('🔧 Final fix: Removing collapsed class');
+                        editingSection.classList.remove('collapsed');
+                    }
+                    
+                    if (workflowRow && workflowRow.style.display === 'none') {
+                        console.log('🔧 Final fix: Showing workflow row');
+                        workflowRow.style.display = 'flex';
+                    }
+                    
+                    if (chainSequence && chainSequence.style.display === 'none') {
+                        console.log('🔧 Final fix: Showing chain sequence');
+                        chainSequence.style.display = 'flex';
+                    }
+                }, 200);
                 
                 console.log('🆕 Hard reset complete - New session started:', currentSessionId);
             }
@@ -6171,7 +6213,7 @@
                                 </div>
                             </div>
                             <div class="empty-state-cta">
-                                <button class="cta-button" onclick="document.getElementById('fileInputInline').click()">
+                                <button class="cta-button" onclick="const fileInput = document.getElementById('fileInputInline'); if (fileInput) { fileInput.value = ''; fileInput.click(); } else { alert('Please use the upload box in the editing panel below.'); }">
                                     GET STARTED
                                 </button>
                             </div>
