@@ -41,8 +41,8 @@
     <meta name="language" content="en-US">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/og-image.svg">
-    <link rel="apple-touch-icon" href="/og-image.svg">
+    <link rel="icon" type="image/png" href="/ricko.png">
+    <link rel="apple-touch-icon" href="/ricko.png">
     
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -4444,18 +4444,20 @@
         window.addEventListener('load', initializeSidebarState);
         window.addEventListener('resize', initializeSidebarState);
         
-        // Force REMIX button visibility and proper positioning
+        // Throttled REMIX button visibility and proper positioning
+        let remixButtonThrottle = null;
         function ensureRemixButtonsVisible() {
+            // Throttle calls to prevent excessive DOM manipulation
+            if (remixButtonThrottle) return;
+            remixButtonThrottle = setTimeout(() => { remixButtonThrottle = null; }, 100);
+            
             const remixButtons = document.querySelectorAll('.use-as-input-icon');
+            if (remixButtons.length === 0) return;
+            
             console.log(`🔧 Ensuring ${remixButtons.length} REMIX buttons are visible and positioned...`);
             
             remixButtons.forEach((button, index) => {
-                console.log(`🔧 Processing button ${index + 1}:`, {
-                    display: button.style.display,
-                    visibility: button.style.visibility,
-                    opacity: button.style.opacity,
-                    computed: window.getComputedStyle(button).display
-                });
+                console.log(`🔧 Processing button ${index + 1}: Object`);
                 
                 // Force style recalculation with aggressive overrides for bar design
                 button.style.setProperty('display', 'flex', 'important');
@@ -4502,17 +4504,16 @@
             });
         }
         
-        // Run visibility check after images load and periodically (less frequent)
+        // Run visibility check after images load and periodically (much less frequent)
         window.addEventListener('load', () => {
-            setTimeout(ensureRemixButtonsVisible, 500);
-            setTimeout(ensureRemixButtonsVisible, 2000);
-            setInterval(ensureRemixButtonsVisible, 15000); // Reduced frequency from 5s to 15s
+            setTimeout(ensureRemixButtonsVisible, 1000);
+            setInterval(ensureRemixButtonsVisible, 30000); // Reduced frequency to 30s to improve performance
             
             // Start mutation observer to catch when buttons get hidden
             startRemixButtonObserver();
         });
         
-        // Aggressive mutation observer to detect and fix hidden REMIX buttons
+        // Optimized mutation observer to detect and fix hidden REMIX buttons
         function startRemixButtonObserver() {
             console.log('🔍 Starting REMIX button mutation observer for Firefox...');
             
@@ -4529,7 +4530,7 @@
                     if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
                         mutation.addedNodes.forEach((node) => {
                             if (node.nodeType === 1) { // Element node
-                                const hasButton = node.querySelector && node.querySelector('.use-as-input-icon');
+                                const hasButton = node.querySelector ? node.querySelector('.use-as-input-icon') : null;
                                 const isButton = node.classList && node.classList.contains('use-as-input-icon');
                                 if (hasButton || isButton) {
                                     buttonsNeedFix = true;
@@ -6067,8 +6068,8 @@
                     // Force reflow to ensure browser applies new aspect
                     card.offsetHeight;
                     
-                    // Ensure REMIX button is visible after image loads
-                    setTimeout(ensureRemixButtonsVisible, 100);
+                    // Ensure REMIX button is visible after image loads (reduced frequency)
+                    setTimeout(ensureRemixButtonsVisible, 500);
                 };
             }
             
@@ -7241,7 +7242,16 @@
         }
 
         // Use generated image as input for next generation
+        // Debounce to prevent rapid clicks
+        let useAsInputDebounce = null;
         async function useAsInput(imageUrl, title, promptId) {
+            // Prevent rapid clicks
+            if (useAsInputDebounce) {
+                console.log('⏭️ Ignoring rapid click, processing previous request...');
+                return;
+            }
+            useAsInputDebounce = setTimeout(() => { useAsInputDebounce = null; }, 2000);
+            
             console.log('🔄 Using generated image as new input:', title);
             
             try {
