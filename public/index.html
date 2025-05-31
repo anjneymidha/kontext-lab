@@ -7050,7 +7050,7 @@
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initWhiteboard);
         
-        // Initialize sample image with multiple fallbacks
+        // Initialize sample image with database storage and fallbacks
         async function initializeSampleImage() {
             const sampleImage = document.getElementById('sampleImage');
             if (!sampleImage) {
@@ -7058,45 +7058,77 @@
                 return;
             }
             
-            console.log('📸 Checking sample image loading...');
+            console.log('📸 Initializing sample image...');
             
-            // List of image sources to try
-            const imageSources = [
-                './ricky.png',
-                './ricko.png', 
-                '/ricky.png',
-                '/ricko.png',
-                'ricky.png',
-                'ricko.png'
-            ];
+            // First try to store in database and get the URL
+            try {
+                const response = await fetch('/api/store-sample-image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Sample image stored in database:', result.localUrl);
+                    
+                    // Test if the database URL works
+                    const testImg = new Image();
+                    testImg.onload = () => {
+                        console.log('✅ Database image loads successfully');
+                        sampleImage.src = result.localUrl;
+                    };
+                    testImg.onerror = () => {
+                        console.log('❌ Database image failed, trying fallbacks');
+                        tryFallbackImages();
+                    };
+                    testImg.src = result.localUrl;
+                    return;
+                }
+            } catch (error) {
+                console.log('❌ Database storage failed:', error);
+            }
             
-            // Function to test if an image loads
-            function testImageLoad(src) {
-                return new Promise((resolve) => {
+            // If database storage failed, try fallback images
+            tryFallbackImages();
+            
+            function tryFallbackImages() {
+                const imageSources = [
+                    './ricky.png',
+                    './ricko.png', 
+                    '/ricky.png',
+                    '/ricko.png',
+                    'ricky.png',
+                    'ricko.png'
+                ];
+                
+                let currentIndex = 0;
+                
+                function tryNextImage() {
+                    if (currentIndex >= imageSources.length) {
+                        console.log('⚠️ All image sources failed');
+                        return;
+                    }
+                    
+                    const src = imageSources[currentIndex];
+                    console.log('🔍 Trying image source:', src);
+                    
                     const testImg = new Image();
                     testImg.onload = () => {
                         console.log('✅ Image loads successfully:', src);
-                        resolve(true);
+                        sampleImage.src = src;
                     };
                     testImg.onerror = () => {
                         console.log('❌ Image failed to load:', src);
-                        resolve(false);
+                        currentIndex++;
+                        tryNextImage();
                     };
                     testImg.src = src;
-                });
-            }
-            
-            // Try each image source until one works
-            for (const src of imageSources) {
-                const loads = await testImageLoad(src);
-                if (loads) {
-                    console.log('🎯 Using working image source:', src);
-                    sampleImage.src = src;
-                    return;
                 }
+                
+                tryNextImage();
             }
-            
-            console.log('⚠️ No working image source found, keeping current src');
         }
 
         // Enable mobile horizontal scrolling after page loads
