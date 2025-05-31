@@ -4051,29 +4051,42 @@
             const rightSection = document.getElementById('rightSection');
             if (!rightSection) return;
             
-            // Create image card similar to updateCardLoading
+            // Create image card with proper structure matching updateCardComplete
             const cardId = `image-card-${index + 1}`;
             const imageCard = document.createElement('div');
             imageCard.id = cardId;
             imageCard.className = 'image-card';
             imageCard.innerHTML = `
-                <div class="image-container">
-                    <img src="${result.imageUrl}" alt="${result.prompt}" loading="lazy">
-                    <div class="image-overlay">
-                        <button class="branch-button" onclick="branchFromImage('${result.imageUrl}', '${result.prompt.replace(/'/g, "\\'")}', '${result.promptId}')">
-                            BRANCH THIS
-                        </button>
-                        <button class="share-button" onclick="shareIndividualImage(event)">
-                            🔗
-                        </button>
+                <div class="image-card-content">
+                    <img src="${result.imageUrl}" class="result-image" 
+                         data-prompt-id="${result.promptId}" 
+                         onclick="openImageModal('${result.imageUrl}', 'Cached ${index + 1}', '${result.promptId}')"
+                         style="cursor: zoom-in; position: relative; width: 100%; height: 100%; object-fit: contain;"
+                         title="Click to view full size">
+                    <div class="use-as-input-icon" 
+                         onclick="event.stopPropagation(); useAsInput('${result.imageUrl}', 'Cached ${index + 1}', '${result.promptId}')"
+                         title="Use this image to start a new generation">
                     </div>
-                </div>
-                <div class="card-content">
-                    <div class="prompt-text">${result.prompt}</div>
                 </div>
             `;
             
             rightSection.appendChild(imageCard);
+            
+            // Apply the same styling that updateCardComplete does
+            const content = imageCard.querySelector('.image-card-content');
+            const img = content.querySelector('.result-image');
+            const remixButton = content.querySelector('.use-as-input-icon');
+            
+            img.onload = function() {
+                const aspectRatio = this.naturalWidth / this.naturalHeight;
+                content.style.aspectRatio = aspectRatio;
+                
+                // Position the remix button
+                if (remixButton) {
+                    remixButton.style.opacity = '1';
+                    remixButton.style.visibility = 'visible';
+                }
+            };
         }
         
         // Regenerate from a specific step (fallback when no cache available)
