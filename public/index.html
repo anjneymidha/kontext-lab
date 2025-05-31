@@ -2589,7 +2589,7 @@
                                 </div>
                                 <div class="step">
                                     <span class="step-number">2</span>
-                                    <span class="step-text">AI generates 12 creative variations</span>
+                                    <span class="step-text">AI automatically generates 12 creative variations</span>
                                 </div>
                                 <div class="step">
                                     <span class="step-number">3</span>
@@ -3917,6 +3917,14 @@
             }
             
             try {
+                // Hide empty state on first upload
+                if (isFirstUpload) {
+                    const emptyState = document.getElementById('emptyState');
+                    if (emptyState) {
+                        emptyState.style.display = 'none';
+                    }
+                }
+                
                 // Clear previous session state when loading new image
                 sessionResults = [];
                 totalKonceptRows = 3;
@@ -4067,6 +4075,18 @@
                                     }, 300);
                                 };
                                 
+                                // Auto-start generation on first upload
+                                if (isFirstUpload) {
+                                    console.log('🎯 First upload detected, auto-starting generation...');
+                                    generateBtn.innerHTML = 'GENERATING...';
+                                    generateBtn.disabled = true;
+                                    isFirstUpload = false;
+                                    
+                                    setTimeout(() => {
+                                        autoplaySequence(12);
+                                    }, 500);
+                                }
+                                
                                 imagePreview.appendChild(imgThumb);
                                 imagePreview.appendChild(generateBtn);
                                 uploadZoneInline.appendChild(imagePreview);
@@ -4121,6 +4141,20 @@
                             uploadContainer.appendChild(imageContainer);
                             uploadContainer.appendChild(startButton);
                             uploadContainer.appendChild(changeButton);
+                            
+                            // Auto-start generation on first upload
+                            if (isFirstUpload) {
+                                console.log('🎯 First upload detected, auto-starting generation...');
+                                startButton.classList.add('generating');
+                                startButton.innerHTML = 'Generating...';
+                                startButton.disabled = true;
+                                isFirstUpload = false;
+                                
+                                setTimeout(() => {
+                                    startButton.style.display = 'none';
+                                    autoplaySequence(12);
+                                }, 500);
+                            }
                         }
                         
                         // Remove loading state
@@ -5635,10 +5669,49 @@
         
         // Clear the workspace for new session
         function clearWorkspace() {
-            // Clear right section
+            // Reset first upload flag
+            isFirstUpload = true;
+            
+            // Clear right section and restore empty state
             const rightSection = document.getElementById('rightSection');
             if (rightSection) {
-                rightSection.innerHTML = '';
+                rightSection.innerHTML = `
+                    <!-- Empty state -->
+                    <div class="empty-state" id="emptyState">
+                        <div class="empty-state-content">
+                            <div class="empty-state-icon">
+                                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#B8C5C0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                                    <circle cx="12" cy="13" r="3"></circle>
+                                </svg>
+                            </div>
+                            <h2 class="empty-state-title">Create Your Edit Tree</h2>
+                            <p class="empty-state-description">
+                                Upload an image to start creating your sequence of iterative edits. 
+                                AI will generate multiple creative edits, and you can branch from any result to explore new directions.
+                            </p>
+                            <div class="empty-state-steps">
+                                <div class="step">
+                                    <span class="step-number">1</span>
+                                    <span class="step-text">Upload an image below</span>
+                                </div>
+                                <div class="step">
+                                    <span class="step-number">2</span>
+                                    <span class="step-text">AI automatically generates 12 creative variations</span>
+                                </div>
+                                <div class="step">
+                                    <span class="step-number">3</span>
+                                    <span class="step-text">Click "BRANCH FROM HERE" on any result</span>
+                                </div>
+                            </div>
+                            <div class="empty-state-cta">
+                                <button class="cta-button" onclick="document.getElementById('fileInputInline').click()">
+                                    GET STARTED
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
             
             // Clear caption container
@@ -5647,7 +5720,7 @@
                 captionContainer.innerHTML = '';
             }
             
-            // Reset upload zone
+            // Reset upload zones
             const uploadZone = document.getElementById('uploadZone');
             if (uploadZone) {
                 uploadZone.style.pointerEvents = '';
@@ -5660,6 +5733,12 @@
                     <div style="font-size: 18px; font-weight: 600; color: #8e8e93; margin-bottom: 6px;">Upload Image</div>
                     <div style="font-size: 14px; color: #666; line-height: 1.4;">Drop or click to start generating</div>
                 `;
+            }
+            
+            // Reset inline upload zone
+            const uploadZoneInline = document.getElementById('uploadZoneInline');
+            if (uploadZoneInline) {
+                uploadZoneInline.innerHTML = '<div class="upload-text">Drop, click, or paste to start generating</div>';
             }
             
             // Reset counters
@@ -6052,6 +6131,16 @@
                     break;
             }
         });
+
+        // Track if this is the first image upload
+        let isFirstUpload = true;
+        
+        // Function to check if we should show empty state
+        function shouldShowEmptyState() {
+            const rightSection = document.querySelector('.generations-section');
+            const hasGeneratedContent = rightSection && rightSection.children.length > 1; // More than just the empty state
+            return isFirstUpload && !hasGeneratedContent;
+        }
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initWhiteboard);
