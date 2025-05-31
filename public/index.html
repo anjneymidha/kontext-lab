@@ -7250,9 +7250,11 @@
             console.log('🔄 Using generated image as new input:', title);
             
             try {
+                // Get upload container reference early
+                const uploadContainer = document.getElementById('uploadZone') || document.querySelector('.upload-box .element-content');
+                
                 // Show loading state immediately (non-blocking)
                 requestAnimationFrame(() => {
-                    const uploadContainer = document.getElementById('uploadZone') || document.querySelector('.upload-box .element-content');
                     if (uploadContainer) {
                         uploadContainer.classList.add('upload-loading');
                     }
@@ -7428,7 +7430,6 @@
                         showToast('Unable to process image. Please try a different image.', 'error');
                         
                         // Reset button states
-                        const uploadContainer = document.getElementById('uploadZone') || document.querySelector('.upload-box .element-content');
                         if (uploadContainer) {
                             uploadContainer.classList.remove('upload-loading');
                         }
@@ -7459,7 +7460,6 @@
                 console.error('❌ Error using image as input:', error);
                 
                 // Remove loading state on error
-                const uploadContainer = document.getElementById('uploadZone') || document.querySelector('.upload-box .element-content');
                 if (uploadContainer) {
                     uploadContainer.classList.remove('upload-loading');
                 }
