@@ -2824,6 +2824,7 @@
                 opacity: 0;
                 visibility: hidden;
                 transition: all 0.3s ease;
+                display: block !important;
             }
             
             .menu-overlay.active {
@@ -2843,6 +2844,7 @@
                 transition: right 0.3s ease;
                 box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
                 padding: 80px 20px 20px 20px;
+                display: block !important;
             }
             
             .menu-panel.active {
@@ -3160,7 +3162,7 @@
             </div>
             
             <!-- Mobile Hamburger Menu -->
-            <button class="hamburger-menu" id="hamburgerMenu" onclick="toggleMobileMenu()">
+            <button class="hamburger-menu" id="hamburgerMenu">
                 <div class="hamburger-icon">
                     <span></span>
                     <span></span>
@@ -7089,6 +7091,17 @@
             setTimeout(() => enableHorizontalScrolling(), 100);
             checkMobileLayout();
             initializeSampleImage();
+            
+            // Add hamburger menu event listener
+            const hamburgerMenu = document.getElementById('hamburgerMenu');
+            if (hamburgerMenu) {
+                console.log('🍔 Adding hamburger menu event listeners');
+                hamburgerMenu.addEventListener('click', toggleMobileMenu);
+                hamburgerMenu.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    toggleMobileMenu();
+                });
+            }
         });
         
         // Check if mobile layout should be used
@@ -7104,12 +7117,18 @@
         
         // Mobile menu functions
         function toggleMobileMenu() {
+            console.log('🍔 Hamburger menu clicked');
             const menuOverlay = document.getElementById('menuOverlay');
             const menuPanel = document.getElementById('menuPanel');
+            
+            console.log('📋 Menu elements found:', { overlay: !!menuOverlay, panel: !!menuPanel });
             
             if (menuOverlay && menuPanel) {
                 menuOverlay.classList.toggle('active');
                 menuPanel.classList.toggle('active');
+                console.log('✅ Menu toggled, overlay active:', menuOverlay.classList.contains('active'));
+            } else {
+                console.error('❌ Menu elements not found');
             }
         }
         
