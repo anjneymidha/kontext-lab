@@ -4894,10 +4894,12 @@
             const remixButtons = document.querySelectorAll('.use-as-input-icon');
             if (remixButtons.length === 0) return;
             
-            console.log(`🔧 Ensuring ${remixButtons.length} REMIX buttons are visible and positioned...`);
+            // Only log when there are many buttons to avoid spam
+            if (remixButtons.length > 10) {
+                console.log(`🔧 Ensuring ${remixButtons.length} REMIX buttons are visible...`);
+            }
             
             remixButtons.forEach((button, index) => {
-                console.log(`🔧 Processing button ${index + 1}: Object`);
                 
                 // Mobile-optimized: batch DOM updates to prevent layout thrashing
                 const isMobile = window.innerWidth <= 768;
@@ -4963,14 +4965,14 @@
                     button.style.setProperty('contain', 'none', 'important');
                 }
                 
-                console.log(`✅ Button ${index + 1} processed and positioned`);
+                // Removed verbose logging for performance
             });
         }
         
         // Run visibility check after images load and periodically (much less frequent)
         window.addEventListener('load', () => {
             setTimeout(ensureRemixButtonsVisible, 1000);
-            setInterval(ensureRemixButtonsVisible, 30000); // Reduced frequency to 30s to improve performance
+            setInterval(ensureRemixButtonsVisible, 60000); // Reduced frequency to 60s to improve performance
             
             // Start mutation observer to catch when buttons get hidden
             startRemixButtonObserver();
@@ -4985,7 +4987,7 @@
             const observer = new MutationObserver((mutations) => {
                 // Throttle observer callbacks to prevent spam
                 if (observerThrottle) return;
-                observerThrottle = setTimeout(() => { observerThrottle = null; }, 1000);
+                observerThrottle = setTimeout(() => { observerThrottle = null; }, 2000);
                 let buttonsNeedFix = false;
                 
                 mutations.forEach((mutation) => {
@@ -7476,7 +7478,7 @@
                 button.style.backgroundColor = 'rgba(80, 120, 200, 0.9)';
                 button.style.pointerEvents = 'none';
                 
-                console.log('🎨 Attempting to download image via server...');
+                // console.log('🎨 Attempting to download image via server...'); // Removed for performance
                 
                 // First try: Use server-side approach to avoid CORS issues
                 try {
@@ -7493,7 +7495,7 @@
                     if (response.ok) {
                         const result = await response.json();
                         if (result.success && result.base64) {
-                            console.log('✅ Server provided clean base64 data, creating download...');
+                            // console.log('✅ Server provided clean base64 data, creating download...'); // Removed for performance
                             
                             // Create canvas from clean base64 data
                             const img = new Image();
@@ -7517,7 +7519,7 @@
                                     document.body.removeChild(link);
                                     
                                     window.URL.revokeObjectURL(url);
-                                    console.log('💾 PNG downloaded successfully via server');
+                                    // console.log('💾 PNG downloaded successfully via server'); // Removed for performance
                                     
                                     button.innerHTML = '✓';
                                     button.style.backgroundColor = 'rgba(40, 160, 80, 0.9)';
@@ -7531,7 +7533,7 @@
                     console.warn('⚠️ Server download failed, trying client-side approach:', serverError);
                 }
                 
-                console.log('🎨 Falling back to client-side canvas approach...');
+                // console.log('🎨 Falling back to client-side canvas approach...'); // Removed for performance
                 
                 // Fallback: Try to find the existing image element in the DOM first
                 const existingImg = document.querySelector(`img[src="${imageUrl}"]`);
@@ -7920,7 +7922,6 @@
                 
                 // Use server endpoint to handle image storage and conversion
                 console.log('📤 Requesting server to store and convert generated image...');
-                console.log('📋 Server request details:', { imageUrl: imageUrl.substring(0, 100) + '...', title, sessionId: currentSessionId });
                 let conversionSuccessful = false;
                 
                 try {
@@ -7934,8 +7935,6 @@
                         })
                     });
                     
-                    console.log('📡 Server response status:', response.status, response.statusText);
-                    
                     if (!response.ok) {
                         const errorText = await response.text();
                         console.error('❌ Server error response:', errorText);
@@ -7943,7 +7942,6 @@
                     }
                     
                     const result = await response.json();
-                    console.log('📦 Server response data:', { success: result.success, hasBase64: !!result.base64, localUrl: result.localUrl });
                     
                     if (result.success && result.base64) {
                         // Mobile: Clear previous data before setting new to prevent accumulation
@@ -7965,8 +7963,7 @@
                     }
                     
                 } catch (conversionError) {
-                    console.error('❌ Server conversion failed with error:', conversionError);
-                    console.warn('⚠️ Trying fallback approaches...');
+                    console.warn('⚠️ Server conversion failed, trying fallback:', conversionError.message);
                     
                     // Fallback: try client-side conversion (will likely fail due to CORS but worth trying)
                     try {
