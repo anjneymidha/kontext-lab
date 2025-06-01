@@ -3498,9 +3498,6 @@
                 <button class="menu-item" onclick="openComicStripModal(); closeMobileMenu();">
                     📤 Share Sequence
                 </button>
-                <button class="menu-item" onclick="massDownloadImages(); closeMobileMenu();">
-                    💾 Download All Images
-                </button>
                 <button class="menu-item" onclick="resetApp(); closeMobileMenu();">
                     🔄 Reset Everything
                 </button>
@@ -3554,9 +3551,6 @@
                             <div class="header-controls">
                                 <button class="export-sequence-btn" onclick="openComicStripModal()" title="Export sequence">
                                     SHARE
-                                </button>
-                                <button class="mass-download-btn" onclick="massDownloadImages()" title="Download all images as ZIP">
-                                    DOWNLOAD ALL
                                 </button>
                                 <button class="reset-btn" onclick="resetApp()" title="Reset">
                                     RESET
@@ -7327,171 +7321,6 @@
             }
         }
         
-        // Mass download function
-        async function massDownloadImages() {
-            console.log('📦 Creating grid PNG of all images...');
-            
-            // Collect all available images
-            collectModalImages();
-            
-            if (modalImages.length === 0) {
-                alert('No images available to download.');
-                return;
-            }
-            
-            // Show progress indicator
-            const button = document.querySelector('.mass-download-btn');
-            const originalText = button.textContent;
-            button.textContent = 'PREPARING...';
-            button.disabled = true;
-            
-            try {
-                // Send image URLs to server for grid generation
-                const imageUrls = modalImages.map(img => img.src);
-                
-                button.textContent = 'CREATING GRID...';
-                console.log(`📐 Sending ${imageUrls.length} images to server for grid creation`);
-                
-                const response = await fetch('/api/create-image-grid', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        imageUrls: imageUrls,
-                        title: 'KOMPOSER - AI Generated Images'
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
-                
-                button.textContent = 'PROCESSING...';
-                
-                // Get the image data from server
-                const result = await response.json();
-                
-                if (!result.success) {
-                    throw new Error('Server failed to process images');
-                }
-                
-                console.log(`✅ Server processed ${result.imageData.length} images`);
-                
-                // Create grid using server-provided base64 data
-                const { gridConfig } = result;
-                const { cols, cellSize, gap, padding } = gridConfig;
-                
-                const canvasWidth = (cols * cellSize) + ((cols - 1) * gap) + (padding * 2);
-                const canvasHeight = (gridConfig.rows * cellSize) + ((gridConfig.rows - 1) * gap) + (padding * 2) + 60;
-                
-                // Create canvas
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = canvasWidth;
-                canvas.height = canvasHeight;
-                
-                // Fill background
-                ctx.fillStyle = '#f8f8f8';
-                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-                
-                // Add title
-                ctx.fillStyle = '#333';
-                ctx.font = 'bold 24px SF Mono, Monaco, monospace';
-                ctx.textAlign = 'center';
-                ctx.fillText('KOMPOSER - AI Generated Images', canvasWidth / 2, 40);
-                
-                button.textContent = 'DRAWING...';
-                
-                // Load and draw each image from base64 data
-                const imagePromises = result.imageData.map((imgData, index) => {
-                    return new Promise((resolve) => {
-                        if (!imgData.success || !imgData.data) {
-                            // Draw placeholder
-                            const col = index % cols;
-                            const row = Math.floor(index / cols);
-                            const x = padding + (col * (cellSize + gap));
-                            const y = padding + 60 + (row * (cellSize + gap));
-                            
-                            ctx.fillStyle = '#ddd';
-                            ctx.fillRect(x, y, cellSize, cellSize);
-                            ctx.fillStyle = '#999';
-                            ctx.font = '16px monospace';
-                            ctx.textAlign = 'center';
-                            ctx.fillText('Failed', x + cellSize/2, y + cellSize/2);
-                            resolve();
-                            return;
-                        }
-                        
-                        const img = new Image();
-                        img.onload = function() {
-                            const col = index % cols;
-                            const row = Math.floor(index / cols);
-                            const x = padding + (col * (cellSize + gap));
-                            const y = padding + 60 + (row * (cellSize + gap));
-                            
-                            ctx.drawImage(img, x, y, cellSize, cellSize);
-                            resolve();
-                        };
-                        img.onerror = function() {
-                            // Draw placeholder
-                            const col = index % cols;
-                            const row = Math.floor(index / cols);
-                            const x = padding + (col * (cellSize + gap));
-                            const y = padding + 60 + (row * (cellSize + gap));
-                            
-                            ctx.fillStyle = '#ddd';
-                            ctx.fillRect(x, y, cellSize, cellSize);
-                            resolve();
-                        };
-                        img.src = `data:image/png;base64,${imgData.data}`;
-                    });
-                });
-                
-                // Wait for all images to be drawn
-                await Promise.all(imagePromises);
-                
-                button.textContent = 'DOWNLOADING...';
-                
-                // Download the grid PNG
-                canvas.toBlob((blob) => {
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `komposer-grid-${imageUrls.length}-images-${Date.now()}.png`;
-                    
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    window.URL.revokeObjectURL(url);
-                    
-                    button.textContent = '✓ DOWNLOADED';
-                    console.log(`📦 Successfully downloaded grid PNG with ${imageUrls.length} images`);
-                }, 'image/png');
-                
-            } catch (error) {
-                console.error('❌ Grid creation failed:', error);
-                button.textContent = '❌ FAILED';
-                
-                // Fallback: open images in tabs
-                const confirmFallback = confirm(`Grid creation failed. Open ${modalImages.length} images in new tabs instead?`);
-                if (confirmFallback) {
-                    modalImages.forEach((image, index) => {
-                        setTimeout(() => {
-                            window.open(image.src, '_blank');
-                        }, index * 200);
-                    });
-                    button.textContent = 'OPENED TABS';
-                }
-            } finally {
-                // Restore button
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.disabled = false;
-                }, 2000);
-            }
-        }
         
         // Start new session function
         function resetApp() {
