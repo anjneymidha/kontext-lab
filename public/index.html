@@ -2701,7 +2701,7 @@
                 overflow-x: hidden;
                 font-size: 16px; /* Prevent zoom on input focus */
                 -webkit-text-size-adjust: 100%;
-                padding-bottom: calc(25vh + env(safe-area-inset-bottom, 0px)) !important; /* Account for 25vh bottom bar */
+                padding-bottom: env(safe-area-inset-bottom, 0px) !important; /* Only account for safe area */
             }
             
             .whiteboard-container {
@@ -2750,7 +2750,7 @@
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
                 display: grid;
-                margin-bottom: calc(25vh + 20px) !important; /* Extra space for 25vh bottom bar */
+                margin-bottom: 20px !important; /* Minimal spacing */
             }
             
             /* Enhanced touch-friendly image cards */
@@ -2887,7 +2887,7 @@
                 right: 0 !important;
                 width: 100vw !important;
                 height: 25vh !important;
-                background: rgba(255, 255, 255, 0.95) !important;
+                background: rgba(248, 250, 251, 0.7) !important;
                 backdrop-filter: blur(20px) !important;
                 border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
                 box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1) !important;
@@ -3209,7 +3209,7 @@
                 flex: 1;
                 grid-template-columns: 1fr;
                 gap: 12px;
-                padding: 8px 8px calc(25vh + 40px) 8px;
+                padding: 8px 8px 40px 8px;
                 min-height: calc(75vh - env(safe-area-inset-bottom, 0px));
                 display: grid;
                 overflow-y: auto;
@@ -3230,11 +3230,11 @@
                 left: 0;
                 right: 0;
                 height: 25vh;
-                background: rgba(255, 255, 255, 0.95);
+                background: rgba(248, 250, 251, 0.7);
                 backdrop-filter: blur(20px);
                 border-top: 1px solid rgba(0, 0, 0, 0.1);
                 box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
-                z-index: 1000;
+                z-index: 9999;
                 padding: 0;
             }
             
