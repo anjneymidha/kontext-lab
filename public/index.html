@@ -1727,6 +1727,14 @@
             letter-spacing: -0.02em;
         }
 
+        .version {
+            font-size: 9px;
+            color: #888;
+            font-weight: 500;
+            margin: 2px 0 4px 0;
+            letter-spacing: 0.05em;
+        }
+
         .subtitle-text {
             font-size: 8px;
             line-height: 1.3;
@@ -1763,12 +1771,18 @@
         }
         
         .version-indicator {
-            font-size: 11px;
-            color: #999;
-            text-align: left;
-            margin-top: 8px;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
-            opacity: 0.7;
+            font-size: 14px !important;
+            color: #ff0000 !important;
+            background: #ffff00 !important;
+            text-align: left !important;
+            margin: 10px 0 !important;
+            padding: 5px !important;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace !important;
+            font-weight: bold !important;
+            display: block !important;
+            width: 100% !important;
+            z-index: 9999 !important;
+            position: relative !important;
         }
         
         /* Mobile title and subtitle */
@@ -1779,6 +1793,11 @@
                 letter-spacing: -0.01em;
             }
             
+            .version {
+                font-size: 7px;
+                margin: 1px 0 3px 0;
+            }
+
             .subtitle-text {
                 font-size: 6px;
                 padding: 0 12px 8px 12px;
@@ -3431,9 +3450,9 @@
                             <button class="home-btn-inline" onclick="resetApp()" title="Reset App"></button>
                         </div>
                         <div class="element-content">
+                            <div class="version">v0.0.1</div>
                             <div class="subtitle-text">an a16z infra + BFL + mistral collab</div>
                             <div class="attribution">A <a href="https://bfl.ai/" target="_blank">KONTEXT</a> experiment</div>
-                            <div class="version-indicator">v0.0.1</div>
                         </div>
                     </div>
                 </div>
@@ -3530,6 +3549,7 @@
                             <div class="chain-title-row">
                                 <h3>KOMPOSER</h3>
                             </div>
+                            <div class="version">v0.0.1</div>
                             <p class="subtitle">an a16z infra + BFL + mistral collab</p>
                             <div class="header-controls">
                                 <button class="export-sequence-btn" onclick="openComicStripModal()" title="Export sequence">
@@ -7542,7 +7562,7 @@
             console.log('🧹 Workspace cleared');
         }
         
-        // Save image directly to device
+        // Save image directly to device using browser cache
         async function saveImageLocally(imageUrl, filename, button) {
             const originalText = button.innerHTML;
             const originalBg = button.style.backgroundColor;
@@ -7560,23 +7580,45 @@
                     window.open(imageUrl, '_blank');
                     console.log('📱 Opened image in new tab for mobile save');
                 } else {
-                    // On desktop, trigger automatic download
-                    const response = await fetch(imageUrl);
-                    if (!response.ok) throw new Error('Failed to fetch image');
+                    // Find the corresponding image element in the DOM (already cached)
+                    const imgElement = document.querySelector(`img[src="${imageUrl}"]`);
                     
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = filename || `komposer-image-${Date.now()}.png`;
-                    
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    window.URL.revokeObjectURL(url);
-                    console.log('💾 Image downloaded successfully');
+                    if (imgElement && imgElement.complete) {
+                        try {
+                            // Image is already loaded in browser cache, convert to canvas and download
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            
+                            canvas.width = imgElement.naturalWidth;
+                            canvas.height = imgElement.naturalHeight;
+                            
+                            ctx.drawImage(imgElement, 0, 0);
+                            
+                            // Convert canvas to blob and download
+                            canvas.toBlob((blob) => {
+                                const url = window.URL.createObjectURL(blob);
+                                
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = filename || `komposer-image-${Date.now()}.png`;
+                                
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                
+                                window.URL.revokeObjectURL(url);
+                                console.log('💾 Image downloaded from browser cache');
+                            }, 'image/png');
+                        } catch (canvasError) {
+                            // Canvas failed due to CORS, fallback to opening in new tab
+                            window.open(imageUrl, '_blank');
+                            console.log('🌐 Canvas failed (CORS), opened in new tab instead');
+                        }
+                    } else {
+                        // For external images, just open in new tab for user to save
+                        window.open(imageUrl, '_blank');
+                        console.log('🌐 External image opened in new tab for manual save');
+                    }
                 }
                 
                 button.innerHTML = '✓';
