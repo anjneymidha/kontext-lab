@@ -6072,6 +6072,14 @@
                         console.warn('📱 Large compressed image on mobile - may cause performance issues');
                     }
                     
+                    // Mobile: Explicit canvas cleanup to prevent memory accumulation
+                    if (isMobile) {
+                        canvas.width = 1;
+                        canvas.height = 1;
+                        ctx.clearRect(0, 0, 1, 1);
+                        console.log('📱 Canvas memory released');
+                    }
+                    
                     resolve(base64);
                 };
                 img.onerror = reject;
@@ -7710,7 +7718,46 @@
         // Use generated image as input for next generation
         // Debounce to prevent rapid clicks (reduced since we have visual feedback)
         let useAsInputDebounce = null;
+        let mobileOperationCount = 0; // Track operations for mobile memory management
         async function useAsInput(imageUrl, title, promptId) {
+            // Mobile-specific aggressive cleanup before 3rd operation
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                mobileOperationCount++;
+                console.log(`📱 Mobile operation #${mobileOperationCount}`);
+                
+                // Aggressive cleanup before 3rd operation to prevent memory issues
+                if (mobileOperationCount >= 3) {
+                    console.log('📱 Performing aggressive mobile memory cleanup...');
+                    
+                    // Clear all previous base64 data
+                    if (window.currentImageBase64) {
+                        window.currentImageBase64 = null;
+                    }
+                    
+                    // Force cleanup of seed history base64 data on mobile
+                    if (window.seedHistory) {
+                        window.seedHistory.forEach(seed => {
+                            if (seed.imageBase64) {
+                                seed.imageBase64 = null;
+                            }
+                        });
+                    }
+                    
+                    // Clear session results to free memory
+                    if (window.sessionResults) {
+                        window.sessionResults = [];
+                    }
+                    
+                    // Force garbage collection hint for mobile browsers
+                    if (window.gc && typeof window.gc === 'function') {
+                        window.gc();
+                    }
+                    
+                    console.log('📱 Mobile memory cleanup completed');
+                }
+            }
+            
             // Quick check to prevent rapid clicks (reduced debounce for mobile)
             if (useAsInputDebounce) {
                 console.log('⏭️ Ignoring rapid click, processing previous request...');
@@ -7780,6 +7827,12 @@
                     
                     const result = await response.json();
                     if (result.success && result.base64) {
+                        // Mobile: Clear previous data before setting new to prevent accumulation
+                        const isMobile = window.innerWidth <= 768;
+                        if (isMobile && currentImageBase64) {
+                            console.log('📱 Clearing previous base64 data to prevent memory accumulation');
+                            currentImageBase64 = null;
+                        }
                         currentImageBase64 = result.base64;
                         const localImageUrl = result.localUrl;
                         
@@ -7911,6 +7964,16 @@
                                 canvas.height = this.naturalHeight;
                                 ctx.drawImage(this, 0, 0);
                                 currentImageBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+                                
+                                // Mobile: Explicit canvas cleanup for critical path
+                                const isMobile = window.innerWidth <= 768;
+                                if (isMobile) {
+                                    canvas.width = 1;
+                                    canvas.height = 1;
+                                    ctx.clearRect(0, 0, 1, 1);
+                                    console.log('📱 Critical path canvas memory released');
+                                }
+                                
                                 console.log('✅ Final conversion successful, starting generation...');
                                 autoplaySequence(12);
                             } catch (canvasError) {
