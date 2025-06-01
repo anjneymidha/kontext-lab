@@ -1798,6 +1798,75 @@ app.get('/api/stored-image/:filename', async (req, res) => {
   }
 });
 
+// Image grid creation endpoint
+app.post('/api/create-image-grid', async (req, res) => {
+  console.log('🎨 Creating image grid on server...');
+  
+  try {
+    const { imageUrls, title } = req.body;
+    
+    if (!imageUrls || !Array.isArray(imageUrls) || imageUrls.length === 0) {
+      return res.status(400).json({ error: 'imageUrls array is required' });
+    }
+    
+    console.log(`📐 Creating grid for ${imageUrls.length} images`);
+    
+    // For now, return a simplified approach since Sharp is not available
+    // We'll send back image data for client-side processing with a simple fallback
+    const imageData = [];
+    
+    for (let i = 0; i < Math.min(imageUrls.length, 16); i++) { // Limit to 16 images
+      try {
+        console.log(`⬇️ Downloading image ${i + 1}/${imageUrls.length}`);
+        const imageResponse = await axios.get(imageUrls[i], {
+          responseType: 'arraybuffer',
+          timeout: 10000,
+          headers: {
+            'User-Agent': 'KOMPOSER-Server/1.0'
+          }
+        });
+        
+        const base64Data = Buffer.from(imageResponse.data).toString('base64');
+        imageData.push({
+          index: i,
+          data: base64Data,
+          success: true
+        });
+      } catch (error) {
+        console.warn(`Failed to download image ${i + 1}:`, error.message);
+        imageData.push({
+          index: i,
+          data: null,
+          success: false,
+          error: error.message
+        });
+      }
+    }
+    
+    console.log(`✅ Downloaded ${imageData.filter(img => img.success).length}/${imageUrls.length} images`);
+    
+    // Return JSON with image data for client-side processing
+    res.json({
+      success: true,
+      imageData: imageData,
+      gridConfig: {
+        cols: Math.ceil(Math.sqrt(imageUrls.length)),
+        rows: Math.ceil(imageUrls.length / Math.ceil(Math.sqrt(imageUrls.length))),
+        cellSize: 512,
+        gap: 16,
+        padding: 32
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Grid creation error:', error);
+    res.status(500).json({ 
+      error: 'Failed to prepare image data',
+      details: error.message 
+    });
+  }
+});
+
 // Individual image sharing endpoint
 app.get('/image/:sessionId/:konceptIndex/:resultIndex', async (req, res) => {
   console.log('🔗 Individual image share request');

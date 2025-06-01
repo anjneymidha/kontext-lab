@@ -7329,7 +7329,7 @@
         
         // Mass download function
         async function massDownloadImages() {
-            console.log('📦 Starting mass download...');
+            console.log('📦 Creating grid PNG of all images...');
             
             // Collect all available images
             collectModalImages();
@@ -7342,47 +7342,154 @@
             // Show progress indicator
             const button = document.querySelector('.mass-download-btn');
             const originalText = button.textContent;
-            button.textContent = 'OPENING DOWNLOADS...';
+            button.textContent = 'PREPARING...';
             button.disabled = true;
             
             try {
-                // Due to CORS restrictions, we'll open each image in a new tab for manual download
-                const confirmDownload = confirm(`This will open ${modalImages.length} new tabs for you to download each image individually. Continue?`);
+                // Send image URLs to server for grid generation
+                const imageUrls = modalImages.map(img => img.src);
                 
-                if (!confirmDownload) {
-                    return;
-                }
+                button.textContent = 'CREATING GRID...';
+                console.log(`📐 Sending ${imageUrls.length} images to server for grid creation`);
                 
-                // Open each image in a new tab with download attribute
-                modalImages.forEach((image, index) => {
-                    setTimeout(() => {
-                        const a = document.createElement('a');
-                        a.href = image.src;
-                        a.target = '_blank';
-                        a.download = `${image.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.png`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        
-                        button.textContent = `OPENED ${index + 1}/${modalImages.length}`;
-                    }, index * 200); // Stagger the downloads to avoid browser blocking
+                const response = await fetch('/api/create-image-grid', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        imageUrls: imageUrls,
+                        title: 'KOMPOSER - AI Generated Images'
+                    })
                 });
                 
-                // Show completion message
-                setTimeout(() => {
-                    alert(`Opened ${modalImages.length} image downloads. Check your browser's download manager.`);
-                    console.log(`📦 Successfully opened ${modalImages.length} image downloads`);
-                }, modalImages.length * 200 + 500);
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                
+                button.textContent = 'PROCESSING...';
+                
+                // Get the image data from server
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error('Server failed to process images');
+                }
+                
+                console.log(`✅ Server processed ${result.imageData.length} images`);
+                
+                // Create grid using server-provided base64 data
+                const { gridConfig } = result;
+                const { cols, cellSize, gap, padding } = gridConfig;
+                
+                const canvasWidth = (cols * cellSize) + ((cols - 1) * gap) + (padding * 2);
+                const canvasHeight = (gridConfig.rows * cellSize) + ((gridConfig.rows - 1) * gap) + (padding * 2) + 60;
+                
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+                
+                // Fill background
+                ctx.fillStyle = '#f8f8f8';
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                
+                // Add title
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 24px SF Mono, Monaco, monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('KOMPOSER - AI Generated Images', canvasWidth / 2, 40);
+                
+                button.textContent = 'DRAWING...';
+                
+                // Load and draw each image from base64 data
+                const imagePromises = result.imageData.map((imgData, index) => {
+                    return new Promise((resolve) => {
+                        if (!imgData.success || !imgData.data) {
+                            // Draw placeholder
+                            const col = index % cols;
+                            const row = Math.floor(index / cols);
+                            const x = padding + (col * (cellSize + gap));
+                            const y = padding + 60 + (row * (cellSize + gap));
+                            
+                            ctx.fillStyle = '#ddd';
+                            ctx.fillRect(x, y, cellSize, cellSize);
+                            ctx.fillStyle = '#999';
+                            ctx.font = '16px monospace';
+                            ctx.textAlign = 'center';
+                            ctx.fillText('Failed', x + cellSize/2, y + cellSize/2);
+                            resolve();
+                            return;
+                        }
+                        
+                        const img = new Image();
+                        img.onload = function() {
+                            const col = index % cols;
+                            const row = Math.floor(index / cols);
+                            const x = padding + (col * (cellSize + gap));
+                            const y = padding + 60 + (row * (cellSize + gap));
+                            
+                            ctx.drawImage(img, x, y, cellSize, cellSize);
+                            resolve();
+                        };
+                        img.onerror = function() {
+                            // Draw placeholder
+                            const col = index % cols;
+                            const row = Math.floor(index / cols);
+                            const x = padding + (col * (cellSize + gap));
+                            const y = padding + 60 + (row * (cellSize + gap));
+                            
+                            ctx.fillStyle = '#ddd';
+                            ctx.fillRect(x, y, cellSize, cellSize);
+                            resolve();
+                        };
+                        img.src = `data:image/png;base64,${imgData.data}`;
+                    });
+                });
+                
+                // Wait for all images to be drawn
+                await Promise.all(imagePromises);
+                
+                button.textContent = 'DOWNLOADING...';
+                
+                // Download the grid PNG
+                canvas.toBlob((blob) => {
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `komposer-grid-${imageUrls.length}-images-${Date.now()}.png`;
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    window.URL.revokeObjectURL(url);
+                    
+                    button.textContent = '✓ DOWNLOADED';
+                    console.log(`📦 Successfully downloaded grid PNG with ${imageUrls.length} images`);
+                }, 'image/png');
                 
             } catch (error) {
-                console.error('❌ Mass download failed:', error);
-                alert('Failed to initiate downloads. Please try again.');
+                console.error('❌ Grid creation failed:', error);
+                button.textContent = '❌ FAILED';
+                
+                // Fallback: open images in tabs
+                const confirmFallback = confirm(`Grid creation failed. Open ${modalImages.length} images in new tabs instead?`);
+                if (confirmFallback) {
+                    modalImages.forEach((image, index) => {
+                        setTimeout(() => {
+                            window.open(image.src, '_blank');
+                        }, index * 200);
+                    });
+                    button.textContent = 'OPENED TABS';
+                }
             } finally {
-                // Restore button after all downloads are initiated
+                // Restore button
                 setTimeout(() => {
                     button.textContent = originalText;
                     button.disabled = false;
-                }, modalImages.length * 200 + 1000);
+                }, 2000);
             }
         }
         
@@ -7572,67 +7679,112 @@
                 button.style.backgroundColor = 'rgba(80, 120, 200, 0.9)';
                 button.style.pointerEvents = 'none';
                 
-                // Check if on mobile for different handling
-                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                console.log('🎨 Generating PNG from image...');
                 
-                if (isMobile) {
-                    // On mobile, open in new tab for user to save manually
-                    window.open(imageUrl, '_blank');
-                    console.log('📱 Opened image in new tab for mobile save');
-                } else {
-                    // Find the corresponding image element in the DOM (already cached)
-                    const imgElement = document.querySelector(`img[src="${imageUrl}"]`);
-                    
-                    if (imgElement && imgElement.complete) {
-                        try {
-                            // Image is already loaded in browser cache, convert to canvas and download
-                            const canvas = document.createElement('canvas');
-                            const ctx = canvas.getContext('2d');
+                // Try to find the existing image element in the DOM first
+                const existingImg = document.querySelector(`img[src="${imageUrl}"]`);
+                
+                if (existingImg && existingImg.complete && existingImg.naturalWidth > 0) {
+                    try {
+                        // Create canvas for the individual image using cached DOM element
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Set canvas size to match image (ensure we get full resolution)
+                        canvas.width = existingImg.naturalWidth;
+                        canvas.height = existingImg.naturalHeight;
+                        
+                        // Draw the image
+                        ctx.drawImage(existingImg, 0, 0);
+                        
+                        // Generate PNG and download
+                        canvas.toBlob((blob) => {
+                            const url = window.URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = filename || `komposer-image-${Date.now()}.png`;
                             
-                            canvas.width = imgElement.naturalWidth;
-                            canvas.height = imgElement.naturalHeight;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
                             
-                            ctx.drawImage(imgElement, 0, 0);
+                            window.URL.revokeObjectURL(url);
+                            console.log('💾 PNG downloaded successfully from cached DOM image');
                             
-                            // Convert canvas to blob and download
-                            canvas.toBlob((blob) => {
-                                const url = window.URL.createObjectURL(blob);
-                                
-                                const link = document.createElement('a');
-                                link.href = url;
-                                link.download = filename || `komposer-image-${Date.now()}.png`;
-                                
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                                
-                                window.URL.revokeObjectURL(url);
-                                console.log('💾 Image downloaded from browser cache');
-                            }, 'image/png');
-                        } catch (canvasError) {
-                            // Canvas failed due to CORS, fallback to opening in new tab
-                            window.open(imageUrl, '_blank');
-                            console.log('🌐 Canvas failed (CORS), opened in new tab instead');
-                        }
-                    } else {
-                        // For external images, just open in new tab for user to save
-                        window.open(imageUrl, '_blank');
-                        console.log('🌐 External image opened in new tab for manual save');
+                            button.innerHTML = '✓';
+                            button.style.backgroundColor = 'rgba(40, 160, 80, 0.9)';
+                        }, 'image/png');
+                        
+                        return; // Exit early if successful
+                    } catch (canvasError) {
+                        console.warn('Canvas failed with cached image, trying fallback:', canvasError);
                     }
                 }
                 
-                button.innerHTML = '✓';
-                button.style.backgroundColor = 'rgba(40, 160, 80, 0.9)';
+                // Fallback: create new image element
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                img.onload = function() {
+                    try {
+                        // Create canvas for the individual image
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Set canvas size to match image (ensure we get full resolution)
+                        canvas.width = img.naturalWidth || img.width;
+                        canvas.height = img.naturalHeight || img.height;
+                        
+                        // Draw the image
+                        ctx.drawImage(img, 0, 0);
+                        
+                        // Generate PNG and download
+                        canvas.toBlob((blob) => {
+                            const url = window.URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = filename || `komposer-image-${Date.now()}.png`;
+                            
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            
+                            window.URL.revokeObjectURL(url);
+                            console.log('💾 PNG downloaded successfully from new image');
+                            
+                            button.innerHTML = '✓';
+                            button.style.backgroundColor = 'rgba(40, 160, 80, 0.9)';
+                        }, 'image/png');
+                    } catch (canvasError) {
+                        // Fallback: open in new tab
+                        window.open(imageUrl, '_blank');
+                        console.log('🌐 Canvas failed, opened in new tab');
+                        
+                        button.innerHTML = '📱';
+                        button.style.backgroundColor = 'rgba(255, 165, 0, 0.9)';
+                    }
+                };
+                
+                img.onerror = function() {
+                    // Fallback: open in new tab
+                    window.open(imageUrl, '_blank');
+                    console.log('🌐 Image load failed, opened in new tab');
+                    
+                    button.innerHTML = '📱';
+                    button.style.backgroundColor = 'rgba(255, 165, 0, 0.9)';
+                };
+                
+                img.src = imageUrl;
                 
                 setTimeout(() => {
                     button.innerHTML = originalText;
                     button.style.backgroundColor = originalBg;
                     button.style.pointerEvents = 'auto';
-                }, 1500);
+                }, 2000);
                 
             } catch (error) {
                 console.error('❌ Error saving image:', error);
-                button.innerHTML = '✗';
+                button.innerHTML = '❌';
                 button.style.backgroundColor = 'rgba(200, 80, 80, 0.9)';
                 
                 setTimeout(() => {
