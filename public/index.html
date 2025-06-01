@@ -441,6 +441,24 @@
             transform: translateY(0) !important;
             background: rgba(168, 181, 160, 1) !important;
         }
+        
+        /* Mobile touch optimizations for instant feedback */
+        @media (max-width: 768px) {
+            .use-as-input-icon {
+                touch-action: manipulation !important;
+                -webkit-tap-highlight-color: transparent !important;
+                -webkit-touch-callout: none !important;
+                -webkit-user-select: none !important;
+                user-select: none !important;
+                transition: opacity 0.05s ease, background-color 0.05s ease !important;
+                will-change: opacity, background-color !important;
+            }
+            
+            .use-as-input-icon:active {
+                opacity: 0.8 !important;
+                transition: none !important;
+            }
+        }
 
         .use-as-input-icon::before {
             content: '';
@@ -3612,6 +3630,12 @@
                 let scrollLeft = 0;
                 
                 editingChainSequence.addEventListener('touchstart', function(e) {
+                    // Don't interfere with button clicks
+                    const touchTarget = e.target;
+                    if (touchTarget && (touchTarget.classList.contains('use-as-input-icon') || touchTarget.closest('.use-as-input-icon'))) {
+                        return; // Let button handle the touch
+                    }
+                    
                     isScrolling = false;
                     startX = e.touches[0].pageX;
                     startY = e.touches[0].pageY;
@@ -3619,11 +3643,17 @@
                 }, { passive: true });
                 
                 editingChainSequence.addEventListener('touchmove', function(e) {
+                    // Don't interfere with button clicks - check if touch is on a button
+                    const touchTarget = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+                    if (touchTarget && (touchTarget.classList.contains('use-as-input-icon') || touchTarget.closest('.use-as-input-icon'))) {
+                        return; // Let button handle the touch
+                    }
+                    
                     if (!isScrolling) {
                         const deltaX = Math.abs(e.touches[0].pageX - startX);
                         const deltaY = Math.abs(e.touches[0].pageY - startY);
                         
-                        if (deltaX > deltaY && deltaX > 10) {
+                        if (deltaX > deltaY && deltaX > 15) { // Increased threshold to reduce conflicts
                             isScrolling = true;
                         }
                     }
@@ -4478,7 +4508,7 @@
                          style="cursor: zoom-in; position: relative; width: 100%; height: 100%; object-fit: contain;"
                          title="Click to view full size">
                     <div class="use-as-input-icon" 
-                         onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; this.style.backgroundColor='#ccc'; setTimeout(() => useAsInput('${result.imageUrl}', 'Cached ${index + 1}', '${result.promptId}'), 10);"
+                         onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; this.style.backgroundColor='#ccc'; requestAnimationFrame(() => useAsInput('${result.imageUrl}', 'Cached ${index + 1}', '${result.promptId}'));"
                          title="Use this image to start a new generation">
                     </div>
                     <div class="download-button" 
@@ -4648,7 +4678,7 @@
                         object-fit: contain;
                     " onclick="openImageModal('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}')">
                     <div class="use-as-input-icon" 
-                         onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; this.style.backgroundColor='#ccc'; setTimeout(() => useAsInput('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}'), 10);"
+                         onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; this.style.backgroundColor='#ccc'; requestAnimationFrame(() => useAsInput('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}'));"
                          title="Use this image to start a new generation">
                     </div>
                     <div class="download-button" 
@@ -6357,7 +6387,7 @@
                          style="cursor: zoom-in; position: relative; width: 100%; height: 100%; object-fit: contain;"
                          title="Click to view full size">
                     <div class="use-as-input-icon" 
-                         onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; this.style.backgroundColor='#ccc'; setTimeout(() => useAsInput('${imageUrl}', 'Edit ${iteration}', '${promptId}'), 10);"
+                         onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; this.style.backgroundColor='#ccc'; requestAnimationFrame(() => useAsInput('${imageUrl}', 'Edit ${iteration}', '${promptId}'));"
                          title="Use this image to start a new generation">
                     </div>
                     <div class="download-button" 
@@ -6534,7 +6564,7 @@
                                 object-fit: contain;
                             " onclick="openImageModal('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}')">
                             <div class="use-as-input-icon" 
-                                 onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; this.style.backgroundColor='#ccc'; setTimeout(() => useAsInput('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}'), 10);"
+                                 onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; this.style.backgroundColor='#ccc'; requestAnimationFrame(() => useAsInput('${result.imageUrl}', '${koncept.toUpperCase()} #${index}', '${promptId}'));"
                                  title="Use this image to start a new generation">
                             </div>
                         `;
@@ -7628,7 +7658,7 @@
                 showToast('Please wait, already processing...', 'info');
                 return;
             }
-            useAsInputDebounce = setTimeout(() => { useAsInputDebounce = null; }, 2000); // Increased to 2 seconds for better stability
+            useAsInputDebounce = setTimeout(() => { useAsInputDebounce = null; }, 500); // Reduced to 500ms for better mobile responsiveness
             
             console.log('🔄 Using generated image as new input:', title);
             
