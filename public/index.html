@@ -4293,15 +4293,71 @@
                     // Clean up temporary container
                     document.body.removeChild(exportContainer);
                     
-                    // Create download link
-                    const link = document.createElement('a');
-                    link.download = `flux-kontext-sequence-${Date.now()}.png`;
-                    link.href = canvas.toDataURL();
+                    // Mobile-optimized PNG download with explicit MIME type
+                    const isMobile = window.innerWidth <= 768;
+                    const filename = `flux-kontext-sequence-${Date.now()}.png`;
                     
-                    // Trigger download
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
+                    if (isMobile) {
+                        // Mobile: Save to camera roll using Web Share API
+                        canvas.toBlob(async function(blob) {
+                            try {
+                                // Try Web Share API first (iOS Safari, Chrome mobile)
+                                if (navigator.share && navigator.canShare) {
+                                    const file = new File([blob], filename, { type: 'image/png' });
+                                    const shareData = {
+                                        files: [file],
+                                        title: 'FLUX Kontext Editing Sequence',
+                                        text: 'My image editing sequence'
+                                    };
+                                    
+                                    if (navigator.canShare(shareData)) {
+                                        await navigator.share(shareData);
+                                        console.log('📱 Shared to camera roll successfully');
+                                        showToast('Image saved to camera roll!', 'success');
+                                        return;
+                                    }
+                                }
+                                
+                                // Fallback: Traditional download for older mobile browsers
+                                const url = URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = filename;
+                                link.type = 'image/png';
+                                
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(url);
+                                
+                                console.log('📱 Mobile PNG download completed (fallback)');
+                                showToast('Image downloaded - save to camera roll from Downloads', 'info');
+                                
+                            } catch (error) {
+                                console.error('📱 Share failed, using download fallback:', error);
+                                
+                                // Final fallback
+                                const url = URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = filename;
+                                
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(url);
+                            }
+                        }, 'image/png', 1.0);
+                    } else {
+                        // Desktop: Original method
+                        const link = document.createElement('a');
+                        link.download = filename;
+                        link.href = canvas.toDataURL('image/png');
+                        
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
                     
                         console.log('✅ Branded comic strip downloaded successfully');
                     }).catch(error => {
