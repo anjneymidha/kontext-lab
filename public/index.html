@@ -3683,7 +3683,9 @@
         
         // Polling function for async generation
         async function pollForCompletion(requestId, imageIndex) {
-            const maxAttempts = 80; // 80 attempts × 3 seconds = 4 minutes max
+            // Mobile-optimized polling: fewer attempts, smarter delays
+            const isMobile = window.innerWidth <= 768;
+            const maxAttempts = isMobile ? 60 : 80; // Shorter timeout on mobile to save battery
             let attempts = 0;
             
             while (attempts < maxAttempts) {
@@ -3705,8 +3707,17 @@
                         throw new Error(statusResult.error || 'Generation failed');
                     }
                     
-                    // Still processing, wait and try again
-                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    // Mobile-optimized exponential backoff: start faster, scale up to save battery
+                    let delay;
+                    if (isMobile) {
+                        // Mobile: start at 2s, exponentially increase to max 8s
+                        delay = Math.min(2000 + (attempts * 500), 8000);
+                    } else {
+                        // Desktop: consistent 3s polling
+                        delay = 3000;
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, delay));
                     attempts++;
                     
                 } catch (error) {
@@ -3714,7 +3725,10 @@
                     if (attempts >= 5) { // Give up after 5 failed polling attempts
                         throw error;
                     }
-                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    
+                    // Mobile: shorter retry delay to handle network instability
+                    const retryDelay = isMobile ? 2000 : 3000;
+                    await new Promise(resolve => setTimeout(resolve, retryDelay));
                     attempts++;
                 }
             }
@@ -4805,22 +4819,45 @@
             remixButtons.forEach((button, index) => {
                 console.log(`🔧 Processing button ${index + 1}: Object`);
                 
-                // Force style recalculation with aggressive overrides for bar design
-                button.style.setProperty('display', 'flex', 'important');
-                button.style.setProperty('visibility', 'visible', 'important');
-                button.style.setProperty('opacity', '1', 'important');
-                button.style.setProperty('z-index', '50', 'important');
-                button.style.setProperty('position', 'absolute', 'important');
-                button.style.setProperty('pointer-events', 'auto', 'important');
-                button.style.setProperty('bottom', '0', 'important');
-                button.style.setProperty('left', '0', 'important');
-                button.style.setProperty('right', '0', 'important');
-                button.style.setProperty('width', '100%', 'important');
-                button.style.setProperty('height', '10%', 'important');
-                button.style.setProperty('min-height', '32px', 'important');
-                button.style.setProperty('max-height', '50px', 'important');
-                button.style.setProperty('transform', 'none', 'important');
-                button.style.setProperty('top', 'auto', 'important');
+                // Mobile-optimized: batch DOM updates to prevent layout thrashing
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    // Use cssText for batched style updates on mobile - much faster
+                    button.style.cssText = `
+                        display: flex !important;
+                        visibility: visible !important;
+                        opacity: 1 !important;
+                        z-index: 50 !important;
+                        position: absolute !important;
+                        pointer-events: auto !important;
+                        bottom: 0 !important;
+                        left: 0 !important;
+                        right: 0 !important;
+                        width: 100% !important;
+                        height: 10% !important;
+                        min-height: 32px !important;
+                        max-height: 50px !important;
+                        transform: none !important;
+                        top: auto !important;
+                    `;
+                } else {
+                    // Desktop: use individual setProperty calls (existing behavior)
+                    button.style.setProperty('display', 'flex', 'important');
+                    button.style.setProperty('visibility', 'visible', 'important');
+                    button.style.setProperty('opacity', '1', 'important');
+                    button.style.setProperty('z-index', '50', 'important');
+                    button.style.setProperty('position', 'absolute', 'important');
+                    button.style.setProperty('pointer-events', 'auto', 'important');
+                    button.style.setProperty('bottom', '0', 'important');
+                    button.style.setProperty('left', '0', 'important');
+                    button.style.setProperty('right', '0', 'important');
+                    button.style.setProperty('width', '100%', 'important');
+                    button.style.setProperty('height', '10%', 'important');
+                    button.style.setProperty('min-height', '32px', 'important');
+                    button.style.setProperty('max-height', '50px', 'important');
+                    button.style.setProperty('transform', 'none', 'important');
+                    button.style.setProperty('top', 'auto', 'important');
+                }
                 
                 // Find the associated image in the simplified structure
                 const elementContent = button.closest('.element-content');
@@ -5996,12 +6033,18 @@
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.onload = () => {
-                    // Compress if image is too large
-                    const maxWidth = 2048;
-                    const maxHeight = 2048;
-                    const quality = 0.8;
+                    // Mobile-optimized compression: more aggressive on mobile to prevent crashes
+                    const isMobile = window.innerWidth <= 768;
+                    const maxWidth = isMobile ? 1536 : 2048;  // Smaller on mobile
+                    const maxHeight = isMobile ? 1536 : 2048; // Smaller on mobile  
+                    const quality = isMobile ? 0.7 : 0.8;     // Lower quality on mobile to reduce memory
                     
                     let { width, height } = img;
+                    
+                    // Mobile: More aggressive memory check to prevent crashes
+                    if (isMobile && width * height > 4000000) { // ~4MP limit on mobile
+                        console.warn('📱 Large image detected on mobile, applying aggressive compression');
+                    }
                     
                     // Calculate new dimensions if resizing needed
                     if (width > maxWidth || height > maxHeight) {
@@ -6023,6 +6066,12 @@
                     const base64 = compressedDataUrl.split(',')[1];
                     
                     console.log(`📦 Compressed image: ${base64.length} characters (${(base64.length/1024/1024*3/4).toFixed(1)}MB)`);
+                    
+                    // Mobile: Additional memory warning if result is still large
+                    if (isMobile && base64.length > 2000000) { // ~2MB limit warning on mobile
+                        console.warn('📱 Large compressed image on mobile - may cause performance issues');
+                    }
+                    
                     resolve(base64);
                 };
                 img.onerror = reject;
