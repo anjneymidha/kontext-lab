@@ -624,7 +624,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 60px 40px;
+            padding: 40px 20px;
             box-sizing: border-box;
         }
 
@@ -664,16 +664,17 @@
         }
 
         .comic-panel {
-            background: white;
-            border-radius: 8px;
+            background: transparent;
+            border-radius: 0;
             overflow: hidden;
-            border: 2px solid #ddd;
+            border: none;
             box-shadow: none;
             position: relative;
-            aspect-ratio: 1;
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 100%;
+            height: 100%;
         }
 
         .comic-panel:first-child::before,
@@ -687,26 +688,23 @@
 
         .comic-panel-number {
             position: absolute;
-            top: 4px;
-            left: 4px;
+            top: 8px;
+            left: 8px;
             background: rgba(0,0,0,0.8);
             color: white;
             font-size: 12px;
             font-weight: 600;
-            padding: 2px 6px;
-            border-radius: 3px;
+            padding: 3px 8px;
+            border-radius: 4px;
             line-height: 1;
             z-index: 10;
         }
 
         .comic-panel-image {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
             display: block;
-            background: #f5f5f5;
         }
 
         .comic-panel-label {
@@ -718,9 +716,13 @@
             color: white;
             font-size: 11px;
             font-weight: 500;
-            padding: 4px 6px;
+            padding: 8px 8px 6px 8px;
             text-align: center;
             line-height: 1.2;
+            min-height: 24px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
         }
 
         .comic-panel-title {
@@ -909,7 +911,7 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow: visible;
             position: relative;
             border-top: 4px solid #4A5A52;
             border-left: 1px solid #B8C5C0;
@@ -1136,6 +1138,11 @@
             display: flex;
             flex-direction: column;
         }
+
+        /* Hide mobile header on desktop */
+        .mobile-edit-header {
+            display: none;
+        }
         
         .controls-column {
             flex: 0 0 20%;
@@ -1257,6 +1264,27 @@
             padding: 0;
             height: 100%;
             transition: all 0.3s ease;
+        }
+        
+        /* Show scrollbar on desktop */
+        @media (min-width: 769px) {
+            .editing-chain-sequence::-webkit-scrollbar {
+                height: 8px;
+            }
+            
+            .editing-chain-sequence::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 4px;
+            }
+            
+            .editing-chain-sequence::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 4px;
+            }
+            
+            .editing-chain-sequence::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
         }
         
         .editing-chain-section.collapsed .editing-chain-sequence,
@@ -2673,13 +2701,13 @@
                 overflow-x: hidden;
                 font-size: 16px; /* Prevent zoom on input focus */
                 -webkit-text-size-adjust: 100%;
-                padding-bottom: 80px !important; /* Account for fixed bottom bar */
+                padding-bottom: calc(25vh + env(safe-area-inset-bottom, 0px)) !important; /* Account for 25vh bottom bar */
             }
             
             .whiteboard-container {
                 overflow-y: auto;
                 height: auto;
-                min-height: calc(100vh - 80px);
+                min-height: calc(75vh - env(safe-area-inset-bottom, 0px));
                 -webkit-overflow-scrolling: touch;
                 padding-bottom: 0 !important;
             }
@@ -2889,6 +2917,28 @@
             .editing-sequence-column {
                 width: 100%;
                 flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            /* Mobile-only header above edit tiles */
+            .mobile-edit-header {
+                display: block;
+                padding: 6px 16px 4px 16px;
+                background: rgba(90, 122, 112, 0.03);
+                border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+                text-align: center;
+                flex-shrink: 0;
+            }
+            
+            .mobile-edit-header h5 {
+                font-size: 9px;
+                font-weight: 500;
+                color: #666;
+                margin: 0;
+                letter-spacing: 0.05em;
+                text-transform: uppercase;
+                opacity: 0.8;
             }
             
             /* Simple horizontal scrolling chain */
@@ -2897,7 +2947,7 @@
                 flex-direction: row;
                 align-items: center;
                 width: 100%;
-                height: calc(25vh - env(safe-area-inset-bottom, 0px));
+                height: calc(25vh - 28px - env(safe-area-inset-bottom, 0px));
                 padding: calc(2vh + 8px) 16px;
                 gap: calc(1vh + 4px);
                 overflow-x: auto;
@@ -2905,6 +2955,8 @@
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
+                flex: 1;
+                touch-action: pan-x;
             }
             
             .editing-chain-sequence::-webkit-scrollbar {
@@ -3214,6 +3266,7 @@
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
+                touch-action: pan-x;
             }
             
             .editing-chain-sequence::-webkit-scrollbar {
@@ -3464,6 +3517,9 @@
                         </div>
                     </div>
                     <div class="editing-sequence-column">
+                        <div class="mobile-edit-header">
+                            <h5>Edit Tree</h5>
+                        </div>
                         <div class="editing-chain-sequence" id="editingChainSequence">
                         <div class="chain-upload-tile" id="chainUploadTile">
                             <div class="chain-upload-content" id="chainUploadContent">
@@ -3552,20 +3608,22 @@
                 // Add touch event handlers specifically for horizontal scrolling
                 let isScrolling = false;
                 let startX = 0;
+                let startY = 0;
                 let scrollLeft = 0;
                 
                 editingChainSequence.addEventListener('touchstart', function(e) {
                     isScrolling = false;
                     startX = e.touches[0].pageX;
+                    startY = e.touches[0].pageY;
                     scrollLeft = editingChainSequence.scrollLeft;
                 }, { passive: true });
                 
                 editingChainSequence.addEventListener('touchmove', function(e) {
                     if (!isScrolling) {
                         const deltaX = Math.abs(e.touches[0].pageX - startX);
-                        const deltaY = Math.abs(e.touches[0].pageY - (e.touches[0].pageY));
+                        const deltaY = Math.abs(e.touches[0].pageY - startY);
                         
-                        if (deltaX > deltaY) {
+                        if (deltaX > deltaY && deltaX > 10) {
                             isScrolling = true;
                         }
                     }
@@ -3582,13 +3640,20 @@
                     isScrolling = false;
                 }, { passive: true });
                 
-                console.log('✅ Horizontal scrolling enabled for editing chain');
+                // Add desktop mouse wheel horizontal scrolling
+                editingChainSequence.addEventListener('wheel', function(e) {
+                    // Convert vertical mouse wheel to horizontal scrolling
+                    e.preventDefault();
+                    this.scrollLeft += e.deltaY;
+                }, { passive: false });
+                
+                console.log('✅ Horizontal scrolling enabled for editing chain (mobile & desktop)');
             }
         }
         
         // Polling function for async generation
         async function pollForCompletion(requestId, imageIndex) {
-            const maxAttempts = 60; // 60 attempts × 3 seconds = 3 minutes max
+            const maxAttempts = 80; // 80 attempts × 3 seconds = 4 minutes max
             let attempts = 0;
             
             while (attempts < maxAttempts) {
@@ -3939,49 +4004,47 @@
             // Clear existing panels
             sequence.innerHTML = '';
             
-            // Calculate grid layout same as export function
+            // Simple grid calculation
             const totalImages = seedHistory.length;
-            let columns = Math.ceil(Math.sqrt(totalImages * (16/9)));
+            let columns = Math.ceil(Math.sqrt(totalImages));
             let rows = Math.ceil(totalImages / columns);
-            
-            // Adjust if needed to ensure all images fit
-            while (rows * columns < totalImages) {
-                columns++;
-                rows = Math.ceil(totalImages / columns);
-            }
             
             console.log(`📐 Modal grid layout: ${columns}x${rows} for ${totalImages} images`);
             
-            // Set grid layout on the sequence container
+            // Simple tiled grid - auto height
             sequence.style.cssText = `
                 display: grid;
-                grid-template-columns: repeat(${columns}, 1fr);
-                grid-template-rows: repeat(${rows}, 1fr);
-                gap: 16px;
-                max-width: 95vw;
-                max-height: 60vh;
-                padding: 0;
+                grid-template-columns: repeat(${columns}, 200px);
+                gap: 8px;
+                padding: 20px;
                 background: white;
-                border-radius: 0;
-                box-shadow: none;
-                margin-bottom: 48px;
-                border: none;
-                align-content: center;
                 justify-content: center;
-                align-items: center;
+                margin: 0 auto;
+                box-sizing: border-box;
+                max-width: 95vw;
+                overflow: auto;
             `;
             
-            // Generate grid items for each iteration (same as export)
+            // Generate grid items - each preserves original aspect ratio
             seedHistory.forEach((seed, index) => {
                 const gridItem = document.createElement('div');
-                gridItem.className = 'comic-panel';
-                
-                gridItem.innerHTML = `
-                    <img src="${seed.imageUrl}" alt="Iteration ${index + 1}" class="comic-panel-image">
-                    <div class="comic-panel-label">${seed.title}</div>
-                    <div class="comic-panel-number">${index + 1}</div>
+                gridItem.style.cssText = `
+                    width: 200px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: transparent;
                 `;
                 
+                const img = document.createElement('img');
+                img.src = seed.imageUrl;
+                img.style.cssText = `
+                    width: 100%;
+                    height: auto;
+                    display: block;
+                `;
+                
+                gridItem.appendChild(img);
                 sequence.appendChild(gridItem);
             });
             
@@ -4022,17 +4085,16 @@
             
             console.log(`🔍 Found ${seedHistory.length} images in editing history to export`);
             
-            // Create a temporary container with 16:9 aspect ratio for Twitter sharing
-            const aspectRatio = 16 / 9;
-            const baseWidth = 1600; // Base width for high quality
-            const baseHeight = Math.round(baseWidth / aspectRatio); // 900px for 16:9
+            // Create a temporary container - maximum resolution
+            const baseWidth = 4800; // Ultra high resolution
+            const baseHeight = 4000; // Ultra high resolution
             
             const exportContainer = document.createElement('div');
             exportContainer.style.cssText = `
                 background: #f8f8f8;
                 width: ${baseWidth}px;
                 height: ${baseHeight}px;
-                padding: 40px;
+                padding: 20px;
                 font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
                 position: fixed;
                 top: -10000px;
@@ -4042,6 +4104,8 @@
                 box-shadow: none;
                 display: flex;
                 flex-direction: column;
+                align-items: center;
+                justify-content: center;
                 box-sizing: border-box;
             `;
             
@@ -4063,135 +4127,51 @@
                 <p style="
                     font-size: 16px;
                     color: #666;
-                    margin: 0;
-                    font-weight: 300;
-                ">Learn more at <a href="https://bfl.ai/models/flux-kontext" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">https://bfl.ai/models/flux-kontext</a></p>
+                    margin: 0 0 4px 0;
+                    font-weight: 500;
+                ">Create your own at <span style="color: #2d2d2d; font-weight: 600;">https://www.komposer.xyz/</span></p>
             `;
             
-            // Create a grid layout for the sequence instead of horizontal line
-            const availableHeight = baseHeight - 140; // Account for header and padding
-            const availableWidth = baseWidth - 80; // Account for side padding
-            
-            // Use seedHistory directly instead of looking for DOM elements
+            // Simple grid calculation matching web view
             const totalImages = seedHistory.length;
-            console.log(`🔍 Using ${totalImages} images from seedHistory for export`);
-            
-            // Calculate optimal grid layout for 16:9 container
-            let columns = Math.ceil(Math.sqrt(totalImages * (16/9)));
+            let columns = Math.ceil(Math.sqrt(totalImages));
             let rows = Math.ceil(totalImages / columns);
             
-            // Adjust if needed to ensure all images fit
-            while (rows * columns < totalImages) {
-                columns++;
-                rows = Math.ceil(totalImages / columns);
-            }
-            
-            console.log(`📐 Grid layout: ${columns}x${rows} for ${totalImages} images`);
-            
-            // Calculate available space per image (with gaps)
-            const gap = 16;
-            const availableWidthPerImage = (availableWidth - (columns - 1) * gap) / columns;
-            const availableHeightPerImage = (availableHeight - (rows - 1) * gap) / rows;
+            console.log(`📐 PNG Grid layout: ${columns}x${rows} for ${totalImages} images`);
             
             const sequenceGrid = document.createElement('div');
             sequenceGrid.style.cssText = `
                 display: grid;
-                grid-template-columns: repeat(${columns}, 1fr);
-                grid-template-rows: repeat(${rows}, 1fr);
-                gap: ${gap}px;
-                flex: 1;
-                width: 100%;
-                height: ${availableHeight}px;
-                align-content: center;
+                grid-template-columns: repeat(${columns}, 800px);
+                gap: 40px;
+                padding: 80px;
                 justify-content: center;
-                align-items: center;
+                background: white;
+                width: auto;
+                height: auto;
             `;
             
-            // Add each image from seedHistory to the grid with preserved aspect ratios
+            // Add each image from seedHistory to the grid
             seedHistory.forEach((seed, index) => {
                 const gridItem = document.createElement('div');
                 gridItem.style.cssText = `
-                    width: 100%;
-                    height: 100%;
-                    border-radius: 8px;
-                    overflow: hidden;
-                    position: relative;
-                    border: 2px solid #ddd;
-                    background: #f5f5f5;
+                    width: 800px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    background: transparent;
                 `;
                 
-                // Create the image element that will maintain its aspect ratio
                 const img = document.createElement('img');
                 img.src = seed.imageUrl;
                 img.style.cssText = `
-                    max-width: 100%;
-                    max-height: 100%;
-                    width: auto;
+                    width: 100%;
                     height: auto;
-                    object-fit: contain;
                     display: block;
                 `;
                 img.crossOrigin = 'anonymous';
-                console.log('Adding image to grid:', seed.imageUrl, 'Title:', seed.title);
-                
-                // Wait for image to load to get its aspect ratio
-                img.onload = function() {
-                    const imgAspect = this.naturalWidth / this.naturalHeight;
-                    const containerAspect = availableWidthPerImage / availableHeightPerImage;
-                    
-                    // Fit image to container while maintaining aspect ratio
-                    if (imgAspect > containerAspect) {
-                        // Image is wider - fit to width
-                        this.style.width = '100%';
-                        this.style.height = 'auto';
-                    } else {
-                        // Image is taller - fit to height
-                        this.style.width = 'auto';
-                        this.style.height = '100%';
-                    }
-                };
                 
                 gridItem.appendChild(img);
-                
-                // Add label at the bottom
-                const label = document.createElement('div');
-                label.style.cssText = `
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 100%);
-                    color: white;
-                    font-size: ${Math.max(8, Math.floor(availableWidthPerImage / 20))}px;
-                    font-weight: 500;
-                    padding: 4px 6px;
-                    text-align: center;
-                    line-height: 1.2;
-                `;
-                label.textContent = seed.title;
-                gridItem.appendChild(label);
-                
-                // Add step number indicator in top-left
-                const stepNumber = document.createElement('div');
-                stepNumber.style.cssText = `
-                    position: absolute;
-                    top: 4px;
-                    left: 4px;
-                    background: rgba(0,0,0,0.8);
-                    color: white;
-                    font-size: ${Math.max(8, Math.floor(availableWidthPerImage / 25))}px;
-                    font-weight: 600;
-                    padding: 2px 4px;
-                    border-radius: 3px;
-                    line-height: 1;
-                    z-index: 10;
-                `;
-                stepNumber.textContent = `${index + 1}`;
-                gridItem.appendChild(stepNumber);
-                
                 sequenceGrid.appendChild(gridItem);
             });
             
@@ -4237,16 +4217,16 @@
                 if (typeof html2canvas !== 'undefined') {
                 html2canvas(exportContainer, {
                     backgroundColor: '#f8f8f8',
-                    scale: 1, // Reduced scale for debugging
+                    scale: 3, // Ultra high resolution
                     useCORS: true,
                     allowTaint: true,
                     width: baseWidth,
                     height: baseHeight,
                     scrollX: 0,
                     scrollY: 0,
-                    logging: true, // Enable logging for debugging
-                    foreignObjectRendering: false, // Disable for better compatibility
-                    imageTimeout: 5000, // 5 second timeout
+                    logging: false,
+                    foreignObjectRendering: false,
+                    imageTimeout: 10000, // Longer timeout for high res
                     onclone: function(clonedDoc) {
                         console.log('🖼️ html2canvas cloned document');
                         const clonedImages = clonedDoc.querySelectorAll('img');
@@ -6421,6 +6401,13 @@
             
             const content = card.querySelector('.image-card-content');
             if (content) {
+                // Check if card already has a successful image - don't replace it with error
+                const existingImage = content.querySelector('img:not(.loading-placeholder)');
+                if (existingImage && existingImage.src && !existingImage.src.includes('data:image/svg')) {
+                    console.log(`⚠️ Skipping error update for card ${iteration} - already has successful image`);
+                    return;
+                }
+                
                 content.innerHTML = `
                     <div class="error-state">
                         <p>❌ ${errorMessage}</p>
@@ -7638,9 +7625,10 @@
             // Quick check to prevent rapid clicks (reduced debounce for mobile)
             if (useAsInputDebounce) {
                 console.log('⏭️ Ignoring rapid click, processing previous request...');
+                showToast('Please wait, already processing...', 'info');
                 return;
             }
-            useAsInputDebounce = setTimeout(() => { useAsInputDebounce = null; }, 1500); // Reduced to 1.5 seconds
+            useAsInputDebounce = setTimeout(() => { useAsInputDebounce = null; }, 2000); // Increased to 2 seconds for better stability
             
             console.log('🔄 Using generated image as new input:', title);
             
@@ -7821,13 +7809,37 @@
                 setTimeout(() => {
                     // Check if we have image data before starting generation
                     if (!currentImageBase64) {
-                        console.error('❌ No image data available for generation');
-                        showToast('Unable to process image. Please try a different image.', 'error');
+                        console.warn('⚠️ No base64 data available, attempting final conversion...');
                         
-                        // Reset button states
-                        if (uploadContainer) {
-                            uploadContainer.classList.remove('upload-loading');
-                        }
+                        // Try one more time to convert the image URL to base64
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        img.onload = function() {
+                            try {
+                                const canvas = document.createElement('canvas');
+                                const ctx = canvas.getContext('2d');
+                                canvas.width = this.naturalWidth;
+                                canvas.height = this.naturalHeight;
+                                ctx.drawImage(this, 0, 0);
+                                currentImageBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+                                console.log('✅ Final conversion successful, starting generation...');
+                                autoplaySequence(12);
+                            } catch (canvasError) {
+                                console.error('❌ Final conversion failed:', canvasError);
+                                showToast('Unable to process image. Please try a different image.', 'error');
+                                if (uploadContainer) {
+                                    uploadContainer.classList.remove('upload-loading');
+                                }
+                            }
+                        };
+                        img.onerror = function() {
+                            console.error('❌ Image failed to load for conversion');
+                            showToast('Unable to process image. Please try a different image.', 'error');
+                            if (uploadContainer) {
+                                uploadContainer.classList.remove('upload-loading');
+                            }
+                        };
+                        img.src = imageUrl;
                         return;
                     }
                     
@@ -7854,7 +7866,14 @@
             } catch (error) {
                 console.error('❌ Error using image as input:', error);
                 
+                // Reset debounce flag on error to allow retry
+                if (useAsInputDebounce) {
+                    clearTimeout(useAsInputDebounce);
+                    useAsInputDebounce = null;
+                }
+                
                 // Remove loading state on error
+                const uploadContainer = document.getElementById('uploadZone') || document.querySelector('.upload-box .element-content');
                 if (uploadContainer) {
                     uploadContainer.classList.remove('upload-loading');
                 }
@@ -8073,7 +8092,7 @@
             
             <div class="comic-strip-header">
                 <h2>FLUX.1 Kontext Editing Chain</h2>
-                <p>Learn more at <a href="https://bfl.ai/models/flux-kontext" target="_blank" rel="noopener noreferrer">https://bfl.ai/models/flux-kontext</a></p>
+                <p>Create your own at <a href="https://www.komposer.xyz/" target="_blank" rel="noopener noreferrer">https://www.komposer.xyz/</a></p>
             </div>
             
             <div class="comic-strip-sequence" id="comicStripSequence">
