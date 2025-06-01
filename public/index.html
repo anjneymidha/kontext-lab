@@ -460,6 +460,40 @@
             font-weight: 500;
             opacity: 0.9;
         }
+
+        /* Download button positioned in top-right corner */
+        .download-button {
+            position: absolute !important;
+            top: 8px !important;
+            right: 8px !important;
+            width: 32px !important;
+            height: 32px !important;
+            background: rgba(0, 0, 0, 0.7) !important;
+            color: white !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 14px !important;
+            border-radius: 6px !important;
+            transition: all 0.2s ease !important;
+            opacity: 0.8 !important;
+            z-index: 60 !important;
+            backdrop-filter: blur(4px) !important;
+            pointer-events: auto !important;
+            visibility: visible !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            margin: 0 !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .download-button:hover {
+            background: rgba(80, 120, 200, 0.9) !important;
+            opacity: 1 !important;
+            transform: scale(1.05) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+        }
+
         
         /* Firefox-specific fixes for REMIX button visibility */
         @-moz-document url-prefix() {
@@ -626,27 +660,20 @@
         }
 
         .comic-strip-sequence {
-            display: flex;
-            gap: 8px;
-            max-width: 95vw;
-            overflow-x: auto;
-            padding: 0;
-            background: white;
-            border-radius: 0;
-            box-shadow: none;
-            margin-bottom: 48px;
-            border: none;
+            /* Grid layout will be set dynamically via JavaScript */
         }
 
         .comic-panel {
-            flex-shrink: 0;
-            width: 320px;
             background: white;
-            border-radius: 0;
+            border-radius: 8px;
             overflow: hidden;
-            border: none;
+            border: 2px solid #ddd;
             box-shadow: none;
             position: relative;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .comic-panel:first-child::before,
@@ -659,16 +686,41 @@
         }
 
         .comic-panel-number {
-            display: none;
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 3px;
+            line-height: 1;
+            z-index: 10;
         }
 
         .comic-panel-image {
-            width: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
             height: auto;
-            max-height: 600px;
             object-fit: contain;
             display: block;
             background: #f5f5f5;
+        }
+
+        .comic-panel-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 100%);
+            color: white;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 6px;
+            text-align: center;
+            line-height: 1.2;
         }
 
         .comic-panel-title {
@@ -1052,7 +1104,7 @@
         }
 
         .editing-chain-header .subtitle {
-            font-size: 21px;
+            font-size: 10.5px;
             color: #68767D;
             margin: 4px 0 0 0;
             font-weight: 400;
@@ -1070,12 +1122,19 @@
             color: #2D3748;
         }
 
+
         .workflow-row {
             display: flex;
             gap: 16px;
             align-items: stretch;
             height: 100%;
             flex: 1;
+        }
+
+        .editing-sequence-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         
         .controls-column {
@@ -1623,7 +1682,7 @@
         }
 
         .subtitle-text {
-            font-size: 16px;
+            font-size: 8px;
             line-height: 1.3;
             color: #666;
             padding: 0;
@@ -1666,7 +1725,7 @@
             }
             
             .subtitle-text {
-                font-size: 12px;
+                font-size: 6px;
                 padding: 0 12px 8px 12px;
             }
             
@@ -2656,14 +2715,14 @@
             /* Full height image grid on mobile */
             .generations-section {
                 flex: 1;
-                min-height: calc(100vh - 180px);
+                min-height: calc(75vh - env(safe-area-inset-bottom, 0px));
                 padding: 8px 8px 20px 8px;
                 grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
                 gap: 8px;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
                 display: grid;
-                margin-bottom: 80px !important; /* Extra space for bottom bar */
+                margin-bottom: calc(25vh + 20px) !important; /* Extra space for 25vh bottom bar */
             }
             
             /* Enhanced touch-friendly image cards */
@@ -2764,8 +2823,9 @@
             }
             
             .editing-chain-header .subtitle {
-                font-size: 10px;
+                font-size: 5px;
             }
+            
             
             .header-controls {
                 flex-wrap: wrap;
@@ -2798,7 +2858,7 @@
                 left: 0 !important;
                 right: 0 !important;
                 width: 100vw !important;
-                height: 80px !important;
+                height: 25vh !important;
                 background: rgba(255, 255, 255, 0.95) !important;
                 backdrop-filter: blur(20px) !important;
                 border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
@@ -2807,6 +2867,7 @@
                 padding: 0 !important;
                 transform: none !important;
                 margin: 0 !important;
+                padding-bottom: env(safe-area-inset-bottom, 0px) !important;
             }
             
             /* Hide resize handle on mobile */
@@ -2817,12 +2878,17 @@
             /* Hide workflow controls */
             .workflow-row {
                 display: block;
-                height: 80px;
+                height: 25vh;
                 padding: 0;
             }
             
             .controls-column {
                 display: none; /* Hide the title and buttons */
+            }
+            
+            .editing-sequence-column {
+                width: 100%;
+                flex: 1;
             }
             
             /* Simple horizontal scrolling chain */
@@ -2831,9 +2897,9 @@
                 flex-direction: row;
                 align-items: center;
                 width: 100%;
-                height: 80px;
-                padding: 12px 16px;
-                gap: 12px;
+                height: calc(25vh - env(safe-area-inset-bottom, 0px));
+                padding: calc(2vh + 8px) 16px;
+                gap: calc(1vh + 4px);
                 overflow-x: auto;
                 overflow-y: hidden;
                 -webkit-overflow-scrolling: touch;
@@ -2847,10 +2913,12 @@
             
             /* Simple horizontal scrolling thumbnails */
             .chain-upload-tile, .chain-skeleton-tile, .chain-image {
-                width: 56px;
-                height: 56px;
-                min-width: 56px;
-                min-height: 56px;
+                width: calc(20vh - 32px);
+                height: calc(20vh - 32px);
+                min-width: calc(20vh - 32px);
+                min-height: calc(20vh - 32px);
+                max-width: 120px;
+                max-height: 120px;
                 border-radius: 8px;
                 display: flex;
                 flex-direction: column;
@@ -2899,8 +2967,9 @@
             }
             
             .upload-icon {
-                font-size: 18px;
+                font-size: calc(3vh + 8px);
                 margin-bottom: 0;
+                max-font-size: 24px;
             }
             
             /* Force bottom bar to always be sticky */
@@ -3088,8 +3157,8 @@
                 flex: 1;
                 grid-template-columns: 1fr;
                 gap: 12px;
-                padding: 8px 8px 90px 8px;
-                min-height: calc(100vh - 80px);
+                padding: 8px 8px calc(25vh + 40px) 8px;
+                min-height: calc(75vh - env(safe-area-inset-bottom, 0px));
                 display: grid;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
@@ -3108,12 +3177,11 @@
                 bottom: 0;
                 left: 0;
                 right: 0;
-                height: 70px;
+                height: 25vh;
                 background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(20px);
                 border-top: 1px solid rgba(0, 0, 0, 0.1);
                 box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.1);
-                z-index: 1000;
                 z-index: 1000;
                 padding: 0;
             }
@@ -3124,7 +3192,7 @@
             
             .workflow-row {
                 display: block;
-                height: 70px;
+                height: 100%;
                 padding: 0;
             }
             
@@ -3138,9 +3206,9 @@
                 flex-direction: row;
                 align-items: center;
                 width: 100%;
-                height: 70px;
-                padding: 8px 12px;
-                gap: 8px;
+                height: calc(25vh - 40px); /* Account for edit tree header */
+                padding: 12px 16px;
+                gap: 12px;
                 overflow-x: auto;
                 overflow-y: hidden;
                 -webkit-overflow-scrolling: touch;
@@ -3153,17 +3221,17 @@
             }
             
             .chain-upload-tile, .chain-skeleton-tile, .chain-image {
-                width: 48px;
-                height: 48px;
-                min-width: 48px;
-                min-height: 48px;
-                border-radius: 6px;
+                width: calc(20vh - 32px); /* Dynamic size based on container height */
+                height: calc(20vh - 32px);
+                min-width: calc(20vh - 32px);
+                min-height: calc(20vh - 32px);
+                border-radius: 8px;
                 flex-shrink: 0;
                 flex-grow: 0;
             }
             
             .upload-icon {
-                font-size: 16px;
+                font-size: calc(3vh + 8px); /* Scale with container size */
             }
             
             .upload-label {
@@ -3257,11 +3325,12 @@
                 }
                 
                 .generations-section {
-                    min-height: calc(55vh - env(safe-area-inset-bottom));
+                    min-height: calc(75vh - env(safe-area-inset-bottom));
                 }
                 
                 .editing-chain-section {
                     padding-bottom: calc(12px + env(safe-area-inset-bottom));
+                    height: 25vh !important;
                 }
             }
         }
@@ -3282,7 +3351,7 @@
                             <button class="home-btn-inline" onclick="resetApp()" title="Reset App"></button>
                         </div>
                         <div class="element-content">
-                            <div class="subtitle-text">KONTEXT experiment</div>
+                            <div class="subtitle-text">an a16z infra + BFL + mistral collab</div>
                             <div class="attribution">A <a href="https://bfl.ai/" target="_blank">KONTEXT</a> experiment</div>
                         </div>
                     </div>
@@ -3380,7 +3449,7 @@
                             <div class="chain-title-row">
                                 <h3>KOMPOSER</h3>
                             </div>
-                            <p class="subtitle">A <a href="https://bfl.ai/" target="_blank">KONTEXT</a> experiment</p>
+                            <p class="subtitle">an a16z infra + BFL + mistral collab</p>
                             <div class="header-controls">
                                 <button class="export-sequence-btn" onclick="openComicStripModal()" title="Export sequence">
                                     SHARE
@@ -3394,7 +3463,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="editing-chain-sequence" id="editingChainSequence">
+                    <div class="editing-sequence-column">
+                        <div class="editing-chain-sequence" id="editingChainSequence">
                         <div class="chain-upload-tile" id="chainUploadTile">
                             <div class="chain-upload-content" id="chainUploadContent">
                                 <div class="upload-icon">📁</div>
@@ -3418,6 +3488,7 @@
                         <div class="chain-skeleton-tile">
                             <div class="skeleton-shimmer"></div>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -3868,16 +3939,50 @@
             // Clear existing panels
             sequence.innerHTML = '';
             
-            // Generate comic panels for each iteration
+            // Calculate grid layout same as export function
+            const totalImages = seedHistory.length;
+            let columns = Math.ceil(Math.sqrt(totalImages * (16/9)));
+            let rows = Math.ceil(totalImages / columns);
+            
+            // Adjust if needed to ensure all images fit
+            while (rows * columns < totalImages) {
+                columns++;
+                rows = Math.ceil(totalImages / columns);
+            }
+            
+            console.log(`📐 Modal grid layout: ${columns}x${rows} for ${totalImages} images`);
+            
+            // Set grid layout on the sequence container
+            sequence.style.cssText = `
+                display: grid;
+                grid-template-columns: repeat(${columns}, 1fr);
+                grid-template-rows: repeat(${rows}, 1fr);
+                gap: 16px;
+                max-width: 95vw;
+                max-height: 60vh;
+                padding: 0;
+                background: white;
+                border-radius: 0;
+                box-shadow: none;
+                margin-bottom: 48px;
+                border: none;
+                align-content: center;
+                justify-content: center;
+                align-items: center;
+            `;
+            
+            // Generate grid items for each iteration (same as export)
             seedHistory.forEach((seed, index) => {
-                const panel = document.createElement('div');
-                panel.className = 'comic-panel';
+                const gridItem = document.createElement('div');
+                gridItem.className = 'comic-panel';
                 
-                panel.innerHTML = `
+                gridItem.innerHTML = `
                     <img src="${seed.imageUrl}" alt="Iteration ${index + 1}" class="comic-panel-image">
+                    <div class="comic-panel-label">${seed.title}</div>
+                    <div class="comic-panel-number">${index + 1}</div>
                 `;
                 
-                sequence.appendChild(panel);
+                sequence.appendChild(gridItem);
             });
             
             // Show modal with animation
@@ -3909,13 +4014,25 @@
         function downloadComicStrip() {
             console.log('📸 Downloading comic strip with branding');
             
-            const sequence = document.getElementById('comicStripSequence');
+            // Check if we have seed history to export
+            if (seedHistory.length === 0) {
+                alert('No editing history available to export. Please generate some images first.');
+                return;
+            }
             
-            // Create a temporary container with padding and branding
+            console.log(`🔍 Found ${seedHistory.length} images in editing history to export`);
+            
+            // Create a temporary container with 16:9 aspect ratio for Twitter sharing
+            const aspectRatio = 16 / 9;
+            const baseWidth = 1600; // Base width for high quality
+            const baseHeight = Math.round(baseWidth / aspectRatio); // 900px for 16:9
+            
             const exportContainer = document.createElement('div');
             exportContainer.style.cssText = `
                 background: #f8f8f8;
-                padding: 40px 60px;
+                width: ${baseWidth}px;
+                height: ${baseHeight}px;
+                padding: 40px;
                 font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
                 position: fixed;
                 top: -10000px;
@@ -3923,128 +4040,232 @@
                 z-index: -1;
                 border-radius: 0;
                 box-shadow: none;
-                width: max-content;
-                white-space: nowrap;
+                display: flex;
+                flex-direction: column;
+                box-sizing: border-box;
             `;
             
-            // Add title and branding to match web header
+            // Add title and branding for 16:9 format
             const brandingHeader = document.createElement('div');
             brandingHeader.style.cssText = `
                 text-align: center;
-                margin-bottom: 16px;
+                margin-bottom: 20px;
+                flex-shrink: 0;
             `;
             brandingHeader.innerHTML = `
                 <h3 style="
-                    font-size: 18px;
+                    font-size: 24px;
                     font-weight: 600;
                     color: #2d2d2d;
-                    margin: 0 0 4px 0;
+                    margin: 0 0 6px 0;
                     letter-spacing: -0.02em;
                 ">FLUX.1 Kontext Editing Chain</h3>
                 <p style="
-                    font-size: 14px;
+                    font-size: 16px;
                     color: #666;
                     margin: 0;
                     font-weight: 300;
                 ">Learn more at <a href="https://bfl.ai/models/flux-kontext" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">https://bfl.ai/models/flux-kontext</a></p>
             `;
             
-            // Clone the sequence content
-            const sequenceClone = sequence.cloneNode(true);
-            sequenceClone.style.cssText = `
-                display: flex;
-                gap: 8px;
+            // Create a grid layout for the sequence instead of horizontal line
+            const availableHeight = baseHeight - 140; // Account for header and padding
+            const availableWidth = baseWidth - 80; // Account for side padding
+            
+            // Use seedHistory directly instead of looking for DOM elements
+            const totalImages = seedHistory.length;
+            console.log(`🔍 Using ${totalImages} images from seedHistory for export`);
+            
+            // Calculate optimal grid layout for 16:9 container
+            let columns = Math.ceil(Math.sqrt(totalImages * (16/9)));
+            let rows = Math.ceil(totalImages / columns);
+            
+            // Adjust if needed to ensure all images fit
+            while (rows * columns < totalImages) {
+                columns++;
+                rows = Math.ceil(totalImages / columns);
+            }
+            
+            console.log(`📐 Grid layout: ${columns}x${rows} for ${totalImages} images`);
+            
+            // Calculate available space per image (with gaps)
+            const gap = 16;
+            const availableWidthPerImage = (availableWidth - (columns - 1) * gap) / columns;
+            const availableHeightPerImage = (availableHeight - (rows - 1) * gap) / rows;
+            
+            const sequenceGrid = document.createElement('div');
+            sequenceGrid.style.cssText = `
+                display: grid;
+                grid-template-columns: repeat(${columns}, 1fr);
+                grid-template-rows: repeat(${rows}, 1fr);
+                gap: ${gap}px;
+                flex: 1;
+                width: 100%;
+                height: ${availableHeight}px;
+                align-content: center;
+                justify-content: center;
                 align-items: center;
-                justify-content: flex-start;
-                flex-wrap: nowrap;
-                width: max-content;
-                padding: 16px 0;
-                overflow: visible;
             `;
             
-            // Style the cloned chain images to match web exactly
-            const chainImages = sequenceClone.querySelectorAll('.chain-image');
-            chainImages.forEach(chainImage => {
-                chainImage.style.cssText = `
-                    flex-shrink: 0;
-                    width: 120px;
-                    height: auto;
-                    max-height: 200px;
+            // Add each image from seedHistory to the grid with preserved aspect ratios
+            seedHistory.forEach((seed, index) => {
+                const gridItem = document.createElement('div');
+                gridItem.style.cssText = `
+                    width: 100%;
+                    height: 100%;
                     border-radius: 8px;
-                    overflow: visible;
+                    overflow: hidden;
                     position: relative;
                     border: 2px solid #ddd;
                     background: #f5f5f5;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                 `;
                 
-                // Style the image inside
-                const img = chainImage.querySelector('img');
-                if (img) {
-                    img.style.cssText = `
-                        width: 100%;
-                        height: auto;
-                        object-fit: contain;
-                        display: block;
-                    `;
-                }
-                
-                // Style the label
-                const label = chainImage.querySelector('.chain-image-label');
-                if (label) {
-                    label.style.cssText = `
-                        position: absolute;
-                        bottom: 0;
-                        left: 0;
-                        right: 0;
-                        background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%);
-                        color: white;
-                        font-size: 10px;
-                        font-weight: 500;
-                        padding: 4px 6px;
-                        text-align: center;
-                    `;
-                }
-            });
-            
-            // Style the arrows to match web exactly
-            const arrows = sequenceClone.querySelectorAll('.chain-arrow');
-            arrows.forEach(arrow => {
-                arrow.style.cssText = `
-                    flex-shrink: 0;
-                    color: #999;
-                    font-size: 16px;
-                    font-weight: bold;
+                // Create the image element that will maintain its aspect ratio
+                const img = document.createElement('img');
+                img.src = seed.imageUrl;
+                img.style.cssText = `
+                    max-width: 100%;
+                    max-height: 100%;
+                    width: auto;
+                    height: auto;
+                    object-fit: contain;
+                    display: block;
                 `;
+                img.crossOrigin = 'anonymous';
+                console.log('Adding image to grid:', seed.imageUrl, 'Title:', seed.title);
+                
+                // Wait for image to load to get its aspect ratio
+                img.onload = function() {
+                    const imgAspect = this.naturalWidth / this.naturalHeight;
+                    const containerAspect = availableWidthPerImage / availableHeightPerImage;
+                    
+                    // Fit image to container while maintaining aspect ratio
+                    if (imgAspect > containerAspect) {
+                        // Image is wider - fit to width
+                        this.style.width = '100%';
+                        this.style.height = 'auto';
+                    } else {
+                        // Image is taller - fit to height
+                        this.style.width = 'auto';
+                        this.style.height = '100%';
+                    }
+                };
+                
+                gridItem.appendChild(img);
+                
+                // Add label at the bottom
+                const label = document.createElement('div');
+                label.style.cssText = `
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 100%);
+                    color: white;
+                    font-size: ${Math.max(8, Math.floor(availableWidthPerImage / 20))}px;
+                    font-weight: 500;
+                    padding: 4px 6px;
+                    text-align: center;
+                    line-height: 1.2;
+                `;
+                label.textContent = seed.title;
+                gridItem.appendChild(label);
+                
+                // Add step number indicator in top-left
+                const stepNumber = document.createElement('div');
+                stepNumber.style.cssText = `
+                    position: absolute;
+                    top: 4px;
+                    left: 4px;
+                    background: rgba(0,0,0,0.8);
+                    color: white;
+                    font-size: ${Math.max(8, Math.floor(availableWidthPerImage / 25))}px;
+                    font-weight: 600;
+                    padding: 2px 4px;
+                    border-radius: 3px;
+                    line-height: 1;
+                    z-index: 10;
+                `;
+                stepNumber.textContent = `${index + 1}`;
+                gridItem.appendChild(stepNumber);
+                
+                sequenceGrid.appendChild(gridItem);
             });
             
             // Assemble the export container
             exportContainer.appendChild(brandingHeader);
-            exportContainer.appendChild(sequenceClone);
+            exportContainer.appendChild(sequenceGrid);
             
             // Remove from DOM first since we'll add it back temporarily for measurement
             
             // Add to document temporarily
             document.body.appendChild(exportContainer);
             
-            // Wait for layout and get accurate dimensions
-            setTimeout(() => {
-                const actualWidth = Math.max(exportContainer.scrollWidth, exportContainer.offsetWidth);
-                const actualHeight = Math.max(exportContainer.scrollHeight, exportContainer.offsetHeight);
+            // Wait for all images to load before capturing
+            const images = exportContainer.querySelectorAll('img');
+            let loadedImages = 0;
+            const totalImagesInExport = images.length;
+            
+            console.log(`📸 Starting export with ${totalImagesInExport} images`);
+            console.log('🔍 Image sources:', Array.from(images).map(img => img.src));
+            
+            function attemptCapture() {
+                console.log(`📏 Export dimensions: ${baseWidth}x${baseHeight} (16:9 aspect ratio for Twitter)`);
+                console.log(`🖼️ Attempting capture with ${loadedImages}/${totalImagesInExport} images loaded`);
                 
-                console.log(`📏 Export dimensions: ${actualWidth}x${actualHeight}`);
+                // Debug: Log container contents
+                console.log('📋 Export container HTML length:', exportContainer.innerHTML.length);
+                console.log('📐 Export container dimensions:', exportContainer.offsetWidth, 'x', exportContainer.offsetHeight);
+                console.log('📊 Export container visibility:', window.getComputedStyle(exportContainer).visibility);
+                
+                // Debug each image in the container
+                const containerImages = exportContainer.querySelectorAll('img');
+                containerImages.forEach((img, i) => {
+                    console.log(`Image ${i}:`, {
+                        src: img.src,
+                        complete: img.complete,
+                        naturalWidth: img.naturalWidth,
+                        naturalHeight: img.naturalHeight,
+                        visible: img.offsetWidth > 0 && img.offsetHeight > 0
+                    });
+                });
                 
                 // Use html2canvas to capture the branded sequence
                 if (typeof html2canvas !== 'undefined') {
-                    html2canvas(exportContainer, {
-                        backgroundColor: '#ffffff',
-                        scale: 2, // Higher resolution
-                        useCORS: true,
-                        allowTaint: true,
-                        width: actualWidth,
-                        height: actualHeight,
-                        scrollX: 0,
-                        scrollY: 0
-                    }).then(canvas => {
+                html2canvas(exportContainer, {
+                    backgroundColor: '#f8f8f8',
+                    scale: 1, // Reduced scale for debugging
+                    useCORS: true,
+                    allowTaint: true,
+                    width: baseWidth,
+                    height: baseHeight,
+                    scrollX: 0,
+                    scrollY: 0,
+                    logging: true, // Enable logging for debugging
+                    foreignObjectRendering: false, // Disable for better compatibility
+                    imageTimeout: 5000, // 5 second timeout
+                    onclone: function(clonedDoc) {
+                        console.log('🖼️ html2canvas cloned document');
+                        const clonedImages = clonedDoc.querySelectorAll('img');
+                        console.log(`Found ${clonedImages.length} images in clone`);
+                        clonedImages.forEach((img, i) => {
+                            console.log(`Clone img ${i}:`, {
+                                src: img.src,
+                                complete: img.complete,
+                                naturalWidth: img.naturalWidth,
+                                display: window.getComputedStyle(img).display,
+                                visibility: window.getComputedStyle(img).visibility
+                            });
+                            // Force images to be visible
+                            img.style.display = 'block';
+                            img.style.visibility = 'visible';
+                            img.style.opacity = '1';
+                        });
+                    }
+                }).then(canvas => {
                     // Clean up temporary container
                     document.body.removeChild(exportContainer);
                     
@@ -4072,7 +4293,48 @@
                     document.body.removeChild(exportContainer);
                     alert('To download, please take a screenshot of this sequence. We recommend using your browser\'s screenshot feature or a screenshot tool.');
                 }
-            }, 100);
+            }
+            
+            // Set up image load listeners with better debugging
+            console.log('🔄 Setting up image load listeners...');
+            if (totalImagesInExport > 0) {
+                images.forEach((img, index) => {
+                    console.log(`Setting up listener for image ${index}:`, img.src);
+                    if (img.complete && img.naturalWidth > 0) {
+                        console.log(`Image ${index} already loaded`);
+                        loadedImages++;
+                    } else {
+                        img.onload = () => {
+                            console.log(`✅ Image ${index} loaded:`, img.src);
+                            loadedImages++;
+                            if (loadedImages >= totalImagesInExport) {
+                                attemptCapture();
+                            }
+                        };
+                        img.onerror = (error) => {
+                            console.warn(`❌ Image ${index} failed to load:`, img.src, error);
+                            loadedImages++;
+                            if (loadedImages >= totalImagesInExport) {
+                                attemptCapture();
+                            }
+                        };
+                    }
+                });
+            }
+            
+            // Initial check (in case all images are already loaded)
+            console.log(`Initial check: ${loadedImages}/${totalImagesInExport} images ready`);
+            if (loadedImages >= totalImagesInExport || totalImagesInExport === 0) {
+                setTimeout(attemptCapture, 100); // Small delay to ensure DOM is ready
+            }
+            
+            // Fallback timeout in case some images never load
+            setTimeout(() => {
+                if (loadedImages < totalImagesInExport) {
+                    console.warn(`⚠️ Timeout: Only ${loadedImages}/${totalImagesInExport} images loaded, proceeding anyway`);
+                    attemptCapture();
+                }
+            }, 3000); // Increased timeout
         }
         
         function handleComicStripEscape(e) {
@@ -4239,6 +4501,11 @@
                          onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; this.style.backgroundColor='#ccc'; setTimeout(() => useAsInput('${result.imageUrl}', 'Cached ${index + 1}', '${result.promptId}'), 10);"
                          title="Use this image to start a new generation">
                     </div>
+                    <div class="download-button" 
+                         onclick="event.stopPropagation(); saveImageLocally('${result.imageUrl}', 'cached-${index + 1}-${Date.now()}.png', this);"
+                         title="Save this image to your device">
+                         ⬇
+                    </div>
                 </div>
             `;
             
@@ -4403,6 +4670,11 @@
                     <div class="use-as-input-icon" 
                          onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; this.style.backgroundColor='#ccc'; setTimeout(() => useAsInput('${imageUrl}', 'KONCEPT ${conceptIndex + 1} #${resultIndex + 1}', '${promptId}'), 10);"
                          title="Use this image to start a new generation">
+                    </div>
+                    <div class="download-button" 
+                         onclick="event.stopPropagation(); saveImageLocally('${imageUrl}', 'koncept-${conceptIndex + 1}-${resultIndex + 1}-${Date.now()}.png', this);"
+                         title="Save this image to your device">
+                         ⬇
                     </div>
                 `;
                 
@@ -6108,6 +6380,11 @@
                          onclick="event.stopPropagation(); this.style.opacity='0.5'; this.innerHTML='BRANCHING...'; this.style.pointerEvents='none'; this.style.backgroundColor='#ccc'; setTimeout(() => useAsInput('${imageUrl}', 'Edit ${iteration}', '${promptId}'), 10);"
                          title="Use this image to start a new generation">
                     </div>
+                    <div class="download-button" 
+                         onclick="event.stopPropagation(); saveImageLocally('${imageUrl}', 'edit-${iteration}-${Date.now()}.png', this);"
+                         title="Save this image to your device">
+                         ⬇
+                    </div>
                 `;
                 // Dynamically set aspect ratio after image loads
                 const img = content.querySelector('.result-image');
@@ -7115,6 +7392,65 @@
             console.log('🧹 Workspace cleared');
         }
         
+        // Save image directly to device
+        async function saveImageLocally(imageUrl, filename, button) {
+            const originalText = button.innerHTML;
+            const originalBg = button.style.backgroundColor;
+            
+            try {
+                button.innerHTML = '💾';
+                button.style.backgroundColor = 'rgba(80, 120, 200, 0.9)';
+                button.style.pointerEvents = 'none';
+                
+                // Check if on mobile for different handling
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                
+                if (isMobile) {
+                    // On mobile, open in new tab for user to save manually
+                    window.open(imageUrl, '_blank');
+                    console.log('📱 Opened image in new tab for mobile save');
+                } else {
+                    // On desktop, trigger automatic download
+                    const response = await fetch(imageUrl);
+                    if (!response.ok) throw new Error('Failed to fetch image');
+                    
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename || `komposer-image-${Date.now()}.png`;
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    window.URL.revokeObjectURL(url);
+                    console.log('💾 Image downloaded successfully');
+                }
+                
+                button.innerHTML = '✓';
+                button.style.backgroundColor = 'rgba(40, 160, 80, 0.9)';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.backgroundColor = originalBg;
+                    button.style.pointerEvents = 'auto';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('❌ Error saving image:', error);
+                button.innerHTML = '✗';
+                button.style.backgroundColor = 'rgba(200, 80, 80, 0.9)';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.backgroundColor = originalBg;
+                    button.style.pointerEvents = 'auto';
+                }, 2000);
+            }
+        }
+
         // Spawn 12 variations from clicked image for maximum exploration
         async function spawnVariationsFromImage(imageUrl, title, promptId) {
             console.log('🚀 Spawning variations from clicked image:', title);
