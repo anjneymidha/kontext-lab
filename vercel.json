@@ -1,5 +1,8 @@
 {
   "version": 2,
+  "analytics": {
+    "enable": true
+  },
   "builds": [
     {
       "src": "server.js",

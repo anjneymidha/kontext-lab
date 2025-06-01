@@ -6,6 +6,16 @@ const path = require('path');
 const crypto = require('crypto');
 const { Pool } = require('pg');
 
+// Vercel Analytics for server-side tracking
+let analytics = null;
+try {
+  if (process.env.VERCEL) {
+    analytics = require('@vercel/analytics/server');
+  }
+} catch (error) {
+  console.log('Vercel Analytics not available in development');
+}
+
 const app = express();
 const port = process.env.PORT || 8080;
 
@@ -1602,6 +1612,7 @@ app.post('/api/store-sample-image', async (req, res) => {
 
 // Store generated image endpoint for loop functionality
 app.post('/api/store-generated-image', async (req, res) => {
+  const startTime = Date.now();
   console.log('💾 Store generated image endpoint hit');
   
   try {
@@ -1703,6 +1714,15 @@ app.post('/api/store-generated-image', async (req, res) => {
     }
     
     console.log('🎯 Store operation completed successfully');
+    
+    // Track server-side analytics for image storage
+    if (analytics) {
+      analytics.track('image_stored_server', {
+        imageSize: imageBuffer.length,
+        processingTime: Date.now() - startTime,
+        storage: process.env.VERCEL ? 'postgresql' : 'filesystem'
+      });
+    }
     
     res.json({
       success: true,
