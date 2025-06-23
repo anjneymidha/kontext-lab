@@ -1,6 +1,6 @@
 {
   "name": "kontext-lab",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "AI-powered image transformation web app with Mistral AI and BFL Kontext",
   "main": "server.js",
   "engines": {
