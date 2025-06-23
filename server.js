@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { Pool } = require('pg');
+const packageJson = require('./package.json');
 
 // Vercel Analytics for server-side tracking
 let analytics = null;
@@ -2286,7 +2287,7 @@ app.post('/process', upload.single('image'), async (req, res) => {
 
 // Start server
 app.listen(port, () => {
-  console.log(`Kontext Explorer server running on http://localhost:${port}`);
+  console.log(`Kontext Explorer v${packageJson.version} server running on http://localhost:${port}`);
   console.log('Using Mistral API for image analysis and high-quality prompt generation');
   console.log('Enhanced with BFL prompting guide best practices for superior results');
 });

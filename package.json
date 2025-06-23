@@ -1,6 +1,6 @@
 {
   "name": "kontext-lab",
-  "version": "1.0.0",
+  "version": "0.0.2",
   "description": "AI-powered image transformation web app with Mistral AI and BFL Kontext",
   "main": "server.js",
   "engines": {
@@ -11,7 +11,8 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "build": "echo 'No build step required'",
-    "test": "echo 'No tests specified' && exit 0"
+    "test": "echo 'No tests specified' && exit 0",
+    "version:patch": "npm version patch --no-git-tag-version"
   },
   "keywords": [
     "ai",
