@@ -1136,7 +1136,7 @@ Make sure there is a good deal of variation between the instructions.`
     });
     
   } catch (error) {
-    console.error(`❌ ${vibe} prompt generation error:`, error);
+    console.error('❌ Prompt generation error:', error);
     
     // More specific error handling
     let errorMessage = 'Failed to generate vibe-specific prompts';
