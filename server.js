@@ -2290,4 +2290,5 @@ app.listen(port, () => {
   console.log(`Kontext Explorer v${packageJson.version} server running on http://localhost:${port}`);
   console.log('Using Mistral API for image analysis and high-quality prompt generation');
   console.log('Enhanced with BFL prompting guide best practices for superior results');
+  console.log('🐛 Fixed third iteration prompt generation bug - v0.0.2 hotfix');
 });
